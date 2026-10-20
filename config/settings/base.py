@@ -23,7 +23,10 @@ DJANGO_APPS = [
 ]
 
 THIRD_PARTY_APPS = [
+    "axes",
     "django_htmx",
+    "django_otp",
+    "django_otp.plugins.otp_totp",
 ]
 
 LOCAL_APPS = [
@@ -48,9 +51,11 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django_otp.middleware.OTPMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django_htmx.middleware.HtmxMiddleware",
+    "axes.middleware.AxesMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -103,9 +108,17 @@ MEDIA_ROOT = BASE_DIR / "media"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 AUTH_USER_MODEL = "accounts.User"
+AUTHENTICATION_BACKENDS = [
+    "axes.backends.AxesStandaloneBackend",
+    "django.contrib.auth.backends.ModelBackend",
+]
 LOGIN_URL = "accounts:login"
 LOGIN_REDIRECT_URL = "core:workspace"
 LOGOUT_REDIRECT_URL = "website:home"
+
+AXES_FAILURE_LIMIT = env.int("AXES_FAILURE_LIMIT", default=5)
+AXES_RESET_ON_SUCCESS = True
+AXES_COOLOFF_TIME = env.float("AXES_COOLOFF_HOURS", default=0.25)
 
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = "Lax"

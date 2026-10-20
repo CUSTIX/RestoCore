@@ -1,5 +1,6 @@
 import pytest
 from django.contrib.auth import authenticate, get_user_model
+from django.test import RequestFactory
 
 
 def test_project_uses_email_based_custom_user_model():
@@ -19,7 +20,12 @@ def test_user_can_authenticate_with_email():
         password="test-only-password",
     )
 
-    user = authenticate(email="manager@example.com", password="test-only-password")
+    request = RequestFactory().post("/login/")
+    user = authenticate(
+        request=request,
+        email="manager@example.com",
+        password="test-only-password",
+    )
 
     assert user is not None
     assert user.email == "manager@example.com"
