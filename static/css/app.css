@@ -738,3 +738,24 @@ a:focus-visible {
   min-height: 7rem;
   resize: vertical;
 }
+
+.order-detail-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(18rem, 22rem);
+  gap: 1rem;
+  align-items: start;
+}
+.order-sidebar {
+  display: grid;
+  gap: 1rem;
+}
+.data-table tfoot th {
+  padding: .9rem 1rem;
+  border-top: 1px solid var(--line);
+  text-align: left;
+}
+@media (max-width: 64rem) {
+  .order-detail-grid {
+    grid-template-columns: 1fr;
+  }
+}

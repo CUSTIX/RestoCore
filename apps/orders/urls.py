@@ -1,17 +1,12 @@
 from django.urls import path
 
-from apps.core.views import ModuleLandingView
+from .views import OrderAddItemView, OrderDetailView, OrderListView, OrderStatusUpdateView
 
 app_name = "orders"
 
 urlpatterns = [
-    path(
-        "",
-        ModuleLandingView.as_view(
-            permission_required="orders.access_orders",
-            module_name="Orders",
-            module_description="Order workflow features will follow the shared foundation.",
-        ),
-        name="home",
-    ),
+    path("", OrderListView.as_view(), name="home"),
+    path("<int:pk>/", OrderDetailView.as_view(), name="detail"),
+    path("<int:pk>/items/", OrderAddItemView.as_view(), name="add_item"),
+    path("<int:pk>/status/", OrderStatusUpdateView.as_view(), name="status"),
 ]

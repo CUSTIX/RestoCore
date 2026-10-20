@@ -1,0 +1,77 @@
+{% extends "layouts/internal.html" %}
+
+{% block title %}Orders | RestoCore{% endblock %}
+
+{% block main %}
+<section aria-labelledby="orders-title">
+  <div class="workspace-header">
+    <div>
+      <p class="eyebrow">Orders</p>
+      <h1 id="orders-title">Order management</h1>
+      <p class="muted">Track ongoing, serving, served, and cancelled orders.</p>
+    </div>
+    {% if perms.pos.access_pos %}
+      <a class="button" href="{% url 'pos:home' %}">Open cashier</a>
+    {% endif %}
+  </div>
+
+  <nav class="filter-tabs" aria-label="Order status filters">
+    <a href="{% url 'orders:home' %}">All</a>
+    <a href="{% url 'orders:home' %}?status=ongoing">Ongoing</a>
+    <a href="{% url 'orders:home' %}?status=serving">Serving</a>
+    <a href="{% url 'orders:home' %}?status=served">Served</a>
+    <a href="{% url 'orders:home' %}?status=cancelled">Cancelled</a>
+  </nav>
+
+  {% if orders %}
+    <div class="data-table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Order</th>
+            <th>Created</th>
+            <th>Items</th>
+            <th>Total</th>
+            <th>Status</th>
+            <th>Open</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for order in orders %}
+            <tr>
+              <td><strong>#{{ order.pk }}</strong></td>
+              <td>{{ order.created_at|date:"M j, Y g:i A" }}</td>
+              <td>{{ order.items.all|length }}</td>
+              <td>₱{{ order.total }}</td>
+              <td>
+                {% if order.status == "served" %}
+                  {% include "components/ui/status_badge.html" with label=order.get_status_display tone="success" %}
+                {% elif order.status == "ongoing" or order.status == "serving" %}
+                  {% include "components/ui/status_badge.html" with label=order.get_status_display tone="warning" %}
+                {% elif order.status == "cancelled" %}
+                  {% include "components/ui/status_badge.html" with label=order.get_status_display tone="danger" %}
+                {% endif %}
+              </td>
+              <td><a class="button button--small button--secondary" href="{% url 'orders:detail' order.pk %}">Details</a></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {% if is_paginated %}
+      <nav class="pagination" aria-label="Order pages">
+        {% if page_obj.has_previous %}
+          <a href="?{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}page={{ page_obj.previous_page_number }}">Previous</a>
+        {% endif %}
+        <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+          <a href="?{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}page={{ page_obj.next_page_number }}">Next</a>
+        {% endif %}
+      </nav>
+    {% endif %}
+  {% else %}
+    {% include "components/ui/empty_state.html" with title="No orders found" description="Orders created from the cashier will appear here." heading_id="orders-empty-title" %}
+  {% endif %}
+</section>
+{% endblock %}

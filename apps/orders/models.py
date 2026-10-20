@@ -21,6 +21,10 @@ class Order(TimeStampedModel):
     class Meta:
         ordering = ("-created_at", "-id")
 
+    @property
+    def total(self):
+        return as_money(sum((item.line_total for item in self.items.all()), start=0))
+
     def __str__(self) -> str:
         return f"Order #{self.pk or 'new'}"
 
