@@ -21,3 +21,12 @@ class TOTPVerificationForm(forms.Form):
         if not token.isdigit():
             raise forms.ValidationError("Enter the 6-digit code from your authenticator app.")
         return token
+
+
+class MFAChallengeForm(forms.Form):
+    token = forms.CharField(
+        label="Verification code",
+        max_length=64,
+        strip=True,
+        widget=forms.TextInput(attrs={"autocomplete": "one-time-code"}),
+    )

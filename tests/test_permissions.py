@@ -2,6 +2,8 @@ import pytest
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.urls import reverse
+from django_otp import DEVICE_ID_SESSION_KEY
+from django_otp.plugins.otp_totp.models import TOTPDevice
 
 from apps.accounts.roles import ROLE_PERMISSIONS
 
@@ -45,6 +47,16 @@ def test_permission_matrix_for_module_routes(client, role_name):
     )
     user.groups.add(Group.objects.get(name=role_name))
     client.force_login(user)
+
+    if role_name in {"owner", "payroll"}:
+        device = TOTPDevice.objects.create(
+            user=user,
+            name="Test authenticator",
+            confirmed=True,
+        )
+        session = client.session
+        session[DEVICE_ID_SESSION_KEY] = device.persistent_id
+        session.save()
 
     expected_permissions = ROLE_PERMISSIONS[role_name]
     for route_name, permission in ROUTES.items():

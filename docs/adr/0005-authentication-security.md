@@ -8,15 +8,20 @@ Accepted.
 
 RestoCore uses django-axes for login attempt tracking and lockout, with the Axes standalone authentication backend before Django's ModelBackend and Axes middleware last in the middleware chain.
 
-RestoCore also installs django-otp and its TOTP plugin. Multi-factor authentication is required by policy for owner, payroll, and superuser accounts, but enforcement is deferred until a safe device-enrollment and recovery flow exists.
+RestoCore uses django-otp with TOTP authenticators and one-time static recovery codes. Multi-factor authentication is required for owner, payroll, and superuser accounts before they can enter internal or Django-admin surfaces.
+
+Unenrolled MFA-required accounts are redirected to Account Security. Enrolled but unverified accounts are redirected to a verification challenge. Public website routes remain accessible without forcing an MFA challenge merely because the visitor is already signed in.
 
 ## Why
 
-Rate limiting is safe to enable immediately. Mandatory OTP without enrollment and recovery would create an account lockout risk, so policy and middleware are established first and enforcement follows with the enrollment workflow.
+High-privilege restaurant and payroll accounts require stronger protection than password-only authentication. Central middleware enforcement ensures future internal modules inherit the same policy without duplicating checks in each view.
 
 ## Consequences
 
 - Default login failure limit is five attempts with a 15-minute cooldown and can be overridden by environment variables.
-- OTP-aware request state is available through django-otp middleware.
-- Owner, payroll, and superuser routes must enforce verified MFA once enrollment is implemented.
-- Recovery codes and administrator recovery procedures must exist before enforcement is enabled.
+- Owner, payroll, and superuser accounts must enroll a TOTP authenticator before internal access.
+- A successful enrollment verifies the current session immediately.
+- TOTP codes and one-time recovery codes can satisfy the MFA challenge.
+- Recovery-code rotation invalidates all previous recovery codes.
+- Public website routes do not require an MFA challenge.
+- MFA enrollment and recovery-code rotation are written to the audit log.

@@ -1,11 +1,15 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
+from django.urls import reverse
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_http_methods, require_POST
+from django_otp import devices_for_user
+from django_otp import login as otp_login
 
 from apps.audit.services import record_audit_event
 
-from .forms import TOTPVerificationForm
+from .forms import MFAChallengeForm, TOTPVerificationForm
 from .mfa import (
     get_confirmed_totp_device,
     get_or_create_pending_totp_device,
@@ -59,6 +63,7 @@ def mfa_setup(request):
                 target=request.user,
                 after={"mfa_enabled": True},
             )
+            otp_login(request, device)
             request.session["new_recovery_codes"] = codes
             messages.success(request, "Multi-factor authentication is now configured.")
             return redirect("accounts:recovery_codes")
@@ -71,6 +76,37 @@ def mfa_setup(request):
         {
             "device": device,
             "form": form,
+        },
+    )
+
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def mfa_challenge(request):
+    next_url = request.POST.get("next") or request.GET.get("next") or reverse("core:workspace")
+    if not url_has_allowed_host_and_scheme(
+        next_url,
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure(),
+    ):
+        next_url = reverse("core:workspace")
+
+    form = MFAChallengeForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        token = form.cleaned_data["token"]
+        for device in devices_for_user(request.user, confirmed=True, for_verify=True):
+            if device.verify_token(token):
+                otp_login(request, device)
+                return redirect(next_url)
+
+        form.add_error("token", "That verification code is invalid or has already been used.")
+
+    return render(
+        request,
+        "accounts/mfa_challenge.html",
+        {
+            "form": form,
+            "next": next_url,
         },
     )
 

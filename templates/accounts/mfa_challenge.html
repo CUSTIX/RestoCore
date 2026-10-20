@@ -1,0 +1,24 @@
+{% extends "layouts/public.html" %}
+
+{% block title %}Verify sign-in | RestoCore{% endblock %}
+
+{% block main %}
+<section class="auth-shell" aria-labelledby="challenge-title">
+  <div class="auth-card">
+    <p class="eyebrow">Two-step verification</p>
+    <h1 id="challenge-title">Verify your sign-in</h1>
+    <p class="muted">Enter the current authenticator code or one unused recovery code.</p>
+
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{{ next }}">
+      <div class="field">
+        <label for="{{ form.token.id_for_label }}">{{ form.token.label }}</label>
+        {{ form.token }}
+        {{ form.token.errors }}
+      </div>
+      <button type="submit">Verify and continue</button>
+    </form>
+  </div>
+</section>
+{% endblock %}
