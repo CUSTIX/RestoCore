@@ -1,6 +1,7 @@
 import pytest
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
+from django.test import override_settings
 from django.urls import reverse
 from django_otp.oath import totp
 from django_otp.plugins.otp_static.models import StaticDevice, StaticToken
@@ -24,6 +25,28 @@ def test_mfa_policy_does_not_block_public_pages(client, owner_user):
     response = client.get(reverse("website:home"))
 
     assert response.status_code == 200
+
+
+@pytest.mark.django_db
+@override_settings(MFA_ENFORCEMENT_ENABLED=False)
+def test_local_review_mode_allows_unenrolled_owner_to_use_internal_navigation(
+    client,
+    owner_user,
+):
+    client.force_login(owner_user)
+
+    for url_name in (
+        "core:workspace",
+        "bookings:home",
+        "orders:home",
+        "inventory:home",
+        "staff:home",
+        "payroll:home",
+        "pos:home",
+        "reports:home",
+    ):
+        response = client.get(reverse(url_name))
+        assert response.status_code == 200
 
 
 @pytest.mark.django_db

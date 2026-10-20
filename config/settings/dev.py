@@ -23,3 +23,4 @@ DATABASES = {
     )
 }
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+MFA_ENFORCEMENT_ENABLED = env.bool("MFA_ENFORCEMENT_ENABLED", default=False)

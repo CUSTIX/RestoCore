@@ -183,6 +183,11 @@ a:focus-visible {
   background: var(--surface-muted);
   color: var(--ink);
 }
+.internal-sidebar nav a.is-active {
+  background: var(--surface-muted);
+  color: var(--ink);
+  font-weight: 800;
+}
 
 .app-shell__content { min-width: 0; }
 .internal-header {

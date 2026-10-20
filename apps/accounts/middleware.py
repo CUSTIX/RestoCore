@@ -1,5 +1,6 @@
 from urllib.parse import urlencode
 
+from django.conf import settings
 from django.shortcuts import redirect
 from django.urls import resolve, reverse
 
@@ -38,6 +39,9 @@ class MFAEnforcementMiddleware:
 
     def __call__(self, request):
         user = request.user
+        if not settings.MFA_ENFORCEMENT_ENABLED:
+            return self.get_response(request)
+
         if not user.is_authenticated or not requires_mfa(user) or is_mfa_verified(user):
             return self.get_response(request)
 
