@@ -1,0 +1,9 @@
+{% extends "layouts/base.html" %}
+
+{% block body %}
+  {% include "components/navigation/public_header.html" %}
+  <main id="main-content">
+    {% block main %}{% endblock %}
+  </main>
+  {% include "components/navigation/site_footer.html" %}
+{% endblock %}

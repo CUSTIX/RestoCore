@@ -1,0 +1,13 @@
+{% extends "layouts/base.html" %}
+
+{% block body %}
+  <div class="app-shell">
+    {% include "components/navigation/internal_sidebar.html" with items=navigation_items %}
+    <div class="app-shell__content">
+      {% include "components/navigation/internal_header.html" %}
+      <main id="main-content" class="page-shell">
+        {% block main %}{% endblock %}
+      </main>
+    </div>
+  </div>
+{% endblock %}

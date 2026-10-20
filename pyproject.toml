@@ -1,0 +1,39 @@
+[project]
+name = "restocore"
+version = "0.1.0"
+description = "Modular restaurant management system built with Django."
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "django==5.2.18",
+    "django-environ>=0.12,<1",
+    "django-htmx>=1.21,<2",
+    "psycopg[binary]>=3.2,<4",
+]
+
+[dependency-groups]
+dev = [
+    "pre-commit>=4,<5",
+    "pytest>=8.3,<10",
+    "pytest-django>=4.9,<5",
+    "ruff>=0.9,<1",
+]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings.test"
+addopts = "-ra --strict-config --strict-markers"
+python_files = ["test_*.py", "*_test.py"]
+testpaths = ["apps", "tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+extend-exclude = ["*/migrations/*.py"]
+
+[tool.ruff.lint]
+select = ["B", "DJ", "E", "F", "I", "SIM", "UP"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "lf"

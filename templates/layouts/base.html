@@ -1,0 +1,19 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="{% block meta_description %}RestoCore restaurant management{% endblock %}">
+    <title>{% block title %}RestoCore{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/app.css' %}">
+    {% block extra_head %}{% endblock %}
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to content</a>
+    {% include "components/feedback/messages.html" %}
+    {% block body %}{% endblock %}
+    <script src="{% static 'js/app.js' %}" defer></script>
+    {% block extra_scripts %}{% endblock %}
+  </body>
+</html>
