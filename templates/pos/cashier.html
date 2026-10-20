@@ -1,0 +1,51 @@
+{% extends "layouts/internal.html" %}
+
+{% block title %}Cashier | RestoCore{% endblock %}
+
+{% block main %}
+<section aria-labelledby="cashier-title">
+  <div class="workspace-header">
+    <div>
+      <p class="eyebrow">Point of Sale</p>
+      <h1 id="cashier-title">Cashier</h1>
+      <p class="muted">Create a new order, then manage its items and payment.</p>
+    </div>
+  </div>
+
+  <div class="pos-grid">
+    <div class="security-panel">
+      <h2>New order</h2>
+      <form method="post">
+        {% csrf_token %}
+        {% for field in form %}
+          <div class="field">
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {{ field.errors }}
+          </div>
+        {% endfor %}
+        <button type="submit">Create order</button>
+      </form>
+    </div>
+
+    <div>
+      <h2>Open orders</h2>
+      {% if open_orders %}
+        <div class="pos-order-list">
+          {% for order in open_orders %}
+            <a class="module-card" href="{% url 'orders:detail' order.pk %}">
+              <div class="module-card__top">
+                <strong>Order #{{ order.pk }}</strong>
+                {% include "components/ui/status_badge.html" with label=order.get_status_display tone="warning" %}
+              </div>
+              <p>{{ order.items.all|length }} item{{ order.items.all|length|pluralize }} · ₱{{ order.total }}</p>
+            </a>
+          {% endfor %}
+        </div>
+      {% else %}
+        {% include "components/ui/empty_state.html" with title="No open orders" description="Create an order to begin cashier operations." heading_id="pos-empty-title" %}
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endblock %}

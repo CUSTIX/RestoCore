@@ -74,6 +74,13 @@
         </div>
       {% endif %}
 
+      {% if perms.pos.access_pos and order.status != "cancelled" %}
+        <div class="security-panel">
+          <h2>Payment</h2>
+          <a class="button" href="{% url 'pos:pay' order.pk %}">Open payment</a>
+        </div>
+      {% endif %}
+
       {% if perms.orders.manage_orders %}
         <div class="security-panel">
           <h2>Order actions</h2>

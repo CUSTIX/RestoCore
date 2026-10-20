@@ -1,0 +1,31 @@
+{% extends "layouts/internal.html" %}
+
+{% block title %}Checkout order #{{ order.pk }} | RestoCore{% endblock %}
+
+{% block main %}
+<section class="security-flow" aria-labelledby="checkout-title">
+  <p class="eyebrow">Point of Sale</p>
+  <h1 id="checkout-title">Checkout order #{{ order.pk }}</h1>
+  <p class="muted">Cash payment only in the current Version 1 flow.</p>
+
+  <div class="security-panel">
+    <div class="checkout-summary">
+      <span>Amount due</span>
+      <strong>₱{{ order_total }}</strong>
+    </div>
+
+    <form method="post">
+      {% csrf_token %}
+      <div class="field">
+        <label for="{{ form.amount_tendered.id_for_label }}">{{ form.amount_tendered.label }}</label>
+        {{ form.amount_tendered }}
+        {{ form.amount_tendered.errors }}
+      </div>
+      <div class="public-actions">
+        <button type="submit">Record payment</button>
+        <a class="button button--secondary" href="{% url 'orders:detail' order.pk %}">Back to order</a>
+      </div>
+    </form>
+  </div>
+</section>
+{% endblock %}

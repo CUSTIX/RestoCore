@@ -1,17 +1,12 @@
 from django.urls import path
 
-from apps.core.views import ModuleLandingView
+from .views import CashierView, CheckoutRedirectView, CheckoutView, ReceiptView
 
 app_name = "pos"
 
 urlpatterns = [
-    path(
-        "",
-        ModuleLandingView.as_view(
-            permission_required="pos.access_pos",
-            module_name="Point of Sale",
-            module_description="Cashier and receipt workflows will follow the trunk.",
-        ),
-        name="home",
-    ),
+    path("", CashierView.as_view(), name="home"),
+    path("orders/<int:pk>/pay/", CheckoutRedirectView.as_view(), name="pay"),
+    path("orders/<int:pk>/checkout/", CheckoutView.as_view(), name="checkout"),
+    path("receipts/<int:pk>/", ReceiptView.as_view(), name="receipt"),
 ]

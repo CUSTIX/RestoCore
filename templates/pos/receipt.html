@@ -1,0 +1,35 @@
+{% extends "layouts/internal.html" %}
+
+{% block title %}Receipt {{ payment.receipt_number }} | RestoCore{% endblock %}
+
+{% block main %}
+<section class="receipt-shell" aria-labelledby="receipt-title">
+  <div class="receipt-card">
+    <p class="eyebrow">Receipt</p>
+    <h1 id="receipt-title">{{ payment.receipt_number }}</h1>
+    <p class="muted">Order #{{ payment.order.pk }} · {{ payment.created_at|date:"M j, Y g:i A" }}</p>
+
+    <div class="receipt-lines">
+      {% for item in payment.order.items.all %}
+        <div>
+          <span>{{ item.quantity }} × {{ item.item_name }}</span>
+          <strong>₱{{ item.line_total }}</strong>
+        </div>
+      {% endfor %}
+    </div>
+
+    <dl class="receipt-totals">
+      <div><dt>Amount due</dt><dd>₱{{ payment.amount_due }}</dd></div>
+      <div><dt>Cash tendered</dt><dd>₱{{ payment.amount_tendered }}</dd></div>
+      <div><dt>Change</dt><dd>₱{{ payment.change_due }}</dd></div>
+    </dl>
+
+    <p class="muted">Processed by {{ payment.processed_by.email }}</p>
+
+    <div class="public-actions">
+      <a class="button" href="{% url 'pos:home' %}">Back to cashier</a>
+      <a class="button button--secondary" href="{% url 'orders:detail' payment.order.pk %}">View order</a>
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -19,6 +19,7 @@ ROLE_PERMISSIONS = {
         "payroll.access_payroll",
         "payroll.run_payroll",
         "pos.access_pos",
+        "pos.take_payment",
         "reports.access_reports",
     },
     "manager": {
@@ -43,6 +44,7 @@ ROLE_PERMISSIONS = {
         "orders.access_orders",
         "orders.manage_orders",
         "pos.access_pos",
+        "pos.take_payment",
     },
     "kitchen": {
         "core.access_internal",

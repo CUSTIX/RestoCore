@@ -759,3 +759,67 @@ a:focus-visible {
     grid-template-columns: 1fr;
   }
 }
+
+.pos-grid {
+  display: grid;
+  grid-template-columns: minmax(18rem, 24rem) minmax(0, 1fr);
+  gap: 1rem;
+  align-items: start;
+}
+.pos-order-list {
+  display: grid;
+  gap: .75rem;
+}
+.checkout-summary {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--line);
+}
+.checkout-summary strong {
+  font-size: 1.7rem;
+}
+.receipt-shell {
+  max-width: 44rem;
+  margin-inline: auto;
+}
+.receipt-card {
+  padding: 1.4rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+.receipt-lines {
+  display: grid;
+  gap: .65rem;
+  margin-block: 1.4rem;
+}
+.receipt-lines > div,
+.receipt-totals > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.receipt-totals {
+  display: grid;
+  gap: .55rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+}
+.receipt-totals div:last-child {
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+.receipt-totals dt,
+.receipt-totals dd {
+  margin: 0;
+}
+@media (max-width: 64rem) {
+  .pos-grid {
+    grid-template-columns: 1fr;
+  }
+}
