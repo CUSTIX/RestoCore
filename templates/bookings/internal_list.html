@@ -1,0 +1,119 @@
+{% extends "layouts/internal.html" %}
+
+{% block title %}Bookings | RestoCore{% endblock %}
+
+{% block main %}
+<section aria-labelledby="bookings-title">
+  <div class="workspace-header">
+    <div>
+      <p class="eyebrow">Bookings</p>
+      <h1 id="bookings-title">Reservation requests</h1>
+      <p class="muted">Review guest requests and move them through the booking lifecycle.</p>
+    </div>
+  </div>
+
+  <nav class="filter-tabs" aria-label="Booking status filters">
+    <a href="{% url 'bookings:home' %}">All</a>
+    <a href="{% url 'bookings:home' %}?status=pending">Pending</a>
+    <a href="{% url 'bookings:home' %}?status=confirmed">Confirmed</a>
+    <a href="{% url 'bookings:home' %}?status=seated">Seated</a>
+    <a href="{% url 'bookings:home' %}?status=completed">Completed</a>
+    <a href="{% url 'bookings:home' %}?status=cancelled">Cancelled</a>
+  </nav>
+
+  {% if bookings %}
+    <div class="data-table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Guest</th>
+            <th>Schedule</th>
+            <th>Party</th>
+            <th>Contact</th>
+            <th>Status</th>
+            {% if perms.bookings.manage_bookings %}<th>Actions</th>{% endif %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for booking in bookings %}
+            <tr>
+              <td>
+                <strong>{{ booking.guest_name }}</strong>
+                {% if booking.notes %}<span class="table-subtext">{{ booking.notes }}</span>{% endif %}
+              </td>
+              <td>{{ booking.starts_at|date:"M j, Y g:i A" }}</td>
+              <td>{{ booking.party_size }}</td>
+              <td>
+                {% if booking.guest_email %}<span>{{ booking.guest_email }}</span>{% endif %}
+                {% if booking.guest_phone %}<span class="table-subtext">{{ booking.guest_phone }}</span>{% endif %}
+              </td>
+              <td>
+                {% if booking.status == "confirmed" or booking.status == "completed" %}
+                  {% include "components/ui/status_badge.html" with label=booking.get_status_display tone="success" %}
+                {% elif booking.status == "pending" or booking.status == "seated" %}
+                  {% include "components/ui/status_badge.html" with label=booking.get_status_display tone="warning" %}
+                {% elif booking.status == "cancelled" %}
+                  {% include "components/ui/status_badge.html" with label=booking.get_status_display tone="danger" %}
+                {% else %}
+                  {% include "components/ui/status_badge.html" with label=booking.get_status_display %}
+                {% endif %}
+              </td>
+              {% if perms.bookings.manage_bookings %}
+                <td>
+                  <div class="table-actions">
+                    {% if booking.status == "pending" %}
+                      <form method="post" action="{% url 'bookings:status' booking.pk %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="status" value="confirmed">
+                        <button type="submit" class="button button--small">Confirm</button>
+                      </form>
+                      <form method="post" action="{% url 'bookings:status' booking.pk %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="status" value="cancelled">
+                        <button type="submit" class="button button--small button--secondary">Cancel</button>
+                      </form>
+                    {% elif booking.status == "confirmed" %}
+                      <form method="post" action="{% url 'bookings:status' booking.pk %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="status" value="seated">
+                        <button type="submit" class="button button--small">Seat</button>
+                      </form>
+                      <form method="post" action="{% url 'bookings:status' booking.pk %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="status" value="cancelled">
+                        <button type="submit" class="button button--small button--secondary">Cancel</button>
+                      </form>
+                    {% elif booking.status == "seated" %}
+                      <form method="post" action="{% url 'bookings:status' booking.pk %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="status" value="completed">
+                        <button type="submit" class="button button--small">Complete</button>
+                      </form>
+                    {% else %}
+                      <span class="muted">No actions</span>
+                    {% endif %}
+                  </div>
+                </td>
+              {% endif %}
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {% if is_paginated %}
+      <nav class="pagination" aria-label="Booking pages">
+        {% if page_obj.has_previous %}
+          <a href="?{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}page={{ page_obj.previous_page_number }}">Previous</a>
+        {% endif %}
+        <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+          <a href="?{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}page={{ page_obj.next_page_number }}">Next</a>
+        {% endif %}
+      </nav>
+    {% endif %}
+  {% else %}
+    {% include "components/ui/empty_state.html" with title="No bookings found" description="New reservation requests will appear here." heading_id="bookings-empty-title" %}
+  {% endif %}
+</section>
+{% endblock %}
