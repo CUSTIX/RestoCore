@@ -1,4 +1,25 @@
+from django.conf import settings
 from django.db import models
+
+from apps.core.models import TimeStampedModel
+
+
+class EmployeeProfile(TimeStampedModel):
+    """Employment data kept separate from authentication identity."""
+
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="employee_profile",
+    )
+    employee_code = models.CharField(max_length=32, unique=True)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ("employee_code",)
+
+    def __str__(self) -> str:
+        return self.employee_code
 
 
 class ModuleAccess(models.Model):
