@@ -1,5 +1,10 @@
 <aside class="internal-sidebar" aria-label="Application navigation">
-  <a class="brand" href="{% url 'website:home' %}">RestoCore</a>
+  <div class="internal-sidebar__brand">
+    <a class="brand" href="{% url 'core:workspace' %}">
+      <span class="brand-mark" aria-hidden="true">RC</span>
+      <span>RestoCore</span>
+    </a>
+  </div>
   {% if items %}
     <nav aria-label="Primary">
       <ul>

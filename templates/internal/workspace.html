@@ -3,9 +3,28 @@
 {% block title %}Workspace | RestoCore{% endblock %}
 
 {% block main %}
-<section>
-  <p class="eyebrow">Workspace</p>
-  <h1>RestoCore</h1>
-  <p>Your navigation only shows modules your account is permitted to access.</p>
+<section aria-labelledby="workspace-title">
+  <div class="workspace-header">
+    <div>
+      <p class="eyebrow">Workspace</p>
+      <h1 id="workspace-title">Restaurant operations</h1>
+      <p class="muted">Only modules your account is allowed to access appear here.</p>
+    </div>
+  </div>
+
+  <div class="workspace-grid">
+    {% for item in navigation_items %}
+      {% if item.url_name != "core:workspace" %}
+        <a class="module-card" href="{% url item.url_name %}">
+          <div class="module-card__top">
+            <span class="module-card__icon" aria-hidden="true">{{ item.label|slice:":2"|upper }}</span>
+            <span class="status-dot" title="Available"></span>
+          </div>
+          <h2>{{ item.label }}</h2>
+          <p>Open the {{ item.label|lower }} workspace.</p>
+        </a>
+      {% endif %}
+    {% endfor %}
+  </div>
 </section>
 {% endblock %}

@@ -7,9 +7,12 @@
   <div class="auth-card">
     <p class="eyebrow">Internal access</p>
     <h1 id="login-title">Sign in to RestoCore</h1>
+    <p class="muted">Use your staff account to access restaurant operations.</p>
+
     {% if form.non_field_errors %}
       <div class="form-error" role="alert">{{ form.non_field_errors }}</div>
     {% endif %}
+
     <form method="post" novalidate>
       {% csrf_token %}
       <div class="field">
