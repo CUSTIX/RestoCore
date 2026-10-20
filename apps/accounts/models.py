@@ -1,13 +1,19 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
+from .managers import UserManager
+
 
 class User(AbstractUser):
-    """RestoCore user model; extend this instead of replacing it later."""
+    """RestoCore identity model using email as the login identifier."""
 
+    username = None
     email = models.EmailField("email address", unique=True)
 
-    REQUIRED_FIELDS = ["email"]
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = []
+
+    objects = UserManager()
 
     class Meta:
         db_table = "accounts_user"
@@ -15,4 +21,4 @@ class User(AbstractUser):
         verbose_name_plural = "users"
 
     def __str__(self) -> str:
-        return self.get_full_name() or self.username
+        return self.get_full_name() or self.email

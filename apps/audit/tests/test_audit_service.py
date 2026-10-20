@@ -7,7 +7,6 @@ from apps.audit.services import record_audit_event
 @pytest.mark.django_db
 def test_record_audit_event_normalizes_target_and_snapshots():
     actor = get_user_model().objects.create_user(
-        username="auditor",
         email="auditor@example.com",
         password="test-only-password",
     )

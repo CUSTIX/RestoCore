@@ -1,7 +1,7 @@
 <header class="internal-header">
   <div class="internal-header__identity">
-    <strong>{{ request.user.get_full_name|default:request.user.username }}</strong>
-    <span>RestoCore workspace</span>
+    <strong>{{ request.user.get_full_name|default:request.user.email }}</strong>
+    <span>{{ request.user.email }}</span>
   </div>
   <form method="post" action="{% url 'accounts:logout' %}">
     {% csrf_token %}

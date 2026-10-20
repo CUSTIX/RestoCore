@@ -40,7 +40,6 @@ def test_anonymous_internal_route_redirects_to_login(client):
 @pytest.mark.parametrize("role_name", ROLE_PERMISSIONS)
 def test_permission_matrix_for_module_routes(client, role_name):
     user = get_user_model().objects.create_user(
-        username=f"{role_name}-user",
         email=f"{role_name}@example.com",
         password="test-only-password",
     )
@@ -59,7 +58,6 @@ def test_permission_matrix_for_module_routes(client, role_name):
 @pytest.mark.django_db
 def test_navigation_hides_unauthorized_modules(client):
     user = get_user_model().objects.create_user(
-        username="cashier-nav",
         email="cashier-nav@example.com",
         password="test-only-password",
     )
