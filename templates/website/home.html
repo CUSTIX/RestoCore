@@ -1,11 +1,72 @@
 {% extends "layouts/public.html" %}
 
 {% block title %}RestoCore{% endblock %}
+{% block meta_description %}RestoCore connects restaurant bookings, staff, inventory, orders, payroll, and reporting in one operational system.{% endblock %}
 
 {% block main %}
-  <section class="page-shell hero" aria-labelledby="hero-title">
-    <p class="eyebrow">Restaurant operations, connected</p>
-    <h1 id="hero-title">RestoCore</h1>
-    <p>Where we RESTOre your confidence in managing.</p>
-  </section>
+<section class="public-hero">
+  <div class="page-shell public-hero__grid">
+    <div class="public-hero__copy">
+      <p class="eyebrow">Restaurant operations, connected</p>
+      <h1>One core for the whole restaurant.</h1>
+      <p class="public-hero__lede">
+        RestoCore brings the guest experience and daily restaurant operations into one system,
+        from booking and orders to staff, inventory, payroll, and reporting.
+      </p>
+      <div class="public-actions">
+        <a class="button" href="#showcase">Explore RestoCore</a>
+        <a class="button button--secondary" href="#booking">Booking</a>
+      </div>
+    </div>
+
+    <div class="public-hero__panel" aria-label="RestoCore modules preview">
+      <div class="public-hero__panel-header">
+        <span>RestoCore</span>
+        <span class="status-badge status-badge--success">Connected</span>
+      </div>
+      <div class="public-module-list">
+        <span>Bookings</span>
+        <span>Orders</span>
+        <span>Inventory</span>
+        <span>Staff</span>
+        <span>Payroll</span>
+        <span>Reports</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="showcase" class="public-section" aria-labelledby="showcase-title">
+  <div class="page-shell">
+    {% include "components/ui/section_heading.html" with eyebrow="Resto showcase" title="A guest-facing experience backed by real operations." description="The public experience and restaurant workflows share the same system instead of living in disconnected tools." heading_id="showcase-title" %}
+
+    <div class="public-card-grid">
+      {% include "components/ui/public_feature_card.html" with index="01" title="Restaurant showcase" description="A flexible public surface for the restaurant story, menu highlights, and guest-facing content." %}
+      {% include "components/ui/public_feature_card.html" with index="02" title="Booking" description="Reservations will connect directly to operational availability instead of becoming a separate inbox." %}
+      {% include "components/ui/public_feature_card.html" with index="03" title="Connected operations" description="Orders, staff, inventory, payroll, and reports are designed as one modular system." %}
+    </div>
+  </div>
+</section>
+
+<section id="booking" class="public-section public-section--muted" aria-labelledby="booking-title">
+  <div class="page-shell public-split">
+    {% include "components/ui/section_heading.html" with eyebrow="Booking" title="Reservations belong inside restaurant operations." description="The Version 1 booking flow will live here and connect to the same backend used by staff and management." heading_id="booking-title" %}
+    <div class="public-callout">
+      <span class="status-badge">Version 1</span>
+      <h3>Booking foundation ready</h3>
+      <p>The booking data model is already in place. The guest reservation form is the next public workflow.</p>
+    </div>
+  </div>
+</section>
+
+<section id="about" class="public-section" aria-labelledby="about-title">
+  <div class="page-shell public-split">
+    {% include "components/ui/section_heading.html" with eyebrow="About RestoCore" title="Built as a modular restaurant management system." description="Each major concern owns its data and permissions while still operating inside one deployable Django application." heading_id="about-title" %}
+    <div class="public-about-list">
+      <div><strong>One login</strong><span>Permission-aware access for restaurant roles.</span></div>
+      <div><strong>One operational core</strong><span>Shared data without turning the codebase into one giant module.</span></div>
+      <div><strong>Built to grow</strong><span>New workflows can be added without rewriting the foundation.</span></div>
+    </div>
+  </div>
+</section>
 {% endblock %}

@@ -1,5 +1,12 @@
 <footer class="site-footer">
-  <div class="page-shell">
-    <p>&copy; {% now "Y" %} RestoCore</p>
+  <div class="page-shell site-footer__inner">
+    <div>
+      <a class="brand" href="{% url 'website:home' %}">
+        <span class="brand-mark" aria-hidden="true">RC</span>
+        <span>RestoCore</span>
+      </a>
+      <p class="muted">Where we RESTOre your confidence in managing.</p>
+    </div>
+    <p class="muted">&copy; {% now "Y" %} RestoCore</p>
   </div>
 </footer>

@@ -1,0 +1,5 @@
+<div class="section-heading">
+  {% if eyebrow %}<p class="eyebrow">{{ eyebrow }}</p>{% endif %}
+  <h2{% if heading_id %} id="{{ heading_id }}"{% endif %}>{{ title }}</h2>
+  {% if description %}<p class="muted">{{ description }}</p>{% endif %}
+</div>
