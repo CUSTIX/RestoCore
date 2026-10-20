@@ -581,3 +581,52 @@ a:focus-visible {
     grid-template-columns: 1fr;
   }
 }
+
+/* Public booking */
+.booking-page {
+  min-height: calc(100vh - 8rem);
+}
+.booking-form-card,
+.booking-success-card {
+  padding: 1.3rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+.booking-form-card form {
+  display: grid;
+  gap: 1rem;
+}
+.booking-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+.booking-form-card input,
+.booking-form-card textarea {
+  width: 100%;
+  min-height: 2.8rem;
+  padding: .65rem .8rem;
+  border: 1px solid var(--line);
+  border-radius: .7rem;
+  background: var(--surface);
+  color: var(--ink);
+}
+.booking-form-card textarea {
+  min-height: 7rem;
+  resize: vertical;
+}
+.booking-success-card {
+  max-width: 42rem;
+  margin-inline: auto;
+}
+.booking-success-card h1 {
+  margin-top: 1rem;
+}
+
+@media (max-width: 48rem) {
+  .booking-form-grid {
+    grid-template-columns: 1fr;
+  }
+}

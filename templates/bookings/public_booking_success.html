@@ -1,0 +1,18 @@
+{% extends "layouts/public.html" %}
+
+{% block title %}Booking received | RestoCore{% endblock %}
+
+{% block main %}
+<section class="public-section" aria-labelledby="booking-success-title">
+  <div class="page-shell">
+    <div class="booking-success-card">
+      {% include "components/ui/status_badge.html" with label="Request received" tone="success" %}
+      <h1 id="booking-success-title">Your booking request was received.</h1>
+      <p class="muted">
+        It is pending until the restaurant confirms availability. Submitting this form does not reserve a table automatically.
+      </p>
+      <a class="button" href="{% url 'website:home' %}">Back to home</a>
+    </div>
+  </div>
+</section>
+{% endblock %}

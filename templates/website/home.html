@@ -15,7 +15,7 @@
       </p>
       <div class="public-actions">
         <a class="button" href="#showcase">Explore RestoCore</a>
-        <a class="button button--secondary" href="#booking">Booking</a>
+        <a class="button button--secondary" href="{% url 'booking_public:create' %}">Booking</a>
       </div>
     </div>
 
@@ -54,7 +54,8 @@
     <div class="public-callout">
       <span class="status-badge">Version 1</span>
       <h3>Booking foundation ready</h3>
-      <p>The booking data model is already in place. The guest reservation form is the next public workflow.</p>
+      <p>Send a reservation request through the public booking flow. Requests remain pending until the restaurant confirms availability.</p>
+      <a class="button button--secondary" href="{% url 'booking_public:create' %}">Request a booking</a>
     </div>
   </div>
 </section>

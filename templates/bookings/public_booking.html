@@ -1,0 +1,74 @@
+{% extends "layouts/public.html" %}
+
+{% block title %}Booking | RestoCore{% endblock %}
+
+{% block main %}
+<section class="public-section booking-page" aria-labelledby="booking-page-title">
+  <div class="page-shell public-split">
+    <div>
+      <p class="eyebrow">Booking</p>
+      <h1 id="booking-page-title">Request a reservation</h1>
+      <p class="public-hero__lede">
+        Send your preferred date and time. The request stays pending until the restaurant confirms availability.
+      </p>
+      <div class="public-callout">
+        <span class="status-badge">Pending request</span>
+        <h3>No automatic confirmation yet</h3>
+        <p>
+          Version 1 records the request safely. Table assignment and double-booking prevention will be added
+          before automatic confirmations are enabled.
+        </p>
+      </div>
+    </div>
+
+    <div class="booking-form-card">
+      {% if form.non_field_errors %}
+        <div class="form-error" role="alert">{{ form.non_field_errors }}</div>
+      {% endif %}
+
+      <form method="post" novalidate>
+        {% csrf_token %}
+        <div class="field">
+          <label for="{{ form.guest_name.id_for_label }}">Name</label>
+          {{ form.guest_name }}
+          {{ form.guest_name.errors }}
+        </div>
+
+        <div class="booking-form-grid">
+          <div class="field">
+            <label for="{{ form.guest_email.id_for_label }}">Email</label>
+            {{ form.guest_email }}
+            {{ form.guest_email.errors }}
+          </div>
+          <div class="field">
+            <label for="{{ form.guest_phone.id_for_label }}">Phone</label>
+            {{ form.guest_phone }}
+            {{ form.guest_phone.errors }}
+          </div>
+        </div>
+
+        <div class="booking-form-grid">
+          <div class="field">
+            <label for="{{ form.party_size.id_for_label }}">Party size</label>
+            {{ form.party_size }}
+            {{ form.party_size.errors }}
+          </div>
+          <div class="field">
+            <label for="{{ form.starts_at.id_for_label }}">Preferred date and time</label>
+            {{ form.starts_at }}
+            {{ form.starts_at.errors }}
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="{{ form.notes.id_for_label }}">Notes</label>
+          {{ form.notes }}
+          {{ form.notes.errors }}
+        </div>
+
+        <button type="submit">Send booking request</button>
+      </form>
+    </div>
+  </div>
+</section>
+{% endblock %}

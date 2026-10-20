@@ -8,6 +8,7 @@ urlpatterns = [
     path("", include("apps.accounts.urls")),
     path("", include("apps.website.urls")),
     path("", include("apps.core.urls")),
+    path("book/", include("apps.bookings.public_urls")),
     path("bookings/", include("apps.bookings.urls")),
     path("orders/", include("apps.orders.urls")),
     path("inventory/", include("apps.inventory.urls")),
