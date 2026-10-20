@@ -1,0 +1,8 @@
+<a class="module-card" href="{% url item.url_name %}">
+  <div class="module-card__top">
+    <span class="module-card__icon" aria-hidden="true">{{ item.label|slice:":2"|upper }}</span>
+    {% include "components/ui/status_badge.html" with label="Available" tone="success" %}
+  </div>
+  <h2>{{ item.label }}</h2>
+  <p>Open the {{ item.label|lower }} workspace.</p>
+</a>

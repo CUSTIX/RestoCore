@@ -1,0 +1,5 @@
+<section class="empty-state" aria-labelledby="{{ heading_id|default:'empty-state-title' }}">
+  <p class="eyebrow">{{ eyebrow|default:"Coming next" }}</p>
+  <h2 id="{{ heading_id|default:'empty-state-title' }}">{{ title }}</h2>
+  {% if description %}<p class="muted">{{ description }}</p>{% endif %}
+</section>

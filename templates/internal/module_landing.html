@@ -3,9 +3,9 @@
 {% block title %}{{ module_name }} | RestoCore{% endblock %}
 
 {% block main %}
-<section>
+<section aria-labelledby="module-title">
   <p class="eyebrow">Module</p>
-  <h1>{{ module_name }}</h1>
-  <p>{{ module_description }}</p>
+  <h1 id="module-title">{{ module_name }}</h1>
+  {% include "components/ui/empty_state.html" with title="Foundation ready" description=module_description heading_id="module-empty-title" %}
 </section>
 {% endblock %}

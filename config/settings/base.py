@@ -28,6 +28,7 @@ THIRD_PARTY_APPS = [
 
 LOCAL_APPS = [
     "apps.core.apps.CoreConfig",
+    "apps.audit.apps.AuditConfig",
     "apps.accounts.apps.AccountsConfig",
     "apps.website.apps.WebsiteConfig",
     "apps.bookings.apps.BookingsConfig",
