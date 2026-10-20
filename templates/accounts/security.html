@@ -1,0 +1,36 @@
+{% extends "layouts/internal.html" %}
+
+{% block title %}Account security | RestoCore{% endblock %}
+
+{% block main %}
+<section aria-labelledby="security-title">
+  <p class="eyebrow">Account</p>
+  <h1 id="security-title">Security</h1>
+  <p class="muted">Manage multi-factor authentication and recovery access.</p>
+
+  <div class="security-panel">
+    <div>
+      <h2>Authenticator app</h2>
+      {% if confirmed_device %}
+        {% include "components/ui/status_badge.html" with label="Configured" tone="success" %}
+        <p class="muted">A verified TOTP authenticator is linked to this account.</p>
+        <form method="post" action="{% url 'accounts:rotate_codes' %}">
+          {% csrf_token %}
+          <button type="submit">Rotate recovery codes</button>
+        </form>
+      {% else %}
+        {% if mfa_required %}
+          {% include "components/ui/status_badge.html" with label="Required" tone="warning" %}
+        {% else %}
+          {% include "components/ui/status_badge.html" with label="Optional" tone="neutral" %}
+        {% endif %}
+        <p class="muted">Add an authenticator app before MFA enforcement is enabled.</p>
+        <form method="post" action="{% url 'accounts:mfa_begin' %}">
+          {% csrf_token %}
+          <button type="submit">Set up authenticator</button>
+        </form>
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endblock %}

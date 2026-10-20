@@ -26,6 +26,7 @@ THIRD_PARTY_APPS = [
     "axes",
     "django_htmx",
     "django_otp",
+    "django_otp.plugins.otp_static",
     "django_otp.plugins.otp_totp",
 ]
 
@@ -119,6 +120,7 @@ LOGOUT_REDIRECT_URL = "website:home"
 AXES_FAILURE_LIMIT = env.int("AXES_FAILURE_LIMIT", default=5)
 AXES_RESET_ON_SUCCESS = True
 AXES_COOLOFF_TIME = env.float("AXES_COOLOFF_HOURS", default=0.25)
+OTP_TOTP_ISSUER = "RestoCore"
 
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = "Lax"

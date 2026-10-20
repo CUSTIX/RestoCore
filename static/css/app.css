@@ -267,6 +267,60 @@ a:focus-visible {
   background: var(--surface);
 }
 
+.internal-header__actions {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+}
+.internal-header__actions > a {
+  color: var(--ink-soft);
+  font-size: .88rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+.security-flow {
+  max-width: 44rem;
+}
+.security-panel {
+  margin-top: 1.5rem;
+  padding: 1.25rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+.security-panel form {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+.setup-uri {
+  display: block;
+  overflow-wrap: anywhere;
+  padding: .8rem;
+  border-radius: .7rem;
+  background: var(--surface-muted);
+  color: var(--ink-soft);
+}
+.recovery-codes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .6rem;
+  padding: 0;
+  list-style: none;
+}
+.recovery-codes li {
+  padding: .7rem .8rem;
+  border: 1px solid var(--line);
+  border-radius: .7rem;
+  background: var(--surface-muted);
+  text-align: center;
+}
+.status-badge--warning {
+  background: hsl(38 92% 50% / .14);
+  color: hsl(30 80% 28%);
+}
+
 @media (max-width: 64rem) {
   .workspace-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }

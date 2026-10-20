@@ -1,0 +1,29 @@
+{% extends "layouts/internal.html" %}
+
+{% block title %}Set up MFA | RestoCore{% endblock %}
+
+{% block main %}
+<section class="security-flow" aria-labelledby="mfa-title">
+  <p class="eyebrow">Account security</p>
+  <h1 id="mfa-title">Set up an authenticator app</h1>
+  <p class="muted">Add RestoCore to your authenticator, then enter the current 6-digit code.</p>
+
+  <div class="security-panel">
+    <div class="field">
+      <label>Authenticator setup URI</label>
+      <code class="setup-uri">{{ device.config_url }}</code>
+      <p class="muted">Use this URI manually if your authenticator cannot scan a QR code yet.</p>
+    </div>
+
+    <form method="post">
+      {% csrf_token %}
+      <div class="field">
+        <label for="{{ form.token.id_for_label }}">{{ form.token.label }}</label>
+        {{ form.token }}
+        {{ form.token.errors }}
+      </div>
+      <button type="submit">Verify and enable</button>
+    </form>
+  </div>
+</section>
+{% endblock %}

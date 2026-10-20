@@ -1,0 +1,21 @@
+{% extends "layouts/internal.html" %}
+
+{% block title %}Recovery codes | RestoCore{% endblock %}
+
+{% block main %}
+<section class="security-flow" aria-labelledby="recovery-title">
+  <p class="eyebrow">Account security</p>
+  <h1 id="recovery-title">Save your recovery codes</h1>
+  <p class="muted">Each code works once. Store them somewhere separate from this device.</p>
+
+  <div class="security-panel">
+    <ul class="recovery-codes" aria-label="Recovery codes">
+      {% for code in codes %}
+        <li><code>{{ code }}</code></li>
+      {% endfor %}
+    </ul>
+    <p class="muted">These codes are shown only for this setup or rotation flow.</p>
+    <a class="button" href="{% url 'accounts:security' %}">Done</a>
+  </div>
+</section>
+{% endblock %}
