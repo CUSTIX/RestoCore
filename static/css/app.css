@@ -722,3 +722,19 @@ a:focus-visible {
   font-weight: 700;
   text-decoration: none;
 }
+
+.security-panel input:not([type="checkbox"]),
+.security-panel select,
+.security-panel textarea {
+  width: 100%;
+  min-height: 2.8rem;
+  padding: .65rem .8rem;
+  border: 1px solid var(--line);
+  border-radius: .7rem;
+  background: var(--surface);
+  color: var(--ink);
+}
+.security-panel textarea {
+  min-height: 7rem;
+  resize: vertical;
+}

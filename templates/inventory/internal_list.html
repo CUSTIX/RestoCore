@@ -1,0 +1,82 @@
+{% extends "layouts/internal.html" %}
+
+{% block title %}Inventory | RestoCore{% endblock %}
+
+{% block main %}
+<section aria-labelledby="inventory-title">
+  <div class="workspace-header">
+    <div>
+      <p class="eyebrow">Inventory</p>
+      <h1 id="inventory-title">Stock ledger</h1>
+      <p class="muted">Track ingredients, utensils, and decorations from append-only stock movements.</p>
+    </div>
+    {% if perms.inventory.manage_inventory %}
+      <a class="button" href="{% url 'inventory:create' %}">Add item</a>
+    {% endif %}
+  </div>
+
+  <nav class="filter-tabs" aria-label="Inventory type filters">
+    <a href="{% url 'inventory:home' %}">All</a>
+    <a href="{% url 'inventory:home' %}?kind=ingredient">Ingredients</a>
+    <a href="{% url 'inventory:home' %}?kind=utensil">Utensils</a>
+    <a href="{% url 'inventory:home' %}?kind=decoration">Decorations</a>
+  </nav>
+
+  {% if items %}
+    <div class="data-table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th>SKU</th>
+            <th>Type</th>
+            <th>Unit</th>
+            <th>Balance</th>
+            <th>Status</th>
+            {% if perms.inventory.adjust_stock %}<th>Actions</th>{% endif %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in items %}
+            <tr>
+              <td><strong>{{ item.name }}</strong></td>
+              <td>{{ item.sku }}</td>
+              <td>{{ item.get_kind_display }}</td>
+              <td>{{ item.unit }}</td>
+              <td><strong>{{ item.stock_balance }}</strong></td>
+              <td>
+                {% if item.is_active %}
+                  {% include "components/ui/status_badge.html" with label="Active" tone="success" %}
+                {% else %}
+                  {% include "components/ui/status_badge.html" with label="Inactive" %}
+                {% endif %}
+              </td>
+              {% if perms.inventory.adjust_stock %}
+                <td>
+                  <a class="button button--small button--secondary" href="{% url 'inventory:movement' item.pk %}">
+                    Record movement
+                  </a>
+                </td>
+              {% endif %}
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {% if is_paginated %}
+      <nav class="pagination" aria-label="Inventory pages">
+        {% if page_obj.has_previous %}
+          <a href="?{% if request.GET.kind %}kind={{ request.GET.kind }}&{% endif %}page={{ page_obj.previous_page_number }}">Previous</a>
+        {% endif %}
+        <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+          <a href="?{% if request.GET.kind %}kind={{ request.GET.kind }}&{% endif %}page={{ page_obj.next_page_number }}">Next</a>
+        {% endif %}
+      </nav>
+    {% endif %}
+  {% else %}
+    {% include "components/ui/empty_state.html" with title="No inventory items found" description="Add an item to begin tracking stock movements." heading_id="inventory-empty-title" %}
+  {% endif %}
+</section>
+{% endblock %}

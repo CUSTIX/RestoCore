@@ -1,0 +1,35 @@
+{% extends "layouts/internal.html" %}
+
+{% block title %}Record stock movement | RestoCore{% endblock %}
+
+{% block main %}
+<section class="security-flow" aria-labelledby="stock-movement-title">
+  <p class="eyebrow">Inventory</p>
+  <h1 id="stock-movement-title">Record stock movement</h1>
+  <p class="muted">{{ item.name }} · {{ item.sku }} · {{ item.unit }}</p>
+
+  <div class="security-panel">
+    {% if form.non_field_errors %}
+      <div class="form-error" role="alert">{{ form.non_field_errors }}</div>
+    {% endif %}
+
+    <form method="post">
+      {% csrf_token %}
+      {% for field in form %}
+        <div class="field">
+          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          {{ field.errors }}
+        </div>
+      {% endfor %}
+      <p class="muted">
+        Use a positive quantity for stock coming in and a negative quantity for stock leaving inventory.
+      </p>
+      <div class="public-actions">
+        <button type="submit">Record movement</button>
+        <a class="button button--secondary" href="{% url 'inventory:home' %}">Cancel</a>
+      </div>
+    </form>
+  </div>
+</section>
+{% endblock %}
