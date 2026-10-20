@@ -1,0 +1,30 @@
+{% extends "layouts/public.html" %}
+
+{% block title %}Login | RestoCore{% endblock %}
+
+{% block main %}
+<section class="auth-shell" aria-labelledby="login-title">
+  <div class="auth-card">
+    <p class="eyebrow">Internal access</p>
+    <h1 id="login-title">Sign in to RestoCore</h1>
+    {% if form.non_field_errors %}
+      <div class="form-error" role="alert">{{ form.non_field_errors }}</div>
+    {% endif %}
+    <form method="post" novalidate>
+      {% csrf_token %}
+      <div class="field">
+        <label for="{{ form.username.id_for_label }}">Username</label>
+        {{ form.username }}
+        {{ form.username.errors }}
+      </div>
+      <div class="field">
+        <label for="{{ form.password.id_for_label }}">Password</label>
+        {{ form.password }}
+        {{ form.password.errors }}
+      </div>
+      {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+      <button type="submit">Sign in</button>
+    </form>
+  </div>
+</section>
+{% endblock %}

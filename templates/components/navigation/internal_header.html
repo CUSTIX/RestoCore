@@ -1,3 +1,9 @@
 <header class="internal-header">
-  <span class="internal-header__title">RestoCore</span>
+  <div>
+    <strong>{{ request.user.get_full_name|default:request.user.username }}</strong>
+  </div>
+  <form method="post" action="{% url 'accounts:logout' %}">
+    {% csrf_token %}
+    <button type="submit">Sign out</button>
+  </form>
 </header>

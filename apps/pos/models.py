@@ -1,1 +1,13 @@
-"""Domain models for the pos module will be added feature by feature."""
+from django.db import models
+
+
+class ModuleAccess(models.Model):
+    class Meta:
+        managed = False
+        default_permissions = ()
+        permissions = [
+            ("access_pos", "Can access point of sale"),
+        ]
+
+    def __str__(self) -> str:
+        return "POS access"
