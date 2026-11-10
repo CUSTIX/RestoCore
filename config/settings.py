@@ -21,7 +21,32 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.humanize",
+    # RestoCore modules (one app per module; see CLAUDE.md)
+    "core",
+    "accounts",
+    "dashboard",
+    "website",
+    "bookings",
+    "inventory",
+    "sales",
+    "staff",
+    "payroll",
+    "api",
 ]
+
+AUTH_USER_MODEL = "accounts.User"
+LOGIN_URL = "accounts:login"
+LOGIN_REDIRECT_URL = "dashboard:index"
+LOGOUT_REDIRECT_URL = "website:home"
+
+RESTAURANT_NAME = os.environ.get("RESTAURANT_NAME", "Casa Verde")
+
+# Read-only API for the MCP server. Empty token = API disabled.
+API_TOKEN = os.environ.get("RESTOCORE_API_TOKEN", "")
+
+# Sales tax added on top of menu prices, as a fraction (0.12 = 12%). Configurable per country.
+SALES_TAX_RATE = os.environ.get("SALES_TAX_RATE", "0.12")
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -45,6 +70,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "core.context_processors.restocore",
             ],
         },
     },

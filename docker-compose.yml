@@ -16,6 +16,8 @@ services:
   web:
     build: .
     env_file: .env
+    # Apply migrations on start so `docker compose up` gives a working app. Dev server (dev only).
+    command: sh -c "python manage.py migrate --noinput && python manage.py runserver 0.0.0.0:8000"
     ports:
       # Localhost only: the dev server must not be reachable from the LAN.
       - "127.0.0.1:8000:8000"

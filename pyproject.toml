@@ -14,5 +14,8 @@ select = ["E", "F", "I", "B", "UP", "DJ"]
 
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "config.settings"
-testpaths = ["tests"]
+testpaths = [
+    "tests", "core", "accounts", "dashboard", "website", "bookings", "inventory", "sales",
+    "staff", "payroll", "api", "mcp_server",
+]
 python_files = ["test_*.py"]
