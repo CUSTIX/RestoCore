@@ -1,0 +1,65 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Least privilege: CI only needs to read the repo.
+permissions:
+  contents: read
+
+# A newer push to the same branch/PR cancels the older, now-pointless run.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    # Same database engine as dev and prod, so tests catch Postgres-specific issues.
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: restocore
+          POSTGRES_USER: restocore
+          POSTGRES_PASSWORD: restocore
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U restocore"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DJANGO_SECRET_KEY: ci-only-not-a-secret
+      DJANGO_DEBUG: "False"
+      DJANGO_ALLOWED_HOSTS: localhost
+      POSTGRES_DB: restocore
+      POSTGRES_USER: restocore
+      POSTGRES_PASSWORD: restocore
+      POSTGRES_HOST: localhost
+      POSTGRES_PORT: "5432"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+      - run: ruff check .
+      - run: python manage.py check
+      - run: pytest
+
+  docker:
+    # Fails CI if the Dockerfile no longer builds. Builds only; nothing is pushed anywhere.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t restocore .
