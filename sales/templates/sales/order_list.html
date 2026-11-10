@@ -1,0 +1,43 @@
+{% extends "core/app_base.html" %}
+{% load core %}
+{% block title %}Orders{% endblock %}
+{% block page_title %}Orders{% endblock %}
+{% block page_actions %}<a class="btn" href="{% url 'sales:pos' %}">New order</a>{% endblock %}
+{% block content %}
+<div class="grid">
+  <div class="card"><div class="stat">{{ summary.revenue|money }}</div><div class="stat-label">Sales today</div></div>
+  <div class="card"><div class="stat">{{ summary.orders }}</div><div class="stat-label">Paid orders today</div></div>
+  <div class="card"><div class="stat">{{ summary.average|money }}</div><div class="stat-label">Average order</div></div>
+  <div class="card"><div class="stat">{{ summary.voided }}</div><div class="stat-label">Voided today</div></div>
+</div>
+<form method="get" class="filters">
+  {% for field in filter_form %}<div class="field"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}</div>{% endfor %}
+  <button class="btn" type="submit">Filter</button>
+  <a href="{% url 'sales:order_list' %}">Clear</a>
+</form>
+{% if page_obj.object_list %}
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Order</th><th>Time</th><th>Type</th><th class="num">Items</th><th class="num">Total</th><th>Payment</th><th>Status</th><th>Kitchen</th><th>Cashier</th></tr></thead>
+    <tbody>
+    {% for o in page_obj %}
+      <tr>
+        <td><a href="{% url 'sales:order_detail' o.pk %}">{{ o.number }}</a></td>
+        <td class="nowrap">{{ o.created_at|date:"M j, g:i A" }}</td>
+        <td>{{ o.get_order_type_display }}{% if o.table_label %} · {{ o.table_label }}{% endif %}</td>
+        <td class="num">{{ o.item_count }}</td>
+        <td class="num">{{ o.total|money }}</td>
+        <td>{{ o.get_payment_method_display }}</td>
+        <td>{% if o.status == 'voided' %}<span class="badge badge--danger">Voided</span>{% else %}<span class="badge badge--ok">Paid</span>{% endif %}</td>
+        <td>{{ o.get_kitchen_status_display }}</td>
+        <td>{{ o.cashier }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% include "core/partials/pagination.html" %}
+{% else %}
+  {% include "core/partials/empty.html" with message="No orders match these filters." %}
+{% endif %}
+{% endblock %}

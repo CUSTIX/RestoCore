@@ -1,0 +1,49 @@
+{% extends "core/app_base.html" %}
+{% load core %}
+{% block title %}Order {{ order.number }}{% endblock %}
+{% block page_title %}Order {{ order.number }}{% endblock %}
+{% block page_actions %}
+  <button class="btn btn--ghost" onclick="window.print()">Print receipt</button>
+  {% if user|has_role:"Owner,Manager,Cashier" %}<a href="{% url 'sales:order_list' %}">All orders</a>{% endif %}
+{% endblock %}
+{% block content %}
+<div class="grid grid--2">
+  <div class="card">
+    <h2>{{ restaurant_name }}: receipt</h2>
+    <p class="muted">{{ order.created_at|date:"M j, Y g:i A" }} · {{ order.get_order_type_display }}{% if order.table_label %} · Table {{ order.table_label }}{% endif %} · Cashier: {{ order.cashier }}</p>
+    {% if order.status == 'voided' %}<div class="alert alert--error">VOIDED by {{ order.voided_by }} on {{ order.voided_at|date:"M j, g:i A" }}: {{ order.void_reason }}</div>{% endif %}
+    <table>
+      <thead><tr><th>Item</th><th class="num">Qty</th><th class="num">Price</th><th class="num">Amount</th></tr></thead>
+      <tbody>
+      {% for line in order.lines.all %}
+        <tr><td>{{ line.name }}</td><td class="num">{{ line.quantity }}</td><td class="num">{{ line.unit_price|money }}</td><td class="num">{{ line.line_total|money }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    <dl class="details" style="margin-top:1rem">
+      <dt>Subtotal</dt><dd class="right">{{ order.subtotal|money }}</dd>
+      <dt>Tax ({% widthratio order.tax_rate 1 100 %}%)</dt><dd class="right">{{ order.tax|money }}</dd>
+      <dt><strong>Total</strong></dt><dd class="right"><strong>{{ order.total|money }}</strong></dd>
+      <dt>{{ order.get_payment_method_display }}</dt><dd class="right">{{ order.amount_tendered|money }}</dd>
+      <dt>Change</dt><dd class="right">{{ order.change_due|money }}</dd>
+    </dl>
+    <p class="muted"><small>Demo receipt. Not an official invoice.</small></p>
+  </div>
+  <div class="card no-print">
+    <h2>Status</h2>
+    <dl class="details">
+      <dt>Payment</dt><dd>{{ order.get_status_display }}</dd>
+      <dt>Kitchen</dt><dd>{{ order.get_kitchen_status_display }}</dd>
+    </dl>
+    {% if order.status == 'paid' and user|has_role:"Owner,Manager" %}
+      <h2 style="margin-top:1.5rem">Void order</h2>
+      <p class="muted">{% if order.kitchen_status == 'served' %}Food was served, so ingredients will <strong>not</strong> return to stock.{% else %}Ingredients will be returned to stock.{% endif %}</p>
+      <form method="post" action="{% url 'sales:order_void' order.pk %}">
+        {% csrf_token %}
+        <div class="field">{{ void_form.reason }}</div>
+        <button type="submit" class="btn btn--danger" style="margin-top:.5rem">Void order</button>
+      </form>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,77 @@
+{% extends "core/app_base.html" %}
+{% load core %}
+{% block title %}Point of sale{% endblock %}
+{% block page_title %}Point of sale{% endblock %}
+{% block content %}
+<form method="post" novalidate id="pos-form" data-tax-rate="{{ tax_rate }}">
+  {% csrf_token %}
+  {% if form.non_field_errors %}
+    <div class="alert alert--error">{% for e in form.non_field_errors %}<p>{{ e }}</p>{% endfor %}</div>
+  {% endif %}
+  <div class="pos">
+    <div>
+      {% if rows %}
+      <div class="pos-items">
+        {% for row in rows %}
+          {% ifchanged row.item.category_id %}<h2 style="grid-column: 1 / -1; margin: .5rem 0 0">{{ row.item.category.name }}</h2>{% endifchanged %}
+          <label class="pos-item" for="{{ row.field.id_for_label }}">
+            <strong>{{ row.item.name }}</strong>
+            <span>{{ row.item.price|money }}</span>
+            {% if row.portions is not None %}
+              {% if row.portions == 0 %}<span class="badge badge--danger">Out of stock</span>
+              {% elif row.portions < 10 %}<span class="badge badge--warn">{{ row.portions }} left</span>
+              {% else %}<span class="muted">{{ row.portions }} available</span>{% endif %}
+            {% endif %}
+            <input type="number" name="{{ row.field.html_name }}" id="{{ row.field.id_for_label }}" min="0" max="99"
+                   value="{{ row.field.value|default_if_none:0 }}" data-price="{{ row.item.price }}" class="pos-qty"
+                   {% if row.portions == 0 %}disabled{% endif %}>
+            {% for e in row.field.errors %}<small class="error">{{ e }}</small>{% endfor %}
+          </label>
+        {% endfor %}
+      </div>
+      {% else %}
+        {% include "core/partials/empty.html" with message="No menu items are available. A manager can add them under Menu." %}
+      {% endif %}
+    </div>
+    <aside class="card">
+      <h2>Checkout</h2>
+      <div class="field{% if form.order_type.errors %} field--error{% endif %}"><label for="{{ form.order_type.id_for_label }}">Order type</label>{{ form.order_type }}</div>
+      <div class="field{% if form.table_label.errors %} field--error{% endif %}"><label for="{{ form.table_label.id_for_label }}">Table</label>{{ form.table_label }}{% for e in form.table_label.errors %}<small class="error">{{ e }}</small>{% endfor %}</div>
+      <div class="field"><label for="{{ form.payment_method.id_for_label }}">Payment</label>{{ form.payment_method }}</div>
+      <div class="field{% if form.amount_tendered.errors %} field--error{% endif %}"><label for="{{ form.amount_tendered.id_for_label }}">Cash received</label>{{ form.amount_tendered }}{% for e in form.amount_tendered.errors %}<small class="error">{{ e }}</small>{% endfor %}</div>
+      <dl class="details" style="margin: 1rem 0">
+        <dt>Subtotal</dt><dd class="right" id="pos-subtotal">0.00</dd>
+        <dt>Tax ({% widthratio tax_rate 1 100 %}%)</dt><dd class="right" id="pos-tax">0.00</dd>
+        <dt><strong>Total</strong></dt><dd class="right"><strong id="pos-total">0.00</strong></dd>
+        <dt>Change</dt><dd class="right" id="pos-change">—</dd>
+      </dl>
+      <button type="submit" class="btn" style="width:100%">Charge &amp; send to kitchen</button>
+      <p class="muted"><small>Totals here are a preview. The server recalculates prices, tax and stock when you charge.</small></p>
+    </aside>
+  </div>
+</form>
+<script>
+(function () {
+  const form = document.getElementById("pos-form");
+  if (!form) return;
+  const rate = parseFloat(form.dataset.taxRate || "0");
+  const fmt = (n) => n.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+  function update() {
+    let sub = 0;
+    form.querySelectorAll(".pos-qty").forEach((el) => {
+      const q = parseInt(el.value || "0", 10);
+      if (q > 0) sub += q * parseFloat(el.dataset.price);
+    });
+    const tax = Math.round(sub * rate * 100) / 100;
+    const total = sub + tax;
+    document.getElementById("pos-subtotal").textContent = fmt(sub);
+    document.getElementById("pos-tax").textContent = fmt(tax);
+    document.getElementById("pos-total").textContent = fmt(total);
+    const cash = parseFloat(form.querySelector("[name=amount_tendered]").value || "");
+    document.getElementById("pos-change").textContent = isNaN(cash) ? "—" : fmt(cash - total);
+  }
+  form.addEventListener("input", update);
+  update();
+})();
+</script>
+{% endblock %}

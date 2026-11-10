@@ -1,0 +1,28 @@
+{% extends "core/app_base.html" %}
+{% load core %}
+{% block title %}Menu{% endblock %}
+{% block page_title %}Menu{% endblock %}
+{% block page_actions %}<a class="btn" href="{% url 'sales:menu_create' %}">New menu item</a>{% endblock %}
+{% block content %}
+{% if page_obj.object_list %}
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Item</th><th>Category</th><th class="num">Price</th><th class="num">Ingredients</th><th>Status</th></tr></thead>
+    <tbody>
+    {% for item in page_obj %}
+      <tr>
+        <td><a href="{% url 'sales:menu_update' item.pk %}">{{ item.name }}</a><br><small class="muted">{{ item.description }}</small></td>
+        <td>{{ item.category }}</td>
+        <td class="num">{{ item.price|money }}</td>
+        <td class="num">{{ item.recipe.all|length }}</td>
+        <td>{% if item.is_available %}<span class="badge badge--ok">On menu</span>{% else %}<span class="badge badge--muted">Hidden</span>{% endif %}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% include "core/partials/pagination.html" %}
+{% else %}
+  {% include "core/partials/empty.html" with message="No menu items yet." %}
+{% endif %}
+{% endblock %}
