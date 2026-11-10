@@ -70,6 +70,9 @@ img { max-width: 100%; }
 /* Cards and grids */
 .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 1.25rem; box-shadow: var(--shadow); margin-bottom: 1rem; }
 .card h2 { margin-bottom: .75rem; }
+.grid > * { min-width: 0; } /* let grid cards shrink instead of pushing the page wider */
+.card { overflow-x: auto; }
+.card table th, .card table td { padding: .5rem .45rem; }
 .grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
 .grid--2 { grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
 .stat { font-size: 1.9rem; font-weight: 700; }

@@ -47,7 +47,7 @@
     {% if upcoming_bookings %}
       <table><tbody>
       {% for b in upcoming_bookings %}
-        <tr><td class="nowrap">{{ b.date|date:"D j" }} {{ b.time|time:"g:i A" }}</td><td><a href="{% url 'bookings:detail' b.pk %}">{{ b.name }}</a></td><td class="num">{{ b.party_size }} pax</td><td>{% include "bookings/_status_badge.html" with status=b.status label=b.get_status_display %}</td></tr>
+        <tr><td class="nowrap">{{ b.date|date:"D j" }}<br><small class="muted">{{ b.time|time:"g:i A" }}</small></td><td><a href="{% url 'bookings:detail' b.pk %}">{{ b.name }}</a><br><small class="muted">{{ b.party_size }} guest{{ b.party_size|pluralize }}</small></td><td class="right nowrap">{% include "bookings/_status_badge.html" with status=b.status label=b.get_status_display %}</td></tr>
       {% endfor %}
       </tbody></table>
     {% else %}<p class="muted">No upcoming bookings.</p>{% endif %}
