@@ -38,6 +38,7 @@ jobs:
       DJANGO_SECRET_KEY: ci-only-not-a-secret
       DJANGO_DEBUG: "False"
       DJANGO_ALLOWED_HOSTS: localhost
+      DJANGO_TIME_ZONE: Asia/Manila
       POSTGRES_DB: restocore
       POSTGRES_USER: restocore
       POSTGRES_PASSWORD: restocore

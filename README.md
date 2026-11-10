@@ -66,6 +66,7 @@ Later:
 - **Postgres is not published to the host.** Only the `web` container can reach it, over the internal
   Compose network.
 - **Web is bound to localhost.** The dev server listens on `127.0.0.1` only, so it is not exposed to the LAN.
+- **Times are stored in UTC; the restaurant's local time zone comes from `DJANGO_TIME_ZONE`.**
 - **Postgres everywhere.** Dev, CI, and prod use the same database engine, so there are no "works on SQLite" surprises.
 - **Custom user model before the first migration.** Swapping the user model after migrations exist is painful,
   so milestone 1 adds it before `migrate` is ever run. Until then the dev database is intentionally unmigrated.
