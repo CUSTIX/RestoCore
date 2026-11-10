@@ -1,0 +1,18 @@
+{% extends "core/public_base.html" %}
+{% block title %}Book a table{% endblock %}
+{% block content %}
+<section class="section">
+  <div class="container narrow">
+    <h1>Book a table</h1>
+    <p class="muted">We seat guests from {{ opening|time:"g:i A" }} to {{ last_seating|time:"g:i A" }}, every day. Parties of up to 20. We'll confirm your booking by phone or email.</p>
+    <div class="card">
+      <form method="post" novalidate>
+        {% csrf_token %}
+        {% include "core/partials/form.html" with form=form %}
+        <button type="submit" class="btn">Request booking</button>
+      </form>
+    </div>
+  </div>
+</section>
+<style>#id_website, label[for=id_website] { position: absolute; left: -9999px; }</style>
+{% endblock %}

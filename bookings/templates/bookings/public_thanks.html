@@ -1,0 +1,21 @@
+{% extends "core/public_base.html" %}
+{% block title %}Booking received{% endblock %}
+{% block content %}
+<section class="section">
+  <div class="container narrow">
+    <div class="card">
+      <h1>Thank you, {{ booking.name }}!</h1>
+      <p>We received your booking request. We will confirm it shortly.</p>
+      <dl class="details">
+        <dt>Reference</dt><dd><strong>{{ booking.reference }}</strong></dd>
+        <dt>Date</dt><dd>{{ booking.date|date:"l, F j, Y" }}</dd>
+        <dt>Time</dt><dd>{{ booking.time|time:"g:i A" }}</dd>
+        <dt>Guests</dt><dd>{{ booking.party_size }}</dd>
+        <dt>Status</dt><dd>{{ booking.get_status_display }}</dd>
+      </dl>
+      <p class="muted">Keep your reference handy if you need to call us.</p>
+      <a class="btn btn--ghost" href="{% url 'website:home' %}">Back to home</a>
+    </div>
+  </div>
+</section>
+{% endblock %}

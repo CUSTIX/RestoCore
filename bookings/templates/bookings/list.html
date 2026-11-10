@@ -1,0 +1,43 @@
+{% extends "core/app_base.html" %}
+{% block title %}Bookings{% endblock %}
+{% block page_title %}Bookings{% endblock %}
+{% block page_actions %}<a class="btn" href="{% url 'bookings:create' %}">New booking</a>{% endblock %}
+{% block content %}
+<div class="grid">
+  <div class="card"><div class="stat">{{ summary.bookings }}</div><div class="stat-label">Bookings today</div></div>
+  <div class="card"><div class="stat">{{ summary.guests }}</div><div class="stat-label">Guests expected today</div></div>
+  <div class="card"><div class="stat">{{ summary.pending }}</div><div class="stat-label">Waiting for confirmation</div></div>
+</div>
+
+<form method="get" class="filters">
+  {% for field in filter_form %}
+    <div class="field"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}</div>
+  {% endfor %}
+  <button class="btn" type="submit">Filter</button>
+  <a href="{% url 'bookings:list' %}">Clear</a>
+</form>
+
+{% if page_obj.object_list %}
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Date</th><th>Time</th><th>Guest</th><th class="num">Party</th><th>Phone</th><th>Status</th><th>Ref</th></tr></thead>
+    <tbody>
+    {% for b in page_obj %}
+      <tr>
+        <td class="nowrap">{{ b.date|date:"D, M j" }}</td>
+        <td class="nowrap">{{ b.time|time:"g:i A" }}</td>
+        <td><a href="{% url 'bookings:detail' b.pk %}">{{ b.name }}</a></td>
+        <td class="num">{{ b.party_size }}</td>
+        <td class="nowrap">{{ b.phone }}</td>
+        <td>{% include "bookings/_status_badge.html" with status=b.status label=b.get_status_display %}</td>
+        <td><code>{{ b.reference }}</code></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% include "core/partials/pagination.html" %}
+{% else %}
+  {% include "core/partials/empty.html" with message="No bookings match these filters." %}
+{% endif %}
+{% endblock %}

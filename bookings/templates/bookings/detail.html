@@ -1,0 +1,42 @@
+{% extends "core/app_base.html" %}
+{% block title %}Booking {{ booking.reference }}{% endblock %}
+{% block page_title %}Booking {{ booking.reference }}{% endblock %}
+{% block page_actions %}
+  {% if booking.status == 'pending' or booking.status == 'confirmed' %}<a class="btn btn--ghost" href="{% url 'bookings:update' booking.pk %}">Edit</a>{% endif %}
+  <a href="{% url 'bookings:list' %}">All bookings</a>
+{% endblock %}
+{% block content %}
+<div class="grid grid--2">
+  <div class="card">
+    <h2>Details</h2>
+    <dl class="details">
+      <dt>Status</dt><dd>{% include "bookings/_status_badge.html" with status=booking.status label=booking.get_status_display %}</dd>
+      <dt>Guest</dt><dd>{{ booking.name }}</dd>
+      <dt>Phone</dt><dd>{{ booking.phone }}</dd>
+      <dt>Email</dt><dd>{{ booking.email|default:"—" }}</dd>
+      <dt>Date</dt><dd>{{ booking.date|date:"l, F j, Y" }}</dd>
+      <dt>Time</dt><dd>{{ booking.time|time:"g:i A" }}</dd>
+      <dt>Party size</dt><dd>{{ booking.party_size }}</dd>
+      <dt>Notes</dt><dd>{{ booking.notes|default:"—"|linebreaksbr }}</dd>
+      <dt>Source</dt><dd>{{ booking.get_source_display }}</dd>
+      <dt>Received</dt><dd>{{ booking.created_at|date:"M j, Y g:i A" }}</dd>
+    </dl>
+  </div>
+  <div class="card">
+    <h2>Update status</h2>
+    {% if transitions %}
+      <div class="actions">
+      {% for value, label in transitions %}
+        <form method="post" action="{% url 'bookings:status' booking.pk %}" class="inline-form">
+          {% csrf_token %}
+          <input type="hidden" name="status" value="{{ value }}">
+          <button type="submit" class="btn{% if value == 'cancelled' or value == 'no_show' %} btn--danger{% endif %}">Mark {{ label|lower }}</button>
+        </form>
+      {% endfor %}
+      </div>
+    {% else %}
+      <p class="muted">This booking is closed. No further changes.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
