@@ -1,0 +1,24 @@
+{% extends "core/public_base.html" %}
+{% load core %}
+{% block title %}Menu{% endblock %}
+{% block content %}
+<section class="section">
+  <div class="container narrow">
+    <h1>Menu</h1>
+    {% for cat in categories %}
+      <div class="menu-category">
+        <h2>{{ cat.name }}</h2>
+        {% for item in cat.shown %}
+          <div class="menu-item">
+            <div><strong>{{ item.name }}</strong>{% if item.description %}<br><span class="muted">{{ item.description }}</span>{% endif %}</div>
+            <div class="menu-item__price">{{ item.price|money }}</div>
+          </div>
+        {% endfor %}
+      </div>
+    {% empty %}
+      {% include "core/partials/empty.html" with message="Our menu is being updated. Please check back soon." %}
+    {% endfor %}
+    <p><a class="btn" href="{% url 'public_bookings:create' %}">Book a table</a></p>
+  </div>
+</section>
+{% endblock %}

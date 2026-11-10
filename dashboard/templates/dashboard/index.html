@@ -1,0 +1,86 @@
+{% extends "core/app_base.html" %}
+{% load core %}
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Welcome, {{ user.first_name|default:user.username }}{% endblock %}
+{% block content %}
+<div class="grid">
+  {% if sales %}
+    <div class="card"><div class="stat">{{ sales.revenue|money }}</div><div class="stat-label">Sales today · {{ sales.orders }} order{{ sales.orders|pluralize }}</div></div>
+  {% endif %}
+  {% if bookings %}
+    <div class="card"><div class="stat">{{ bookings.bookings }}</div><div class="stat-label">Bookings today · {{ bookings.guests }} guests</div></div>
+    <div class="card"><div class="stat">{{ bookings.pending }}</div><div class="stat-label"><a href="{% url 'bookings:list' %}?status=pending">Bookings to confirm</a></div></div>
+  {% endif %}
+  {% if kitchen_count is not None %}
+    <div class="card"><div class="stat">{{ kitchen_count }}</div><div class="stat-label"><a href="{% url 'sales:kitchen' %}">Orders in the kitchen</a></div></div>
+  {% endif %}
+  {% if pending_leave is not None %}
+    <div class="card"><div class="stat">{{ pending_leave }}</div><div class="stat-label"><a href="{% url 'staff:leave_list' %}">Leave requests to review</a></div></div>
+  {% endif %}
+</div>
+
+<div class="grid grid--2">
+  {% if week %}
+  <div class="card">
+    <h2>Sales, last 7 days</h2>
+    <table>
+      <tbody>
+      {% for d in week %}
+        <tr>
+          <td class="nowrap">{{ d.day|date:"D j" }}</td>
+          <td style="width:60%"><div style="background:var(--brand);height:12px;border-radius:6px;width:{{ d.pct }}%" aria-hidden="true"></div></td>
+          <td class="num">{{ d.revenue|money }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% if sales.top_items %}
+      <h2 style="margin-top:1rem">Top items today</h2>
+      <ol>{% for t in sales.top_items %}<li>{{ t.name }}: {{ t.qty }} sold</li>{% endfor %}</ol>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  {% if upcoming_bookings is not None %}
+  <div class="card">
+    <h2>Upcoming bookings</h2>
+    {% if upcoming_bookings %}
+      <table><tbody>
+      {% for b in upcoming_bookings %}
+        <tr><td class="nowrap">{{ b.date|date:"D j" }} {{ b.time|time:"g:i A" }}</td><td><a href="{% url 'bookings:detail' b.pk %}">{{ b.name }}</a></td><td class="num">{{ b.party_size }} pax</td><td>{% include "bookings/_status_badge.html" with status=b.status label=b.get_status_display %}</td></tr>
+      {% endfor %}
+      </tbody></table>
+    {% else %}<p class="muted">No upcoming bookings.</p>{% endif %}
+  </div>
+  {% endif %}
+
+  {% if low_stock is not None %}
+  <div class="card">
+    <h2>Low stock</h2>
+    {% if low_stock %}
+      <table><tbody>
+      {% for i in low_stock %}<tr class="is-low"><td><a href="{% url 'inventory:detail' i.pk %}">{{ i.name }}</a></td><td class="num">{{ i.quantity|floatformat:"-3" }} {{ i.unit }}</td><td class="num muted">reorder at {{ i.reorder_level|floatformat:"-3" }}</td></tr>{% endfor %}
+      </tbody></table>
+    {% else %}<p class="muted">All stock is above reorder level.</p>{% endif %}
+  </div>
+  {% endif %}
+
+  {% if clocked_in is not None %}
+  <div class="card">
+    <h2>On shift now</h2>
+    {% if clocked_in %}
+      <ul>{% for e in clocked_in %}<li>{{ e.employee }} <span class="muted">since {{ e.clock_in|date:"g:i A" }}</span></li>{% endfor %}</ul>
+    {% else %}<p class="muted">Nobody is clocked in.</p>{% endif %}
+  </div>
+  {% endif %}
+
+  <div class="card">
+    <h2>My work</h2>
+    {% if my_open_entry %}<p><span class="badge badge--info">Clocked in since {{ my_open_entry.clock_in|date:"g:i A" }}</span></p>{% endif %}
+    {% if my_shifts %}
+      <ul>{% for s in my_shifts %}<li>{{ s.date|date:"D, M j" }} · {{ s.start_time|time:"g:i A" }} – {{ s.end_time|time:"g:i A" }}</li>{% endfor %}</ul>
+    {% else %}<p class="muted">No shifts in the next 7 days.</p>{% endif %}
+    <a class="btn btn--ghost btn--small" href="{% url 'staff:me' %}">Open my work</a>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,39 @@
+{% extends "core/public_base.html" %}
+{% load core %}
+{% block title %}{{ restaurant_name }}{% endblock %}
+{% block content %}
+<section class="hero">
+  <div class="container">
+    <h1>Fresh, local food at {{ restaurant_name }}</h1>
+    <p>Seasonal dishes made from scratch every day. Come for lunch, stay for dinner, and bring your friends.</p>
+    <p class="actions"><a class="btn" href="{% url 'public_bookings:create' %}">Book a table</a> <a class="btn btn--ghost" href="{% url 'website:menu' %}">See the menu</a></p>
+  </div>
+</section>
+<section class="section">
+  <div class="container grid grid--2">
+    <div class="card">
+      <h2>Opening hours</h2>
+      <p>Every day, {{ opening|time:"g:i A" }}. Last seating at {{ last_seating|time:"g:i A" }}.</p>
+      <p class="muted">Walk-ins welcome. Booking is recommended for groups.</p>
+    </div>
+    <div class="card">
+      <h2>Find us</h2>
+      <p>123 Demo Street, Sample City</p>
+      <p class="muted">This is a demo restaurant. The address and menu are fictional.</p>
+    </div>
+  </div>
+</section>
+{% if featured %}
+<section class="section" style="padding-top:0">
+  <div class="container">
+    <h2>From our menu</h2>
+    <div class="grid">
+      {% for item in featured %}
+        <div class="card"><h3>{{ item.name }}</h3><p class="muted">{{ item.description }}</p><strong>{{ item.price|money }}</strong></div>
+      {% endfor %}
+    </div>
+    <p><a href="{% url 'website:menu' %}">Full menu &rarr;</a></p>
+  </div>
+</section>
+{% endif %}
+{% endblock %}
