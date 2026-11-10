@@ -41,7 +41,7 @@
       <div class="field{% if form.amount_tendered.errors %} field--error{% endif %}"><label for="{{ form.amount_tendered.id_for_label }}">Cash received</label>{{ form.amount_tendered }}{% for e in form.amount_tendered.errors %}<small class="error">{{ e }}</small>{% endfor %}</div>
       <dl class="details" style="margin: 1rem 0">
         <dt>Subtotal</dt><dd class="right" id="pos-subtotal">0.00</dd>
-        <dt>Tax ({% widthratio tax_rate 1 100 %}%)</dt><dd class="right" id="pos-tax">0.00</dd>
+        <dt>Tax ({{ tax_rate|percent }})</dt><dd class="right" id="pos-tax">0.00</dd>
         <dt><strong>Total</strong></dt><dd class="right"><strong id="pos-total">0.00</strong></dd>
         <dt>Change</dt><dd class="right" id="pos-change">—</dd>
       </dl>

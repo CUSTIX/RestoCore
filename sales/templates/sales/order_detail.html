@@ -22,7 +22,7 @@
     </table>
     <dl class="details" style="margin-top:1rem">
       <dt>Subtotal</dt><dd class="right">{{ order.subtotal|money }}</dd>
-      <dt>Tax ({% widthratio order.tax_rate 1 100 %}%)</dt><dd class="right">{{ order.tax|money }}</dd>
+      <dt>Tax ({{ order.tax_rate|percent }})</dt><dd class="right">{{ order.tax|money }}</dd>
       <dt><strong>Total</strong></dt><dd class="right"><strong>{{ order.total|money }}</strong></dd>
       <dt>{{ order.get_payment_method_display }}</dt><dd class="right">{{ order.amount_tendered|money }}</dd>
       <dt>Change</dt><dd class="right">{{ order.change_due|money }}</dd>

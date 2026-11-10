@@ -17,7 +17,7 @@
   <div class="card">
     <h2>Active deduction rates</h2>
     {% if rates %}
-      <dl class="details">{% for r in rates %}<dt>{{ r.name }}</dt><dd>{% widthratio r.rate 1 100 %}%</dd>{% endfor %}</dl>
+      <dl class="details">{% for r in rates %}<dt>{{ r.name }}</dt><dd>{{ r.rate|percent }}</dd>{% endfor %}</dl>
     {% else %}<p class="muted">No active deductions.</p>{% endif %}
     <p class="muted"><small>Pay = attendance hours × hourly rate + approved paid leave (8 h/day). Deductions are a percentage of gross.</small></p>
   </div>
