@@ -1,0 +1,32 @@
+{% extends "core/app_base.html" %}
+{% load core %}
+{% block title %}Payslip · {{ slip.employee_name }}{% endblock %}
+{% block page_title %}Payslip: {{ slip.employee_name }}{% endblock %}
+{% block page_actions %}
+  <button class="btn btn--ghost" onclick="window.print()">Print</button>
+  <a href="{% url 'payroll:period_detail' slip.period_id %}">Back to period</a>
+{% endblock %}
+{% block content %}
+{% include "payroll/_demo_notice.html" %}
+<div class="card narrow">
+  <h2>{{ restaurant_name }} · {{ slip.period }}</h2>
+  <dl class="details">
+    <dt>Employee</dt><dd>{{ slip.employee_name }}</dd>
+    <dt>Position</dt><dd>{{ slip.position }}</dd>
+    <dt>Hourly rate</dt><dd>{{ slip.hourly_rate|money }}</dd>
+    <dt>Hours worked</dt><dd>{{ slip.hours_worked }}</dd>
+    <dt>Paid leave days</dt><dd>{{ slip.paid_leave_days }}</dd>
+  </dl>
+  <table style="margin-top:1rem">
+    <tbody>
+      <tr><td>Regular pay</td><td class="num">{{ slip.regular_pay|money }}</td></tr>
+      <tr><td>Leave pay</td><td class="num">{{ slip.leave_pay|money }}</td></tr>
+      <tr><td><strong>Gross pay</strong></td><td class="num"><strong>{{ slip.gross_pay|money }}</strong></td></tr>
+      {% for d in slip.deductions.all %}
+        <tr><td>{{ d.name }} ({% widthratio d.rate 1 100 %}%)</td><td class="num">−{{ d.amount|money }}</td></tr>
+      {% endfor %}
+      <tr><td><strong>Net pay</strong></td><td class="num"><strong>{{ slip.net_pay|money }}</strong></td></tr>
+    </tbody>
+  </table>
+</div>
+{% endblock %}

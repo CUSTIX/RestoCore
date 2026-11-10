@@ -1,0 +1,47 @@
+{% extends "core/app_base.html" %}
+{% load core %}
+{% block title %}Payroll{% endblock %}
+{% block page_title %}Payroll (demo){% endblock %}
+{% block page_actions %}<a class="btn btn--ghost" href="{% url 'payroll:rates' %}">Deduction rates</a>{% endblock %}
+{% block content %}
+{% include "payroll/_demo_notice.html" %}
+<div class="grid grid--2">
+  <div class="card">
+    <h2>New pay period</h2>
+    <form method="post" novalidate>
+      {% csrf_token %}
+      {% include "core/partials/form.html" with form=form %}
+      <button class="btn" type="submit">Create period</button>
+    </form>
+  </div>
+  <div class="card">
+    <h2>Active deduction rates</h2>
+    {% if rates %}
+      <dl class="details">{% for r in rates %}<dt>{{ r.name }}</dt><dd>{% widthratio r.rate 1 100 %}%</dd>{% endfor %}</dl>
+    {% else %}<p class="muted">No active deductions.</p>{% endif %}
+    <p class="muted"><small>Pay = attendance hours × hourly rate + approved paid leave (8 h/day). Deductions are a percentage of gross.</small></p>
+  </div>
+</div>
+<h2>Pay periods</h2>
+{% if page_obj.object_list %}
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Period</th><th>Status</th><th class="num">Payslips</th><th class="num">Gross</th><th class="num">Net</th></tr></thead>
+    <tbody>
+    {% for p in page_obj %}
+      <tr>
+        <td><a href="{% url 'payroll:period_detail' p.pk %}">{{ p }}</a></td>
+        <td>{% if p.status == 'finalized' %}<span class="badge badge--ok">Finalized</span>{% else %}<span class="badge badge--warn">Draft</span>{% endif %}</td>
+        <td class="num">{{ p.slip_count }}</td>
+        <td class="num">{{ p.total_gross|money|default:"—" }}</td>
+        <td class="num">{{ p.total_net|money|default:"—" }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% include "core/partials/pagination.html" %}
+{% else %}
+  {% include "core/partials/empty.html" with message="No pay periods yet." %}
+{% endif %}
+{% endblock %}

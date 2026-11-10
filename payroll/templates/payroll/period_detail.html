@@ -1,0 +1,45 @@
+{% extends "core/app_base.html" %}
+{% load core %}
+{% block title %}Pay period {{ period }}{% endblock %}
+{% block page_title %}Pay period {{ period }}{% endblock %}
+{% block page_actions %}
+  {% if period.status == 'draft' %}
+    <form method="post" action="{% url 'payroll:period_action' period.pk %}" class="inline-form">{% csrf_token %}<button class="btn btn--ghost" name="action" value="generate" type="submit">{% if payslips %}Recalculate{% else %}Generate payslips{% endif %}</button></form>
+    {% if payslips %}<form method="post" action="{% url 'payroll:period_action' period.pk %}" class="inline-form" onsubmit="return confirm('Finalize? Payslips will be locked.');">{% csrf_token %}<button class="btn" name="action" value="finalize" type="submit">Finalize</button></form>{% endif %}
+  {% else %}
+    <span class="badge badge--ok">Finalized {{ period.finalized_at|date:"M j, Y" }}</span>
+  {% endif %}
+  <a href="{% url 'payroll:period_list' %}">All periods</a>
+{% endblock %}
+{% block content %}
+{% include "payroll/_demo_notice.html" %}
+<div class="grid">
+  <div class="card"><div class="stat">{{ totals.hours }}</div><div class="stat-label">Hours worked</div></div>
+  <div class="card"><div class="stat">{{ totals.gross|money }}</div><div class="stat-label">Gross pay</div></div>
+  <div class="card"><div class="stat">{{ totals.deductions|money }}</div><div class="stat-label">Deductions</div></div>
+  <div class="card"><div class="stat">{{ totals.net|money }}</div><div class="stat-label">Net pay</div></div>
+</div>
+{% if payslips %}
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Employee</th><th>Position</th><th class="num">Hours</th><th class="num">Leave days</th><th class="num">Rate</th><th class="num">Gross</th><th class="num">Deductions</th><th class="num">Net</th></tr></thead>
+    <tbody>
+    {% for s in payslips %}
+      <tr>
+        <td><a href="{% url 'payroll:payslip_detail' s.pk %}">{{ s.employee_name }}</a></td>
+        <td>{{ s.position }}</td>
+        <td class="num">{{ s.hours_worked }}</td>
+        <td class="num">{{ s.paid_leave_days }}</td>
+        <td class="num">{{ s.hourly_rate|money }}</td>
+        <td class="num">{{ s.gross_pay|money }}</td>
+        <td class="num">{{ s.total_deductions|money }}</td>
+        <td class="num"><strong>{{ s.net_pay|money }}</strong></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+  {% include "core/partials/empty.html" with message="No payslips yet. Click Generate payslips to calculate them from attendance and approved leave." %}
+{% endif %}
+{% endblock %}
