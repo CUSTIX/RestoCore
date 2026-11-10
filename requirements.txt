@@ -1,0 +1,7 @@
+Django==5.2.19
+psycopg[binary]==3.3.8
+
+# Dev / test tools (split into a separate file at deploy time, step 6)
+pytest==8.4.2
+pytest-django==4.14.0
+ruff==0.17.4
