@@ -71,6 +71,32 @@ def test_leave_request_and_manager_approval(client_for, make_employee, make_user
 
 
 @pytest.mark.django_db
+def test_leave_list_defaults_to_pending_on_every_page(client_for, make_employee, tomorrow):
+    emp = make_employee()
+    LeaveRequest.objects.create(
+        employee=emp,
+        leave_type="sick",
+        start_date=tomorrow,
+        end_date=tomorrow,
+        reason="pending-one",
+    )
+    LeaveRequest.objects.create(
+        employee=emp,
+        leave_type="sick",
+        start_date=tomorrow,
+        end_date=tomorrow,
+        status="rejected",
+        reason="rejected-one",
+    )
+    c = client_for("Manager")
+    for url in ("/app/staff/leave/", "/app/staff/leave/?page=1"):
+        html = c.get(url).content.decode()
+        assert "pending-one" in html and "rejected-one" not in html
+    html = c.get("/app/staff/leave/?status=").content.decode()
+    assert "pending-one" in html and "rejected-one" in html
+
+
+@pytest.mark.django_db
 def test_staff_cannot_review_leave(client_for, make_employee, tomorrow):
     emp = make_employee()
     leave = LeaveRequest.objects.create(

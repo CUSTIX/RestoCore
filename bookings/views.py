@@ -2,6 +2,7 @@ from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect
+from django.utils.functional import cached_property
 from django.views.generic import FormView, TemplateView, View
 
 from bookings import selectors, services
@@ -105,9 +106,9 @@ class BookingUpdateView(RoleRequiredMixin, FormView):
     form_class = BookingForm
     extra_context = {"active_section": "bookings", "title": "Edit booking"}
 
-    def dispatch(self, request, *args, **kwargs):
-        self.booking = get_object_or_404(Booking, pk=kwargs["pk"])
-        return super().dispatch(request, *args, **kwargs)
+    @cached_property
+    def booking(self):  # loaded only after the role check in dispatch()
+        return get_object_or_404(Booking, pk=self.kwargs["pk"])
 
     def get_form_kwargs(self):
         return {**super().get_form_kwargs(), "instance": self.booking}

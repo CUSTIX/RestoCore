@@ -5,6 +5,7 @@ from django.core.exceptions import PermissionDenied, ValidationError
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.functional import cached_property
 from django.views.generic import FormView, TemplateView, View
 
 from core.mixins import RoleRequiredMixin
@@ -38,9 +39,9 @@ class MyWorkView(RoleRequiredMixin, FormView):
     template_name = "staff/me.html"
     form_class = LeaveRequestForm
 
-    def dispatch(self, request, *args, **kwargs):
-        self.employee = selectors.employee_for_user(request.user)
-        return super().dispatch(request, *args, **kwargs)
+    @cached_property
+    def employee(self):
+        return selectors.employee_for_user(self.request.user)
 
     def get_context_data(self, **kwargs):
         ctx = {
@@ -150,9 +151,9 @@ class EmployeeUpdateView(RoleRequiredMixin, FormView):
     template_name = "staff/form.html"
     form_class = EmployeeForm
 
-    def dispatch(self, request, *args, **kwargs):
-        self.employee = get_object_or_404(Employee.objects.select_related("user"), pk=kwargs["pk"])
-        return super().dispatch(request, *args, **kwargs)
+    @cached_property
+    def employee(self):  # loaded only after the role check in dispatch()
+        return get_object_or_404(Employee.objects.select_related("user"), pk=self.kwargs["pk"])
 
     def get_initial(self):
         e, u = self.employee, self.employee.user
@@ -224,10 +225,10 @@ class ShiftEditView(RoleRequiredMixin, FormView):
     template_name = "staff/form.html"
     form_class = ShiftForm
 
-    def dispatch(self, request, *args, **kwargs):
-        pk = kwargs.get("pk")
-        self.shift = get_object_or_404(Shift, pk=pk) if pk else None
-        return super().dispatch(request, *args, **kwargs)
+    @cached_property
+    def shift(self):  # loaded only after the role check in dispatch()
+        pk = self.kwargs.get("pk")
+        return get_object_or_404(Shift, pk=pk) if pk else None
 
     def get_initial(self):
         if self.shift:
@@ -291,11 +292,10 @@ class LeaveListView(RoleRequiredMixin, TemplateView):
     template_name = "staff/leave_list.html"
 
     def get_context_data(self, **kwargs):
-        form = LeaveFilterForm(self.request.GET or None)
-        status = form.cleaned_data.get("status", "") if form.is_valid() else ""
-        if not self.request.GET:
-            status = LeaveRequest.Status.PENDING
-            form = LeaveFilterForm(initial={"status": status})
+        # Default to "pending" whenever no status was chosen, including on ?page=N links.
+        data = self.request.GET if "status" in self.request.GET else {"status": "pending"}
+        form = LeaveFilterForm(data)
+        status = form.cleaned_data["status"] if form.is_valid() else LeaveRequest.Status.PENDING
         return {
             **super().get_context_data(**kwargs),
             "filter_form": form,

@@ -1,6 +1,7 @@
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404, redirect
+from django.utils.functional import cached_property
 from django.views.generic import FormView, TemplateView
 
 from core.mixins import RoleRequiredMixin
@@ -37,9 +38,9 @@ class ItemDetailView(RoleRequiredMixin, FormView):
     template_name = "inventory/detail.html"
     form_class = MovementForm
 
-    def dispatch(self, request, *args, **kwargs):
-        self.item = get_object_or_404(InventoryItem, pk=kwargs["pk"])
-        return super().dispatch(request, *args, **kwargs)
+    @cached_property
+    def item(self):  # loaded only after the role check in dispatch()
+        return get_object_or_404(InventoryItem, pk=self.kwargs["pk"])
 
     def get_context_data(self, **kwargs):
         return {
@@ -88,9 +89,9 @@ class ItemUpdateView(RoleRequiredMixin, FormView):
     form_class = ItemForm
     extra_context = {"title": "Edit inventory item", "active_section": "inventory"}
 
-    def dispatch(self, request, *args, **kwargs):
-        self.item = get_object_or_404(InventoryItem, pk=kwargs["pk"])
-        return super().dispatch(request, *args, **kwargs)
+    @cached_property
+    def item(self):  # loaded only after the role check in dispatch()
+        return get_object_or_404(InventoryItem, pk=self.kwargs["pk"])
 
     def get_form_kwargs(self):
         return {**super().get_form_kwargs(), "instance": self.item}
