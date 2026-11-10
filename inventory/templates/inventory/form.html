@@ -1,0 +1,13 @@
+{% extends "core/app_base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+{% block page_actions %}<a href="{% url 'inventory:list' %}">Back to inventory</a>{% endblock %}
+{% block content %}
+<div class="card">
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {% include "core/partials/form.html" with form=form %}
+    <button class="btn" type="submit">Save item</button>
+  </form>
+</div>
+{% endblock %}

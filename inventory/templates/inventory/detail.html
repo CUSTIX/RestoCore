@@ -1,0 +1,51 @@
+{% extends "core/app_base.html" %}
+{% load core %}
+{% block title %}{{ item.name }}{% endblock %}
+{% block page_title %}{{ item.name }}{% endblock %}
+{% block page_actions %}
+  {% if user|has_role:"Owner,Manager" %}<a class="btn btn--ghost" href="{% url 'inventory:update' item.pk %}">Edit item</a>{% endif %}
+  <a href="{% url 'inventory:list' %}">All items</a>
+{% endblock %}
+{% block content %}
+<div class="grid grid--2">
+  <div class="card">
+    <h2>Stock</h2>
+    <div class="stat">{{ item.quantity|floatformat:"-3" }} {{ item.unit }}</div>
+    <p class="stat-label">Reorder at {{ item.reorder_level|floatformat:"-3" }} {{ item.unit }} · cost {{ item.cost_per_unit|money }} per {{ item.unit }}</p>
+    {% if item.is_low %}<span class="badge badge--warn">Low stock</span>{% endif %}
+    {% if not item.is_active %}<span class="badge badge--muted">Inactive</span>{% endif %}
+  </div>
+  <div class="card">
+    <h2>Update stock</h2>
+    <form method="post" novalidate>
+      {% csrf_token %}
+      {% include "core/partials/form.html" with form=form %}
+      <button class="btn" type="submit">Save</button>
+    </form>
+  </div>
+</div>
+<h2>Movement history</h2>
+{% if page_obj.object_list %}
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>When</th><th>Reason</th><th class="num">Change</th><th class="num">After</th><th>Reference</th><th>Note</th><th>By</th></tr></thead>
+    <tbody>
+    {% for m in page_obj %}
+      <tr>
+        <td class="nowrap">{{ m.created_at|date:"M j, g:i A" }}</td>
+        <td>{{ m.get_reason_display }}</td>
+        <td class="num">{% if m.change > 0 %}+{% endif %}{{ m.change|floatformat:"-3" }}</td>
+        <td class="num">{{ m.quantity_after|floatformat:"-3" }}</td>
+        <td>{{ m.reference|default:"" }}</td>
+        <td>{{ m.note }}</td>
+        <td>{{ m.created_by|default:"—" }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% include "core/partials/pagination.html" %}
+{% else %}
+  {% include "core/partials/empty.html" with message="No stock movements yet." %}
+{% endif %}
+{% endblock %}

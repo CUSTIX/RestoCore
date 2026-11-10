@@ -1,0 +1,38 @@
+{% extends "core/app_base.html" %}
+{% load core %}
+{% block title %}Inventory{% endblock %}
+{% block page_title %}Inventory{% endblock %}
+{% block page_actions %}{% if user|has_role:"Owner,Manager" %}<a class="btn" href="{% url 'inventory:create' %}">New item</a>{% endif %}{% endblock %}
+{% block content %}
+{% if low_count %}
+  <div class="alert alert--warning">{{ low_count }} item{{ low_count|pluralize }} at or below reorder level. <a href="?low=on">Show low stock</a></div>
+{% endif %}
+<form method="get" class="filters">
+  <div class="field"><label for="{{ filter_form.q.id_for_label }}">Search</label>{{ filter_form.q }}</div>
+  <div class="field field--checkbox"><label for="{{ filter_form.low.id_for_label }}">Low stock only</label>{{ filter_form.low }}</div>
+  <button class="btn" type="submit">Filter</button>
+  <a href="{% url 'inventory:list' %}">Clear</a>
+</form>
+{% if page_obj.object_list %}
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Item</th><th class="num">On hand</th><th>Unit</th><th class="num">Reorder at</th><th class="num">Cost / unit</th><th></th></tr></thead>
+    <tbody>
+    {% for item in page_obj %}
+      <tr class="{% if item.is_low %}is-low{% endif %}">
+        <td><a href="{% url 'inventory:detail' item.pk %}">{{ item.name }}</a></td>
+        <td class="num">{{ item.quantity|floatformat:"-3" }}</td>
+        <td>{{ item.unit }}</td>
+        <td class="num">{{ item.reorder_level|floatformat:"-3" }}</td>
+        <td class="num">{{ item.cost_per_unit|money }}</td>
+        <td>{% if item.is_low %}<span class="badge badge--warn">Low</span>{% endif %}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% include "core/partials/pagination.html" %}
+{% else %}
+  {% include "core/partials/empty.html" with message="No inventory items found." %}
+{% endif %}
+{% endblock %}
