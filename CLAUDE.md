@@ -53,7 +53,8 @@ Detailed features (for example leave approval rules) come after the module's tru
 
 ```
 cp .env.example .env             # first time only (Windows cmd: copy .env.example .env)
-docker compose up --build        # run the app
+docker compose up --build        # run the app (applies migrations on start)
+docker compose run --rm web python manage.py seed_demo   # fake demo data, logins per role
 docker compose run --rm web pytest
 docker compose run --rm web ruff check .
 docker compose run --rm web python manage.py makemigrations
