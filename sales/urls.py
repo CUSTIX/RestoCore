@@ -13,5 +13,6 @@ urlpatterns = [
     path("kitchen/<int:pk>/advance/", views.KitchenAdvanceView.as_view(), name="kitchen_advance"),
     path("menu/", views.MenuListView.as_view(), name="menu_list"),
     path("menu/new/", views.MenuItemEditView.as_view(), name="menu_create"),
+    path("menu/categories/new/", views.MenuCategoryCreateView.as_view(), name="category_create"),
     path("menu/<int:pk>/edit/", views.MenuItemEditView.as_view(), name="menu_update"),
 ]

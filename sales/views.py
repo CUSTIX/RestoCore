@@ -8,7 +8,14 @@ from core.mixins import RoleRequiredMixin
 from core.pagination import paginate
 from core.roles import CASHIER, KITCHEN, MANAGEMENT
 from sales import selectors, services
-from sales.forms import MenuItemForm, OrderFilterForm, PosForm, RecipeFormSet, VoidForm
+from sales.forms import (
+    MenuCategoryForm,
+    MenuItemForm,
+    OrderFilterForm,
+    PosForm,
+    RecipeFormSet,
+    VoidForm,
+)
 from sales.models import MenuItem, Order
 
 POS_ROLES = (*MANAGEMENT, CASHIER)
@@ -141,6 +148,7 @@ class MenuListView(RoleRequiredMixin, TemplateView):
         qs = selectors.all_menu_items().prefetch_related("recipe")
         return {
             **super().get_context_data(**kwargs),
+            "category_form": MenuCategoryForm(),
             "page_obj": paginate(self.request, qs, per_page=30),
             "active_section": "menu",
         }
@@ -175,3 +183,16 @@ class MenuItemEditView(RoleRequiredMixin, TemplateView):
             messages.success(request, f"{saved.name} saved.")
             return redirect("sales:menu_list")
         return self.render_to_response(self.get_context_data(form=form, formset=formset))
+
+
+class MenuCategoryCreateView(RoleRequiredMixin, View):
+    allowed_roles = MANAGEMENT
+
+    def post(self, request):
+        form = MenuCategoryForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"Category {form.cleaned_data['name']} added.")
+        else:
+            messages.error(request, " ".join(e for errs in form.errors.values() for e in errs))
+        return redirect("sales:menu_list")

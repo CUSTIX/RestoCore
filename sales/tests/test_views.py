@@ -125,6 +125,18 @@ def test_manager_creates_menu_item_with_recipe(client_for, stocked_menu):
 
 
 @pytest.mark.django_db
+@pytest.mark.parametrize("role,status", {**MENU, "Owner": 302, "Manager": 302}.items())
+def test_category_create_per_role(client_for, role, status):
+    from sales.models import MenuCategory
+
+    response = client_for(role).post(
+        "/app/sales/menu/categories/new/", {"name": "Soups", "sort_order": "1"}
+    )
+    assert response.status_code == status
+    assert MenuCategory.objects.filter(name="Soups").exists() == (status == 302)
+
+
+@pytest.mark.django_db
 def test_menu_price_must_be_positive(client_for, stocked_menu):
     data = {
         "category": stocked_menu["category"].pk,

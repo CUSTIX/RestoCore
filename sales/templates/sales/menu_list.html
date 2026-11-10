@@ -4,6 +4,12 @@
 {% block page_title %}Menu{% endblock %}
 {% block page_actions %}<a class="btn" href="{% url 'sales:menu_create' %}">New menu item</a>{% endblock %}
 {% block content %}
+<form method="post" action="{% url 'sales:category_create' %}" class="filters card">
+  {% csrf_token %}
+  <div class="field"><label for="{{ category_form.name.id_for_label }}">New category</label>{{ category_form.name }}</div>
+  <div class="field"><label for="{{ category_form.sort_order.id_for_label }}">Sort order</label>{{ category_form.sort_order }}</div>
+  <button class="btn btn--ghost" type="submit">Add category</button>
+</form>
 {% if page_obj.object_list %}
 <div class="table-wrap">
   <table>

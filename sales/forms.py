@@ -3,7 +3,7 @@ from decimal import Decimal
 from django import forms
 
 from inventory import selectors as inventory_selectors
-from sales.models import MenuItem, Order, RecipeLine
+from sales.models import MenuCategory, MenuItem, Order, RecipeLine
 from sales.services import MAX_QTY_PER_LINE
 
 
@@ -60,6 +60,12 @@ class VoidForm(forms.Form):
 class OrderFilterForm(forms.Form):
     date = forms.DateField(required=False, widget=forms.DateInput(attrs={"type": "date"}))
     status = forms.ChoiceField(required=False, choices=[("", "All"), *Order.Status.choices])
+
+
+class MenuCategoryForm(forms.ModelForm):
+    class Meta:
+        model = MenuCategory
+        fields = ("name", "sort_order")
 
 
 class MenuItemForm(forms.ModelForm):
