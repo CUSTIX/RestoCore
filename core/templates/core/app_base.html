@@ -1,0 +1,37 @@
+{% extends "core/base.html" %}
+{% block body_class %}app{% endblock %}
+{% block body %}
+<div class="app-shell">
+  <aside class="sidebar" aria-label="Staff navigation">
+    <a class="brand brand--light" href="{% url 'dashboard:index' %}">RestoCore</a>
+    <nav>
+      {% for item in nav_items %}
+        <a href="{{ item.href }}" class="sidebar__link{% if item.section == active_section %} is-active{% endif %}">{{ item.label }}</a>
+      {% endfor %}
+    </nav>
+    <div class="sidebar__footer">
+      <a href="{% url 'website:home' %}" class="sidebar__link">Public site</a>
+    </div>
+  </aside>
+  <div class="app-main">
+    <header class="topbar">
+      <div>
+        <strong>{{ user.get_full_name|default:user.username }}</strong>
+        {% for role in current_roles %}<span class="badge">{{ role }}</span>{% empty %}<span class="badge badge--muted">No role</span>{% endfor %}
+      </div>
+      <div class="topbar__actions">
+        <a href="{% url 'accounts:password_change' %}">Change password</a>
+        <form method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}<button type="submit" class="link-button">Log out</button></form>
+      </div>
+    </header>
+    <main class="content">
+      {% include "core/partials/messages.html" %}
+      <div class="page-header">
+        <h1>{% block page_title %}{% endblock %}</h1>
+        <div class="page-header__actions">{% block page_actions %}{% endblock %}</div>
+      </div>
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,9 @@
+{% extends "core/base.html" %}
+{% block title %}Access denied{% endblock %}
+{% block body %}
+<div class="error-page">
+  <h1>403 · Access denied</h1>
+  <p>Your role does not have access to this page.</p>
+  <p><a class="btn" href="/app/">Back to dashboard</a></p>
+</div>
+{% endblock %}

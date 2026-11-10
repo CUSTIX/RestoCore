@@ -1,0 +1,18 @@
+{% comment %}
+Renders a form's fields. Usage: {% include "core/partials/form.html" with form=form %}
+The caller provides the <form> tag, csrf_token and submit button.
+{% endcomment %}
+{% if form.non_field_errors %}
+  <div class="alert alert--error">{% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}</div>
+{% endif %}
+{% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}
+<div class="form-grid">
+{% for field in form.visible_fields %}
+  <div class="field{% if field.errors %} field--error{% endif %}{% if field.field.widget.input_type == 'checkbox' %} field--checkbox{% endif %}">
+    <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} <span aria-hidden="true">*</span>{% endif %}</label>
+    {{ field }}
+    {% if field.help_text %}<small class="help">{{ field.help_text }}</small>{% endif %}
+    {% for error in field.errors %}<small class="error">{{ error }}</small>{% endfor %}
+  </div>
+{% endfor %}
+</div>

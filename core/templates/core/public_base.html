@@ -1,0 +1,28 @@
+{% extends "core/base.html" %}
+{% block body_class %}public{% endblock %}
+{% block body %}
+<header class="site-header">
+  <div class="container site-header__inner">
+    <a class="brand" href="{% url 'website:home' %}">{{ restaurant_name }}</a>
+    <nav class="site-nav" aria-label="Main">
+      <a href="{% url 'website:home' %}">Home</a>
+      <a href="{% url 'website:menu' %}">Menu</a>
+      <a href="{% url 'public_bookings:create' %}" class="btn btn--small">Book a table</a>
+      {% if user.is_authenticated %}
+        <a href="{% url 'dashboard:index' %}">Staff area</a>
+      {% else %}
+        <a href="{% url 'accounts:login' %}">Staff login</a>
+      {% endif %}
+    </nav>
+  </div>
+</header>
+<main>
+  <div class="container">{% include "core/partials/messages.html" %}</div>
+  {% block content %}{% endblock %}
+</main>
+<footer class="site-footer">
+  <div class="container">
+    <p>{{ restaurant_name }} · Powered by RestoCore, a portfolio demo. All data is fake.</p>
+  </div>
+</footer>
+{% endblock %}
