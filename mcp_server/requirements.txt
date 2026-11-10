@@ -1,0 +1,2 @@
+# Only for running the MCP server; not installed in the Django image.
+mcp==2.2.0
