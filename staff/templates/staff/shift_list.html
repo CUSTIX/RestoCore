@@ -1,0 +1,24 @@
+{% extends "core/app_base.html" %}
+{% block title %}Schedules{% endblock %}
+{% block page_title %}Schedule: {{ start|date:"M j" }} – {{ end|date:"M j, Y" }}{% endblock %}
+{% block page_actions %}
+  <a href="?start={{ prev|date:'Y-m-d' }}">&larr; Previous week</a>
+  <a href="{% url 'staff:shift_list' %}">This week</a>
+  <a href="?start={{ next|date:'Y-m-d' }}">Next week &rarr;</a>
+  <a class="btn" href="{% url 'staff:shift_create' %}">New shift</a>
+{% endblock %}
+{% block content %}
+<div class="grid">
+  {% for day in days %}
+  <div class="card">
+    <h2>{{ day.date|date:"D, M j" }}</h2>
+    {% for s in day.shifts %}
+      <p><a href="{% url 'staff:shift_update' s.pk %}">{{ s.employee }}</a><br><small class="muted">{{ s.start_time|time:"g:i A" }} – {{ s.end_time|time:"g:i A" }}{% if s.note %} · {{ s.note }}{% endif %}</small></p>
+    {% empty %}
+      <p class="muted">No shifts.</p>
+    {% endfor %}
+    <a class="btn btn--ghost btn--small" href="{% url 'staff:shift_create' %}?date={{ day.date|date:'Y-m-d' }}">Add</a>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

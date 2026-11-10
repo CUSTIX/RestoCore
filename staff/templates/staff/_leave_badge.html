@@ -1,0 +1,1 @@
+<span class="badge {% if leave.status == 'pending' %}badge--warn{% elif leave.status == 'approved' %}badge--ok{% elif leave.status == 'rejected' %}badge--danger{% else %}badge--muted{% endif %}">{{ leave.get_status_display }}</span>

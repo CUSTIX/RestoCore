@@ -1,0 +1,20 @@
+{% extends "core/app_base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="card">
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {% include "core/partials/form.html" with form=form %}
+    <div class="actions">
+      <button type="submit" class="btn">Save</button>
+      <a href="javascript:history.back()">Cancel</a>
+    </div>
+  </form>
+  {% if shift %}
+  <form method="post" action="{% url 'staff:shift_delete' shift.pk %}" style="margin-top:1rem" onsubmit="return confirm('Delete this shift?');">
+    {% csrf_token %}<button type="submit" class="btn btn--danger btn--small">Delete shift</button>
+  </form>
+  {% endif %}
+</div>
+{% endblock %}

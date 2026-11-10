@@ -1,0 +1,35 @@
+{% extends "core/app_base.html" %}
+{% load core %}
+{% block title %}Employees{% endblock %}
+{% block page_title %}Employees{% endblock %}
+{% block page_actions %}<a class="btn" href="{% url 'staff:employee_create' %}">New employee</a>{% endblock %}
+{% block content %}
+<form method="get" class="filters">
+  <div class="field"><label for="q">Search</label><input type="search" id="q" name="q" value="{{ q }}" placeholder="Name, username or position"></div>
+  <div class="field field--checkbox"><label for="all">Include inactive</label><input type="checkbox" id="all" name="all" value="1" {% if show_all %}checked{% endif %}></div>
+  <button class="btn" type="submit">Filter</button>
+</form>
+{% if page_obj.object_list %}
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Name</th><th>Username</th><th>Role</th><th>Position</th><th class="num">Hourly rate</th><th>Hired</th><th>Status</th></tr></thead>
+    <tbody>
+    {% for e in page_obj %}
+      <tr>
+        <td><a href="{% url 'staff:employee_update' e.pk %}">{{ e }}</a></td>
+        <td>{{ e.user.username }}</td>
+        <td>{% for g in e.user.groups.all %}<span class="badge">{{ g.name }}</span>{% endfor %}</td>
+        <td>{{ e.position }}</td>
+        <td class="num">{{ e.hourly_rate|money }}</td>
+        <td>{{ e.hire_date|date:"M j, Y" }}</td>
+        <td>{% if e.is_active %}<span class="badge badge--ok">Active</span>{% else %}<span class="badge badge--muted">Inactive</span>{% endif %}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% include "core/partials/pagination.html" %}
+{% else %}
+  {% include "core/partials/empty.html" with message="No employees found." %}
+{% endif %}
+{% endblock %}

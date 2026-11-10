@@ -1,0 +1,32 @@
+{% extends "core/app_base.html" %}
+{% block title %}Attendance{% endblock %}
+{% block page_title %}Attendance{% endblock %}
+{% block content %}
+<div class="card">
+  <h2>Clocked in now ({{ clocked_in|length }})</h2>
+  {% if clocked_in %}
+    <p>{% for e in clocked_in %}<span class="badge">{{ e.employee }} · since {{ e.clock_in|date:"g:i A" }}</span> {% endfor %}</p>
+  {% else %}<p class="muted">Nobody is clocked in.</p>{% endif %}
+</div>
+<form method="get" class="filters">
+  <div class="field"><label for="{{ filter_form.date.id_for_label }}">Date</label>{{ filter_form.date }}</div>
+  <button class="btn" type="submit">Filter</button>
+  <a href="{% url 'staff:attendance_list' %}">Clear</a>
+</form>
+{% if page_obj.object_list %}
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Employee</th><th>Clock in</th><th>Clock out</th><th class="num">Hours</th></tr></thead>
+    <tbody>
+    {% for e in page_obj %}
+      <tr><td>{{ e.employee }}</td><td>{{ e.clock_in|date:"M j, g:i A" }}</td><td>{% if e.clock_out %}{{ e.clock_out|date:"M j, g:i A" }}{% else %}<span class="badge badge--info">On shift</span>{% endif %}</td><td class="num">{{ e.hours|default:"—" }}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% include "core/partials/pagination.html" %}
+<p class="muted"><small>Corrections to attendance records are made by an owner in the admin.</small></p>
+{% else %}
+  {% include "core/partials/empty.html" with message="No attendance records." %}
+{% endif %}
+{% endblock %}

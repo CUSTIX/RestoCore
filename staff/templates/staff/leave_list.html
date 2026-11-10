@@ -1,0 +1,44 @@
+{% extends "core/app_base.html" %}
+{% block title %}Leave requests{% endblock %}
+{% block page_title %}Leave requests{% endblock %}
+{% block content %}
+<form method="get" class="filters">
+  <div class="field"><label for="{{ filter_form.status.id_for_label }}">Status</label>{{ filter_form.status }}</div>
+  <button class="btn" type="submit">Filter</button>
+</form>
+{% if page_obj.object_list %}
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Employee</th><th>Type</th><th>Dates</th><th>Reason</th><th>Status</th><th>Review</th></tr></thead>
+    <tbody>
+    {% for leave in page_obj %}
+      <tr>
+        <td>{{ leave.employee }}</td>
+        <td>{{ leave.get_leave_type_display }}</td>
+        <td class="nowrap">{{ leave.start_date|date:"M j" }} – {{ leave.end_date|date:"M j, Y" }}<br><small class="muted">{{ leave.days }} day{{ leave.days|pluralize }}</small></td>
+        <td>{{ leave.reason|default:"—" }}</td>
+        <td>{% include "staff/_leave_badge.html" %}{% if leave.reviewed_by %}<br><small class="muted">by {{ leave.reviewed_by }}{% if leave.review_note %}: {{ leave.review_note }}{% endif %}</small>{% endif %}</td>
+        <td>
+          {% if leave.status == 'pending' %}
+            {% if leave.employee.user_id == user.pk %}
+              <small class="muted">Your own request: another manager or the owner reviews it.</small>
+            {% else %}
+            <form method="post" action="{% url 'staff:leave_review' leave.pk %}" class="actions">
+              {% csrf_token %}
+              <input type="text" name="note" placeholder="Note (optional)" maxlength="300">
+              <button class="btn btn--small" name="decision" value="approve" type="submit">Approve</button>
+              <button class="btn btn--small btn--danger" name="decision" value="reject" type="submit">Reject</button>
+            </form>
+            {% endif %}
+          {% endif %}
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% include "core/partials/pagination.html" %}
+{% else %}
+  {% include "core/partials/empty.html" with message="No leave requests here." %}
+{% endif %}
+{% endblock %}

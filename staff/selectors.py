@@ -1,0 +1,97 @@
+import datetime as dt
+from decimal import Decimal
+
+from django.db.models import Q, QuerySet
+from django.utils import timezone
+
+from staff.models import Employee, LeaveRequest, Shift, TimeEntry
+
+
+def employee_for_user(user) -> Employee | None:
+    if not user.is_authenticated:
+        return None
+    return Employee.objects.filter(user=user).select_related("user").first()
+
+
+def filter_employees(*, q: str = "", include_inactive: bool = False) -> QuerySet[Employee]:
+    qs = Employee.objects.select_related("user").prefetch_related("user__groups")
+    if not include_inactive:
+        qs = qs.filter(is_active=True)
+    if q:
+        qs = qs.filter(
+            Q(user__first_name__icontains=q)
+            | Q(user__last_name__icontains=q)
+            | Q(user__username__icontains=q)
+            | Q(position__icontains=q)
+        )
+    return qs
+
+
+def active_employees() -> QuerySet[Employee]:
+    return Employee.objects.filter(is_active=True).select_related("user")
+
+
+def shifts_between(start: dt.date, end: dt.date, employee=None) -> QuerySet[Shift]:
+    qs = Shift.objects.filter(date__gte=start, date__lte=end).select_related("employee__user")
+    if employee:
+        qs = qs.filter(employee=employee)
+    return qs.order_by("date", "start_time", "id")
+
+
+def upcoming_shifts(employee: Employee, days: int = 14) -> QuerySet[Shift]:
+    today = timezone.localdate()
+    return shifts_between(today, today + dt.timedelta(days=days), employee=employee)
+
+
+def open_entry(employee: Employee) -> TimeEntry | None:
+    return TimeEntry.objects.filter(employee=employee, clock_out__isnull=True).first()
+
+
+def time_entries(*, date=None, employee=None) -> QuerySet[TimeEntry]:
+    qs = TimeEntry.objects.select_related("employee__user")
+    if date:
+        qs = qs.filter(clock_in__date=date)
+    if employee:
+        qs = qs.filter(employee=employee)
+    return qs.order_by("-clock_in", "-id")
+
+
+def clocked_in_now() -> QuerySet[TimeEntry]:
+    return TimeEntry.objects.filter(clock_out__isnull=True).select_related("employee__user")
+
+
+def leave_requests(*, status: str = "", employee=None) -> QuerySet[LeaveRequest]:
+    qs = LeaveRequest.objects.select_related("employee__user", "reviewed_by")
+    if status:
+        qs = qs.filter(status=status)
+    if employee:
+        qs = qs.filter(employee=employee)
+    return qs.order_by("-created_at", "-id")
+
+
+def pending_leave_count() -> int:
+    return LeaveRequest.objects.filter(status=LeaveRequest.Status.PENDING).count()
+
+
+def hours_worked(start: dt.date, end: dt.date) -> dict[int, Decimal]:
+    """Closed attendance hours per employee id, for clock-ins between start and end (local)."""
+    totals: dict[int, Decimal] = {}
+    entries = TimeEntry.objects.filter(
+        clock_in__date__gte=start, clock_in__date__lte=end, clock_out__isnull=False
+    )
+    for entry in entries:
+        totals[entry.employee_id] = totals.get(entry.employee_id, Decimal("0")) + entry.hours
+    return totals
+
+
+def approved_leave_days(start: dt.date, end: dt.date) -> dict[int, int]:
+    """Approved leave days inside the period per employee id (unpaid leave excluded)."""
+    days: dict[int, int] = {}
+    for leave in LeaveRequest.objects.filter(
+        status=LeaveRequest.Status.APPROVED,
+        start_date__lte=end,
+        end_date__gte=start,
+    ).exclude(leave_type=LeaveRequest.LeaveType.UNPAID):
+        overlap = (min(leave.end_date, end) - max(leave.start_date, start)).days + 1
+        days[leave.employee_id] = days.get(leave.employee_id, 0) + overlap
+    return days

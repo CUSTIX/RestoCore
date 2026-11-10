@@ -1,0 +1,60 @@
+{% extends "core/app_base.html" %}
+{% block title %}My work{% endblock %}
+{% block page_title %}My work{% endblock %}
+{% block content %}
+{% if not employee %}
+  {% include "core/partials/empty.html" with message="You don't have an employee profile yet. Ask a manager to add you under Employees." %}
+{% else %}
+<div class="grid grid--2">
+  <div class="card">
+    <h2>Time clock</h2>
+    {% if open_entry %}
+      <p>Clocked in since <strong>{{ open_entry.clock_in|date:"g:i A" }}</strong> ({{ open_entry.clock_in|timesince }}).</p>
+      <form method="post" action="{% url 'staff:clock' %}">{% csrf_token %}<input type="hidden" name="action" value="out"><button class="btn btn--accent" type="submit">Clock out</button></form>
+    {% else %}
+      <p class="muted">You are not clocked in.</p>
+      <form method="post" action="{% url 'staff:clock' %}">{% csrf_token %}<input type="hidden" name="action" value="in"><button class="btn" type="submit">Clock in</button></form>
+    {% endif %}
+    <h2 style="margin-top:1.5rem">Recent attendance</h2>
+    {% if entries %}
+      <table><thead><tr><th>In</th><th>Out</th><th class="num">Hours</th></tr></thead><tbody>
+      {% for e in entries %}<tr><td>{{ e.clock_in|date:"M j, g:i A" }}</td><td>{{ e.clock_out|date:"g:i A"|default:"—" }}</td><td class="num">{{ e.hours|default:"—" }}</td></tr>{% endfor %}
+      </tbody></table>
+    {% else %}<p class="muted">No attendance yet.</p>{% endif %}
+  </div>
+  <div class="card">
+    <h2>My upcoming shifts</h2>
+    {% if shifts %}
+      <table><thead><tr><th>Date</th><th>Time</th><th class="num">Hours</th></tr></thead><tbody>
+      {% for s in shifts %}<tr><td>{{ s.date|date:"D, M j" }}</td><td>{{ s.start_time|time:"g:i A" }} – {{ s.end_time|time:"g:i A" }}</td><td class="num">{{ s.hours }}</td></tr>{% endfor %}
+      </tbody></table>
+    {% else %}<p class="muted">No shifts scheduled in the next two weeks.</p>{% endif %}
+  </div>
+</div>
+<div class="grid grid--2">
+  <div class="card">
+    <h2>Request leave</h2>
+    <form method="post" novalidate>
+      {% csrf_token %}
+      {% include "core/partials/form.html" with form=form %}
+      <button type="submit" class="btn">Send request</button>
+    </form>
+  </div>
+  <div class="card">
+    <h2>My leave requests</h2>
+    {% if leaves %}
+      <table><thead><tr><th>Dates</th><th>Type</th><th>Status</th><th></th></tr></thead><tbody>
+      {% for leave in leaves %}
+        <tr>
+          <td>{{ leave.start_date|date:"M j" }} – {{ leave.end_date|date:"M j, Y" }} <small class="muted">({{ leave.days }} day{{ leave.days|pluralize }})</small></td>
+          <td>{{ leave.get_leave_type_display }}</td>
+          <td>{% include "staff/_leave_badge.html" %}{% if leave.review_note %}<br><small class="muted">{{ leave.review_note }}</small>{% endif %}</td>
+          <td>{% if leave.status == 'pending' %}<form method="post" action="{% url 'staff:leave_cancel' leave.pk %}">{% csrf_token %}<button class="link-button" type="submit">Cancel</button></form>{% endif %}</td>
+        </tr>
+      {% endfor %}
+      </tbody></table>
+    {% else %}<p class="muted">No leave requests yet.</p>{% endif %}
+  </div>
+</div>
+{% endif %}
+{% endblock %}
