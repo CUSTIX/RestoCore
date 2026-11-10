@@ -1,0 +1,31 @@
+services:
+  db:
+    image: postgres:17
+    env_file: .env
+    # No `ports:` on purpose. Postgres is reachable only by `web`, over the internal
+    # Compose network, never from the host or the LAN.
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    # Lets `web` wait until Postgres actually accepts connections, not just until the container starts.
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  web:
+    build: .
+    env_file: .env
+    ports:
+      # Localhost only: the dev server must not be reachable from the LAN.
+      - "127.0.0.1:8000:8000"
+    # DEV ONLY: bind-mounts the source so edits reload without a rebuild.
+    # Production must not do this; it runs the code baked into the image.
+    volumes:
+      - .:/app
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:
