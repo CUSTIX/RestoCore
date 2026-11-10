@@ -1,0 +1,15 @@
+{% extends "core/public_base.html" %}
+{% block title %}Staff login{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="card auth-card">
+    <h1>Staff login</h1>
+    <form method="post" novalidate>
+      {% csrf_token %}
+      {% include "core/partials/form.html" with form=form %}
+      <input type="hidden" name="next" value="{{ next }}">
+      <button type="submit" class="btn">Log in</button>
+    </form>
+  </div>
+</div>
+{% endblock %}
