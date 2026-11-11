@@ -50,11 +50,20 @@
       }
     });
     cartEmpty.style.display = cart.children.length ? "none" : "";
+    var count = 0;
+    items.forEach(function (card) { count += parseInt(qtyInput(card).value || "0", 10) || 0; });
+    var bar = document.getElementById("pos-mobile-bar");
+    if (bar) {
+      bar.classList.toggle("is-on", count > 0);
+      document.getElementById("pos-bar-count").textContent = count + (count === 1 ? " item" : " items");
+    }
     var tax = Math.round(sub * rate * 100) / 100;
     var total = sub + tax;
     document.getElementById("pos-subtotal").textContent = currency + fmt(sub);
     document.getElementById("pos-tax").textContent = currency + fmt(tax);
     document.getElementById("pos-total").textContent = currency + fmt(total);
+    var barTotal = document.getElementById("pos-bar-total");
+    if (barTotal) barTotal.textContent = "Total " + currency + fmt(total);
     var cash = parseFloat((form.querySelector("[name=amount_tendered]") || {}).value || "");
     var change = document.getElementById("pos-change");
     change.textContent = isNaN(cash) ? "—" : currency + fmt(cash - total);

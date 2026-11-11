@@ -287,6 +287,18 @@
     })();
   }
 
+  /* Responsive tables: copy each column heading onto its cells so phones can show rows as cards. */
+  document.querySelectorAll(".table-wrap table").forEach(function (table) {
+    var heads = Array.prototype.map.call(table.querySelectorAll("thead th"), function (th) { return th.textContent.trim(); });
+    if (!heads.length) return;
+    table.querySelectorAll("tbody tr").forEach(function (tr) {
+      Array.prototype.forEach.call(tr.children, function (td, i) {
+        if (heads[i]) td.setAttribute("data-label", heads[i]);
+      });
+    });
+    table.classList.add("is-stackable");
+  });
+
   /* Demo login chips fill the form (local DEBUG only) */
   document.querySelectorAll("[data-demo-user]").forEach(function (chip) {
     chip.addEventListener("click", function () {

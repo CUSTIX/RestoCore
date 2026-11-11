@@ -25,6 +25,7 @@
           </form>
         </article>
       {% endif %}{% endfor %}
+      {% if not count %}<p class="muted" style="margin:.2rem .5rem .6rem;font-size:.88rem">No orders</p>{% endif %}
     </section>
   {% endfor %}
 </div>

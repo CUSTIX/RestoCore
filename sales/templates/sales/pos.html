@@ -1,6 +1,7 @@
 {% extends "core/app_base.html" %}
 {% load static core %}
 {% block title %}Point of sale{% endblock %}
+{% block body_class %}app has-pos-bar{% endblock %}
 {% block page_title %}Point of sale{% endblock %}
 {% block page_actions %}<a class="btn btn--ghost" href="{% url 'sales:order_list' %}">{% icon "receipt" 18 %} Orders</a>{% endblock %}
 {% block content %}
@@ -53,7 +54,7 @@
       {% endif %}
     </div>
 
-    <aside class="card checkout">
+    <aside class="card checkout" id="checkout">
       <h2>{% icon "receipt" 18 %} Current order</h2>
       <ul class="cart" id="pos-cart"></ul>
       <p class="cart__empty" id="pos-cart-empty">Tap a dish to add it.</p>
@@ -91,6 +92,10 @@
       <button type="submit" class="btn btn--block" style="padding:.95em">Charge &amp; send to kitchen<span class="btn__shine"></span></button>
       <p class="muted" style="font-size:.78rem;margin-top:.7rem">Totals here are a preview. The server recalculates prices, tax and stock when you charge.</p>
     </aside>
+  </div>
+  <div class="pos-mobile-bar" id="pos-mobile-bar" aria-live="polite">
+    <span class="pos-mobile-bar__info"><span id="pos-bar-count">0 items</span><small id="pos-bar-total">0.00</small></span>
+    <a class="btn btn--small" href="#checkout">Checkout {% icon "arrow" 14 %}</a>
   </div>
 </form>
 {% endblock %}
