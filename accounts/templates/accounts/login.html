@@ -5,7 +5,7 @@
 {% block body_class %}app{% endblock %}
 {% block body %}
 <div class="auth">
-  <section class="auth__visual" aria-hidden="true">
+  <section class="auth__visual" aria-label="About RestoCore">
     <img src="{% static 'website/img/sign.jpg' %}" alt="">
     <a class="sidebar__brand" href="{% url 'website:home' %}" style="position:absolute;top:28px;left:28px;z-index:2">
       <span class="logo-mark">R</span><span class="sidebar__name">RestoCore<small>{{ restaurant_name }}</small></span>
@@ -13,7 +13,7 @@
     <p class="auth__quote" data-split>Every table, ticket and shift in one calm place.</p>
     <p style="opacity:.8;max-width:42ch">Bookings, point of sale, kitchen, inventory and your team, built for the people who run the floor.</p>
   </section>
-  <section class="auth__panel">
+  <main class="auth__panel" id="main">
     <div class="auth__box">
       {% include "core/partials/messages.html" %}
       <p class="page-header__eyebrow">Staff area</p>
@@ -40,6 +40,6 @@
       {% endif %}
       <p style="margin-top:1.4rem"><a href="{% url 'website:home' %}">&larr; Back to the restaurant site</a></p>
     </div>
-  </section>
+  </main>
 </div>
 {% endblock %}

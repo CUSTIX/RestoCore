@@ -50,18 +50,18 @@
     <div class="site-footer__cols">
       <p class="site-footer__lead">Slow coffee, warm plates and a seat for <em>as long as you like</em>.</p>
       <div>
-        <h4>Visit</h4>
+        <h2 class="footer-h">Visit</h2>
         <p>123 Demo Street, Sample City</p>
         <p>Daily · {{ cafe_opening|time:"g:i A" }} – {{ cafe_closing|time:"g:i A" }}</p>
       </div>
       <div>
-        <h4>Explore</h4>
+        <h2 class="footer-h">Explore</h2>
         <a href="{% url 'website:menu' %}">Menu</a>
         <a href="{% url 'public_bookings:create' %}">Reserve a table</a>
         <a href="{% url 'website:home' %}#visit">Find us</a>
       </div>
       <div>
-        <h4>Team</h4>
+        <h2 class="footer-h">Team</h2>
         <a href="{% url 'accounts:login' %}">Staff login</a>
       </div>
     </div>

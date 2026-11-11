@@ -20,9 +20,9 @@
         <tbody>
         {% for f in formset %}
           <tr>
-            <td>{% for h in f.hidden_fields %}{{ h }}{% endfor %}{{ f.inventory_item }}{% for e in f.inventory_item.errors %}<small class="error">{{ e }}</small>{% endfor %}{% for e in f.non_field_errors %}<small class="error">{{ e }}</small>{% endfor %}</td>
-            <td>{{ f.quantity }}{% for e in f.quantity.errors %}<small class="error">{{ e }}</small>{% endfor %}</td>
-            <td>{% if f.instance.pk %}{{ f.DELETE }}{% endif %}</td>
+            <td>{% for h in f.hidden_fields %}{{ h }}{% endfor %}<label class="sr-only" for="{{ f.inventory_item.id_for_label }}">Ingredient {{ forloop.counter }}</label>{{ f.inventory_item }}{% for e in f.inventory_item.errors %}<small class="error">{{ e }}</small>{% endfor %}{% for e in f.non_field_errors %}<small class="error">{{ e }}</small>{% endfor %}</td>
+            <td><label class="sr-only" for="{{ f.quantity.id_for_label }}">Quantity per portion for ingredient {{ forloop.counter }}</label>{{ f.quantity }}{% for e in f.quantity.errors %}<small class="error">{{ e }}</small>{% endfor %}</td>
+            <td>{% if f.instance.pk %}<label class="sr-only" for="{{ f.DELETE.id_for_label }}">Remove ingredient {{ forloop.counter }}</label>{{ f.DELETE }}{% endif %}</td>
           </tr>
         {% endfor %}
         </tbody>

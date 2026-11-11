@@ -13,9 +13,9 @@
       <tbody>
       {% for f in formset %}
         <tr>
-          <td>{% for h in f.hidden_fields %}{{ h }}{% endfor %}{{ f.name }}{% for e in f.name.errors %}<small class="error">{{ e }}</small>{% endfor %}</td>
-          <td>{{ f.rate }}{% for e in f.rate.errors %}<small class="error">{{ e }}</small>{% endfor %}{% for e in f.non_field_errors %}<small class="error">{{ e }}</small>{% endfor %}</td>
-          <td>{{ f.is_active }}</td>
+          <td>{% for h in f.hidden_fields %}{{ h }}{% endfor %}<label class="sr-only" for="{{ f.name.id_for_label }}">Deduction name</label>{{ f.name }}{% for e in f.name.errors %}<small class="error">{{ e }}</small>{% endfor %}</td>
+          <td><label class="sr-only" for="{{ f.rate.id_for_label }}">Rate for {{ f.name.value|default:"new deduction" }}</label>{{ f.rate }}{% for e in f.rate.errors %}<small class="error">{{ e }}</small>{% endfor %}{% for e in f.non_field_errors %}<small class="error">{{ e }}</small>{% endfor %}</td>
+          <td><label class="sr-only" for="{{ f.is_active.id_for_label }}">Active</label>{{ f.is_active }}</td>
         </tr>
       {% endfor %}
       </tbody>

@@ -22,16 +22,16 @@
   --bg-sunken: #ede6dc;
   --ink: #1e1611;
   --ink-2: #54473d;
-  --ink-3: #8a7c70;
+  --ink-3: #6f6157;   /* 5.3:1 on oat milk, meets WCAG AA */
   --line: #e6ddd1;
   --line-strong: #d3c6b6;
   --accent: var(--brew-800);
   --accent-ink: #ffffff;
   --accent-soft: #efe5d9;
   --focus: #b08a63;
-  --ok: #3d7a4f;
+  --ok: #2c6740;
   --ok-soft: #e4f1e6;
-  --warn: #9a6514;
+  --warn: #7f520e;
   --warn-soft: #f8eedc;
   --danger: #a8322a;
   --danger-soft: #f9e6e3;

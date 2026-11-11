@@ -16,7 +16,7 @@
 {% if page_obj.object_list %}
 <div class="table-wrap">
   <table>
-    <thead><tr><th>Item</th><th class="num">On hand</th><th>Unit</th><th class="num">Reorder at</th><th class="num">Cost / unit</th><th></th></tr></thead>
+    <thead><tr><th>Item</th><th class="num">On hand</th><th>Unit</th><th class="num">Reorder at</th><th class="num">Cost / unit</th><th><span class="sr-only">Stock status</span></th></tr></thead>
     <tbody>
     {% for item in page_obj %}
       <tr class="{% if item.is_low %}is-low{% endif %}">

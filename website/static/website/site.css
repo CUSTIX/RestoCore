@@ -28,7 +28,7 @@ body.public {
 .label { display: inline-flex; align-items: center; gap: .7rem; font-size: .75rem; font-weight: 800; letter-spacing: .2em; text-transform: uppercase; color: var(--brew-600); }
 .label__no { font-family: var(--font-display); font-style: italic; font-weight: 400; letter-spacing: 0; font-size: 1rem; text-transform: none; color: var(--brew-500); }
 .label--light { color: var(--latte); }
-.label--light .label__no { color: var(--brew-300); }
+.label--light .label__no { color: rgba(242, 235, 225, .6); }
 .section { padding: clamp(5rem, 10vw, 9rem) 0; position: relative; }
 .section-title { font-size: clamp(2.4rem, 5.4vw, 4.6rem); line-height: .98; margin: 1rem 0 1.4rem; max-width: 15ch; }
 .section-title em { color: var(--walnut); }
@@ -277,7 +277,7 @@ body.public {
 .slot input { position: absolute; opacity: 0; inset: 0; cursor: pointer; }
 .slot span { display: block; text-align: center; padding: .55rem .2rem; border-radius: 12px; border: 1px solid var(--cream-200); font-weight: 700; font-size: .86rem; transition: all .2s var(--ease-out); background: var(--cream-50); }
 .slot input:hover + span { border-color: var(--brew-500); }
-.slot input:checked + span { background: var(--brew-900); color: #fff; border-color: var(--brew-900); transform: scale(1.04); box-shadow: 0 8px 16px -8px rgba(22, 16, 12, .6); }
+.slot input:checked + span { background: var(--brew-900); color: var(--cream-50); border-color: var(--brew-900); transform: scale(1.04); box-shadow: 0 8px 16px -8px rgba(22, 16, 12, .6); }
 .slot input:focus-visible + span { outline: 2px solid var(--focus); outline-offset: 2px; }
 .party { display: inline-flex; align-items: center; gap: .4rem; }
 .party button { width: 42px; height: 42px; border-radius: 50%; border: 1px solid var(--cream-200); background: var(--cream-50); cursor: pointer; display: grid; place-items: center; color: var(--brew-900); font-size: 1.1rem; transition: transform .2s var(--ease-spring), background .2s; }
@@ -307,7 +307,7 @@ body.public {
 .footer-brand .brand__mark:not(.brand__mark--logo) { background: var(--latte); color: var(--deep); width: 52px; height: 52px; }
 .footer-brand__name { font-family: var(--font-display); font-size: clamp(1.7rem, 3vw, 2.4rem); letter-spacing: -.02em; }
 .site-footer__lead em { color: var(--latte); }
-.site-footer h4 { color: var(--on-deep); font-size: .74rem; letter-spacing: .18em; text-transform: uppercase; font-family: var(--font-body); font-weight: 800; margin-bottom: 1rem; }
+.site-footer .footer-h { color: var(--on-deep); font-size: .74rem; letter-spacing: .18em; text-transform: uppercase; font-family: var(--font-body); font-weight: 800; margin-bottom: 1rem; }
 .site-footer a:not(.btn):not(.brand) { color: inherit; text-decoration: none; display: block; padding: .22rem 0; transition: color .2s, transform .3s var(--ease-out); }
 .site-footer a:not(.btn):not(.brand):hover { color: var(--latte); transform: translateX(3px); }
 .site-footer p { margin: 0 0 .3rem; }

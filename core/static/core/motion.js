@@ -40,10 +40,11 @@
   /* Split headline words for a staggered rise */
   document.querySelectorAll("[data-split]").forEach(function (el) {
     if (reduce) return;
-    var words = el.textContent.trim().split(/\s+/);
-    el.setAttribute("aria-label", el.textContent.trim());
-    el.innerHTML = words.map(function (w, i) {
-      return '<span class="split-word" aria-hidden="true"><span style="--w:' + i + '">' + w.replace(/</g, "&lt;") + "</span></span>";
+    var text = el.textContent.trim();
+    var safe = function (s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;"); };
+    /* Screen readers read one hidden copy of the sentence; the animated word spans are hidden. */
+    el.innerHTML = '<span class="sr-only">' + safe(text) + "</span>" + text.split(/\s+/).map(function (w, i) {
+      return '<span class="split-word" aria-hidden="true"><span style="--w:' + i + '">' + safe(w) + "</span></span>";
     }).join(" ");
   });
 
