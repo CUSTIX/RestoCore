@@ -59,7 +59,8 @@ accounts: `restocore-demo` (set by `DEMO_PASSWORD` in `.env`). To start over:
 - The public site and staff area both have light and dark themes (toggle in the navbar; defaults
   to the visitor's system setting).
 - **Local logo override:** put a template at `local/templates/brand/mark.html` and it replaces the
-  default cup mark everywhere. The `local/` folder is gitignored, so real third-party logos used
+  default cup mark everywhere; `local/templates/brand/favicon.svg` does the same for the browser-tab
+  icon (served at `/favicon.svg`). The `local/` folder is gitignored, so real third-party logos used
   for a local demo are never committed.
 
 ## Tests, lint, and checks

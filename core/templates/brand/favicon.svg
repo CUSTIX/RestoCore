@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><!-- Default tab icon (matches brand/mark.html). Override locally with local/templates/brand/favicon.svg (gitignored). -->
+  <rect width="64" height="64" rx="18" fill="#1f1712"/>
+  <g transform="translate(12 12) scale(1.67)" fill="none" stroke="#d2b08a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4 9h13v5a6 6 0 0 1-6 6h-1a6 6 0 0 1-6-6z M17 11h1.5a2.5 2.5 0 0 1 0 5H17 M8 2c-1 1.5 1 2.5 0 4 M12 2c-1 1.5 1 2.5 0 4"/>
+  </g>
+</svg>

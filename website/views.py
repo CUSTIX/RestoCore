@@ -29,6 +29,18 @@ class HomeView(TemplateView):
         }
 
 
+class FaviconView(TemplateView):
+    """Tab icon rendered from a template, so local branding (local/templates) can override it."""
+
+    template_name = "brand/favicon.svg"
+    content_type = "image/svg+xml"
+
+    def get(self, request, *args, **kwargs):
+        response = super().get(request, *args, **kwargs)
+        response["Cache-Control"] = "public, max-age=86400"
+        return response
+
+
 class MenuView(TemplateView):
     template_name = "website/menu.html"
 
