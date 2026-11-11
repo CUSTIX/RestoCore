@@ -18,6 +18,19 @@ def public_menu() -> list[MenuCategory]:
     return [c for c in cats if c.shown]
 
 
+def signature_dishes(limit: int = 8) -> list[MenuItem]:
+    """Signature dishes first, topped up with other available dishes so it never looks bare."""
+    available = MenuItem.objects.filter(is_available=True).select_related("category")
+    picks = list(
+        available.filter(is_signature=True).order_by("category__sort_order", "name")[:limit]
+    )
+    if len(picks) < limit:
+        picks += list(
+            available.exclude(pk__in=[p.pk for p in picks]).order_by("?")[: limit - len(picks)]
+        )
+    return picks
+
+
 def all_menu_items() -> QuerySet[MenuItem]:
     return MenuItem.objects.select_related("category").order_by("category__sort_order", "name")
 

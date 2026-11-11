@@ -40,106 +40,237 @@ ACCOUNTS = [  # username, role, position, hourly rate
 ]
 
 INGREDIENTS = [  # name, unit, quantity, reorder level, cost per unit
-    ("Rice", "kg", "40", "10", "55"),
-    ("Chicken thigh", "kg", "25", "8", "220"),
-    ("Pork belly", "kg", "18", "6", "310"),
-    ("Beef sirloin", "kg", "4", "5", "650"),
-    ("Tilapia fillet", "kg", "10", "4", "240"),
-    ("Eggs", "pcs", "180", "60", "9"),
-    ("Garlic", "kg", "5", "1", "180"),
-    ("Onion", "kg", "8", "2", "120"),
-    ("Tomato", "kg", "6", "2", "90"),
-    ("Lettuce", "kg", "3", "2", "160"),
-    ("Pasta", "kg", "12", "3", "140"),
-    ("Cream", "l", "6", "2", "260"),
-    ("Cheese", "kg", "3", "1", "520"),
-    ("Coffee beans", "kg", "4", "1", "900"),
-    ("Milk", "l", "15", "5", "95"),
-    ("Mango", "kg", "8", "3", "150"),
-    ("Calamansi", "kg", "2", "1", "120"),
+    ("Coffee beans", "kg", "8", "2", "950"),
+    ("Milk", "l", "30", "8", "95"),
+    ("Oat milk", "l", "10", "3", "180"),
+    ("Cream", "l", "8", "2", "260"),
+    ("Matcha powder", "kg", "0.4", "0.5", "2400"),
+    ("Condensed milk", "l", "6", "2", "150"),
+    ("Sea salt", "kg", "2", "0.5", "60"),
     ("Sugar", "kg", "10", "2", "70"),
-    ("Flour", "kg", "10", "3", "60"),
-    ("Cooking oil", "l", "12", "4", "110"),
+    ("Oranges", "kg", "10", "3", "110"),
+    ("Calamansi", "kg", "3", "1", "120"),
+    ("Sourdough bread", "pcs", "40", "10", "45"),
+    ("Avocado", "pcs", "40", "10", "55"),
+    ("Eggs", "pcs", "240", "60", "9"),
+    ("Flour", "kg", "12", "3", "60"),
+    ("Butter", "kg", "6", "2", "480"),
+    ("Chocolate", "kg", "4", "1", "450"),
+    ("Mixed berries", "kg", "4", "1", "420"),
+    ("Mango", "kg", "8", "3", "150"),
+    ("Cookies", "kg", "3", "1", "300"),
+    ("Chicken thigh", "kg", "20", "6", "220"),
+    ("Rice", "kg", "30", "8", "55"),
+    ("Garlic", "kg", "4", "1", "180"),
+    ("Pasta", "kg", "8", "2", "140"),
+    ("Cheese", "kg", "3", "1", "520"),
+    ("Lettuce", "kg", "4", "2", "160"),
+    ("Tomato", "kg", "6", "2", "90"),
 ]
 
+PHOTO = "website/img/dishes/{}.jpg"
+
+# category: [(name, description, price, photo, signature, [(ingredient, qty per portion)])]
 MENU = {
-    "Starters": [
+    "Coffee": [
         (
-            "Garden salad",
-            "Lettuce, tomato, house dressing",
+            "Espresso",
+            "Double shot of our house blend: dark chocolate, toasted nuts",
+            "110",
+            "espresso",
+            False,
+            [("Coffee beans", "0.018")],
+        ),
+        (
+            "Cortado",
+            "Equal parts espresso and silky milk",
+            "140",
+            "cortado",
+            False,
+            [("Coffee beans", "0.018"), ("Milk", "0.06")],
+        ),
+        (
+            "Flat white",
+            "Velvety microfoam over a ristretto double",
+            "160",
+            "flat-white",
+            False,
+            [("Coffee beans", "0.018"), ("Milk", "0.15")],
+        ),
+        (
+            "Cappuccino",
+            "Classic, with a cloud of foam",
+            "155",
+            "cappuccino",
+            False,
+            [("Coffee beans", "0.018"), ("Milk", "0.15")],
+        ),
+        (
+            "Spanish latte",
+            "Espresso, milk and a ribbon of condensed milk",
+            "175",
+            "spanish-latte",
+            True,
+            [("Coffee beans", "0.018"), ("Milk", "0.18"), ("Condensed milk", "0.03")],
+        ),
+        (
+            "Iced sea-salt latte",
+            "Cold milk, espresso and salted cream cap",
             "185",
-            [("Lettuce", "0.12"), ("Tomato", "0.08")],
+            "iced-sea-salt-latte",
+            True,
+            [("Coffee beans", "0.018"), ("Milk", "0.18"), ("Cream", "0.04"), ("Sea salt", "0.002")],
         ),
         (
-            "Garlic bread",
-            "Toasted with garlic butter and cheese",
-            "145",
-            [("Flour", "0.10"), ("Garlic", "0.02"), ("Cheese", "0.03")],
+            "Single-origin pour-over",
+            "Hand-brewed V60, rotating local beans",
+            "190",
+            "pour-over",
+            False,
+            [("Coffee beans", "0.020")],
         ),
         (
-            "Crispy calamansi wings",
-            "Six pieces, calamansi glaze",
-            "265",
-            [("Chicken thigh", "0.30"), ("Calamansi", "0.03"), ("Cooking oil", "0.05")],
+            "Brewed coffee",
+            "Bottomless before 10 am",
+            "95",
+            "brewed-coffee",
+            False,
+            [("Coffee beans", "0.015")],
         ),
     ],
-    "Mains": [
+    "Not coffee": [
         (
-            "Chicken adobo",
-            "Braised in soy, vinegar and garlic, with rice",
-            "295",
-            [("Chicken thigh", "0.25"), ("Garlic", "0.02"), ("Rice", "0.20")],
+            "Ceremonial matcha latte",
+            "Whisked to order, with oat milk",
+            "195",
+            "matcha-latte",
+            True,
+            [("Matcha powder", "0.004"), ("Oat milk", "0.2")],
         ),
         (
-            "Crispy pork belly",
-            "Slow-roasted, with garlic rice",
-            "345",
-            [("Pork belly", "0.25"), ("Garlic", "0.02"), ("Rice", "0.20")],
+            "Fresh orange juice",
+            "Squeezed to order",
+            "135",
+            "orange-juice",
+            False,
+            [("Oranges", "0.35")],
         ),
         (
-            "Grilled sirloin",
-            "200 g sirloin, side salad",
-            "595",
-            [("Beef sirloin", "0.20"), ("Lettuce", "0.05")],
+            "Calamansi spritz",
+            "Calamansi, honey, sparkling water and mint",
+            "145",
+            "calamansi-spritz",
+            False,
+            [("Calamansi", "0.06"), ("Sugar", "0.02")],
+        ),
+    ],
+    "All-day brunch": [
+        (
+            "Smashed avocado toast",
+            "Sourdough, soft eggs, chili flakes, lemon",
+            "265",
+            "avocado-toast",
+            True,
+            [("Sourdough bread", "1"), ("Avocado", "1"), ("Eggs", "1")],
         ),
         (
-            "Pan-fried tilapia",
-            "With tomato salsa and rice",
-            "325",
-            [("Tilapia fillet", "0.22"), ("Tomato", "0.06"), ("Rice", "0.20")],
+            "Sunny egg sourdough",
+            "Fried egg, garlic butter, herbs",
+            "185",
+            "egg-sourdough",
+            False,
+            [("Sourdough bread", "1"), ("Eggs", "1"), ("Butter", "0.01")],
+        ),
+        (
+            "Buttermilk pancakes",
+            "Three fluffy stacks, berries, maple, banana",
+            "245",
+            "pancakes",
+            True,
+            [("Flour", "0.12"), ("Eggs", "1"), ("Milk", "0.10"), ("Mixed berries", "0.04")],
+        ),
+        (
+            "Chicken adobo rice bowl",
+            "Soy-vinegar chicken, garlic rice, pickles",
+            "285",
+            "adobo-rice-bowl",
+            False,
+            [("Chicken thigh", "0.22"), ("Rice", "0.20"), ("Garlic", "0.02")],
         ),
         (
             "Creamy carbonara",
-            "Pasta, cream, egg, cheese",
-            "310",
+            "Fettuccine, cream, egg yolk, aged cheese",
+            "295",
+            "carbonara",
+            False,
             [("Pasta", "0.15"), ("Cream", "0.10"), ("Eggs", "1"), ("Cheese", "0.03")],
         ),
         (
-            "Tomato basil pasta",
-            "Vegetarian",
-            "275",
-            [("Pasta", "0.15"), ("Tomato", "0.15"), ("Garlic", "0.01")],
+            "Garden salad",
+            "Greens, cherry tomato, avocado, citrus dressing",
+            "220",
+            "garden-salad",
+            False,
+            [("Lettuce", "0.12"), ("Tomato", "0.08")],
         ),
     ],
-    "Desserts": [
+    "Pastries & sweets": [
         (
-            "Mango float",
-            "Layers of mango and cream",
-            "165",
-            [("Mango", "0.12"), ("Cream", "0.05"), ("Sugar", "0.02")],
+            "Butter croissant",
+            "Laminated over three days, baked every morning",
+            "120",
+            "croissant",
+            True,
+            [("Flour", "0.06"), ("Butter", "0.04")],
         ),
         (
-            "Leche flan",
-            "Classic caramel custard",
-            "125",
-            [("Eggs", "3"), ("Milk", "0.10"), ("Sugar", "0.04")],
+            "Sourdough loaf",
+            "Naturally leavened, to take home",
+            "260",
+            "sourdough-loaf",
+            False,
+            [("Flour", "0.5")],
         ),
-    ],
-    "Drinks": [
-        ("Brewed coffee", "Hot or iced", "95", [("Coffee beans", "0.018")]),
-        ("Café latte", "Hot or iced", "135", [("Coffee beans", "0.018"), ("Milk", "0.20")]),
-        ("Calamansi juice", "Freshly squeezed", "95", [("Calamansi", "0.06"), ("Sugar", "0.02")]),
-        ("Mango shake", "Fresh mango, blended", "145", [("Mango", "0.15"), ("Milk", "0.10")]),
+        (
+            "Fruit tarts",
+            "Vanilla custard, seasonal fruit",
+            "130",
+            "fruit-tarts",
+            False,
+            [("Flour", "0.04"), ("Mixed berries", "0.03"), ("Eggs", "1")],
+        ),
+        (
+            "Dark chocolate cake",
+            "Three layers, ganache drip",
+            "195",
+            "chocolate-cake",
+            False,
+            [("Chocolate", "0.06"), ("Flour", "0.05"), ("Eggs", "1")],
+        ),
+        (
+            "Fudge brownie",
+            "Warm, with chocolate sauce",
+            "145",
+            "fudge-brownie",
+            False,
+            [("Chocolate", "0.05"), ("Flour", "0.03"), ("Sugar", "0.03")],
+        ),
+        (
+            "Cookies & cream parfait",
+            "Chocolate mousse, crushed cookies, cream",
+            "175",
+            "cookies-cream-parfait",
+            False,
+            [("Cookies", "0.05"), ("Cream", "0.08")],
+        ),
+        (
+            "Mango gelato",
+            "Carabao mango, churned in house",
+            "140",
+            "mango-gelato",
+            False,
+            [("Mango", "0.12"), ("Milk", "0.10"), ("Sugar", "0.02")],
+        ),
     ],
 }
 
@@ -209,7 +340,7 @@ class Command(BaseCommand):
         items = {}
         for name, unit, qty, reorder, cost in INGREDIENTS:
             # Start high so a week of seeded sales still leaves realistic levels.
-            start_qty = D(qty) * 3 if name != "Beef sirloin" else D(qty)
+            start_qty = D(qty) * 3 if name != "Matcha powder" else D(qty)
             items[name] = inventory_services.create_item(
                 user=user,
                 name=name,
@@ -224,9 +355,14 @@ class Command(BaseCommand):
     def _menu(self, items):
         for order, (cat_name, dishes) in enumerate(MENU.items()):
             cat = MenuCategory.objects.create(name=cat_name, sort_order=order)
-            for name, desc, price, recipe in dishes:
+            for name, desc, price, photo, signature, recipe in dishes:
                 dish = MenuItem.objects.create(
-                    category=cat, name=name, description=desc, price=D(price)
+                    category=cat,
+                    name=name,
+                    description=desc,
+                    price=D(price),
+                    photo=PHOTO.format(photo),
+                    is_signature=signature,
                 )
                 RecipeLine.objects.bulk_create(
                     [
@@ -242,7 +378,7 @@ class Command(BaseCommand):
             employees["cashier2"].user,
             employees["manager"].user,
         ]
-        menu = list(MenuItem.objects.exclude(name="Grilled sirloin"))
+        menu = list(MenuItem.objects.exclude(name="Ceremonial matcha latte"))  # matcha stays low
         tz = timezone.get_current_timezone()
         for days_ago in range(6, -1, -1):
             day = self.today - dt.timedelta(days=days_ago)

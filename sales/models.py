@@ -26,6 +26,12 @@ class MenuItem(TimeStampedModel):
     description = models.CharField(max_length=255, blank=True)
     price = models.DecimalField(**MONEY)
     is_available = models.BooleanField(default=True, help_text="Untick to hide from menu and POS.")
+    is_signature = models.BooleanField(
+        default=False, help_text="Feature this dish on the home page."
+    )
+    # A path inside static files (e.g. "website/img/dishes/carbonara.jpg"). Photos ship with the
+    # code instead of being uploaded, so the web container keeps no local state.
+    photo = models.CharField(max_length=200, blank=True)
 
     class Meta:
         ordering = ("category__sort_order", "name")

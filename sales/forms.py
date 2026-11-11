@@ -68,10 +68,37 @@ class MenuCategoryForm(forms.ModelForm):
         fields = ("name", "sort_order")
 
 
+DISH_PHOTO_DIR = "website/img/dishes"
+
+
+def dish_photo_choices() -> list[tuple[str, str]]:
+    """Dish photos shipped in static files, found through Django's static finders."""
+    from django.contrib.staticfiles import finders
+
+    names = set()
+    for finder in finders.get_finders():
+        for path, _storage in finder.list([]):
+            normalized = path.replace("\\", "/")
+            if normalized.startswith(DISH_PHOTO_DIR + "/") and normalized.endswith(".jpg"):
+                names.add(normalized)
+    label = lambda p: p.rsplit("/", 1)[-1].removesuffix(".jpg").replace("-", " ").capitalize()  # noqa: E731
+    return [("", "No photo"), *sorted((p, label(p)) for p in names)]
+
+
 class MenuItemForm(forms.ModelForm):
+    photo = forms.ChoiceField(required=False, choices=dish_photo_choices)
+
     class Meta:
         model = MenuItem
-        fields = ("category", "name", "description", "price", "is_available")
+        fields = (
+            "category",
+            "name",
+            "description",
+            "price",
+            "photo",
+            "is_available",
+            "is_signature",
+        )
 
 
 class RecipeLineForm(forms.ModelForm):
