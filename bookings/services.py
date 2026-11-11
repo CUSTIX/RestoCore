@@ -3,7 +3,7 @@
 import datetime as dt
 
 from django.core.exceptions import ValidationError
-from django.db import transaction
+from django.db import connection, transaction
 from django.db.models import Sum
 from django.utils import timezone
 
@@ -77,21 +77,33 @@ def validate_slot(*, date: dt.date, time: dt.time, party_size: int, exclude_id=N
 
 
 @transaction.atomic
+def _lock_slot(date: dt.date, time: dt.time) -> None:
+    """Serialise bookings for one slot, even when the slot has no rows yet.
+
+    A Postgres transaction-level advisory lock keyed on the slot (e.g. 202611121930).
+    It is released automatically at commit/rollback. Row locks alone cannot protect an
+    empty slot, so two first bookings could otherwise both pass the capacity check.
+    """
+    key = int(date.strftime("%Y%m%d")) * 10_000 + time.hour * 100 + time.minute
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT pg_advisory_xact_lock(%s)", [key])
+
+
+@transaction.atomic
 def create_booking(*, source: str = Booking.Source.WEBSITE, **data) -> Booking:
-    # Lock the slot's rows so two simultaneous requests cannot overbook it.
-    list(
-        Booking.objects.select_for_update()
-        .filter(date=data["date"], time=data["time"])
-        .values_list("pk", flat=True)
-    )
+    _lock_slot(data["date"], data["time"])
     validate_slot(date=data["date"], time=data["time"], party_size=data["party_size"])
     return Booking.objects.create(source=source, **data)
 
 
 @transaction.atomic
 def update_booking(booking: Booking, **data) -> Booking:
-    if booking.status not in (Booking.Status.PENDING, Booking.Status.CONFIRMED):
+    # Re-read under lock: the caller's copy may be stale or already modified by a form.
+    current = Booking.objects.select_for_update().get(pk=booking.pk)
+    if current.status not in (Booking.Status.PENDING, Booking.Status.CONFIRMED):
         raise ValidationError("Only pending or confirmed bookings can be edited.")
+    _lock_slot(data["date"], data["time"])
+    booking = current
     validate_slot(
         date=data["date"], time=data["time"], party_size=data["party_size"], exclude_id=booking.pk
     )
