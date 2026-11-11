@@ -65,15 +65,37 @@ accounts: `restocore-demo` (set by `DEMO_PASSWORD` in `.env`). To start over:
 ## Tests, lint, and checks
 
 ```bash
-docker compose run --rm web pytest                    # 235+ tests
+docker compose run --rm web pytest                    # 250+ tests
 docker compose run --rm web ruff check .
+docker compose run --rm web ruff format --check .
 docker compose run --rm web python manage.py check
 docker compose run --rm web python manage.py makemigrations --check --dry-run
 ```
 
-Tests cover the business rules (services), every view, and **one access test per role** for every
-staff page. CI runs lint, the Django checks, the migration drift check and the tests against a real
-Postgres on every push to `main` and every pull request, and checks that the Docker image builds.
+Tests cover the business rules (services), every view, **one access test per role** for every
+staff page, and a real two-thread race test for booking capacity. CI runs lint, formatting, the
+Django checks, the migration drift check, the tests against a real Postgres, and
+`manage.py check --deploy` in HTTPS mode on every push to `main` and every pull request. It also
+builds both Docker images (`dev` and `prod`).
+
+Frontend quality was checked in a real browser (Playwright): every page at 11 screen widths from
+320 px to 1920 px with no horizontal scrolling, and an axe-core accessibility audit of every page in
+light and dark mode with zero violations.
+
+## Production-style run (locally)
+
+The same app, built as the lean production image: gunicorn, no test tools, static files collected
+and fingerprinted at build time and served by WhiteNoise, no source bind-mount, DEBUG off.
+
+```bash
+docker compose -f docker-compose.prod.yml -p restocore-prod up --build -d
+docker compose -f docker-compose.prod.yml -p restocore-prod exec web python manage.py seed_demo
+# open http://127.0.0.1:8080/
+```
+
+For a real deployment, serve it behind HTTPS and set `DJANGO_HTTPS=true`, a real
+`DJANGO_SECRET_KEY`, `DJANGO_ALLOWED_HOSTS` and `DJANGO_CSRF_TRUSTED_ORIGINS`. With those set,
+`python manage.py check --deploy` passes (CI verifies this).
 
 ## Status
 
@@ -83,14 +105,7 @@ Postgres on every push to `main` and every pull request, and checks that the Doc
 - [x] 3. Inventory, then sales
 - [x] 4. Staff, then payroll
 - [x] 5. MCP server (read-only)
-- [ ] 6. Deploy
-
-Later:
-
-- [ ] Production compose must not bind-mount the source code (dev-only).
-- [ ] Split requirements into app and dev files so the production image has no test tools.
-- [ ] Production runs gunicorn, not the Django dev server, and serves static files (e.g. WhiteNoise).
-
+- [ ] 6. Deploy: production image, prod compose and deploy checks are ready; a free host is not chosen yet
 ## Design decisions
 
 - **Modular monolith.** One Django project, one app per module (`bookings`, `inventory`, `sales`,
@@ -113,8 +128,14 @@ Later:
 - **Times are stored in UTC; the restaurant's local time zone comes from `DJANGO_TIME_ZONE`.**
 - **Payroll is a labelled demo.** Deduction rates are placeholders stored in the database and editable
   by the Owner; no real country's rules are implied.
-- **Server-rendered templates, almost no JavaScript.** One hand-written stylesheet, no build step.
-  JS is used only for the POS live total preview (the server always recalculates).
+- **Server-rendered templates, progressive enhancement.** Hand-written CSS and one small vanilla JS
+  file, no build step. Every page works without JavaScript; JS adds motion (scroll reveals, count-ups,
+  a cursor-following menu preview), the POS live total (the server always recalculates), time-slot
+  chips on the booking form, and turning tables into cards on phones. Animations respect
+  prefers-reduced-motion.
+- **Responsive and accessible by default.** Mobile-first layouts with safe-area support for notched
+  phones, 16 px form fields on phones (no iOS zoom), larger touch targets, a sticky POS checkout bar,
+  and WCAG AA contrast in both themes.
 - **Non-root container; Postgres not published to the host; web bound to `127.0.0.1`.**
 - **Postgres everywhere.** Dev, CI and prod use the same database engine.
 - **Custom user model before the first migration,** so it can grow without a painful swap.

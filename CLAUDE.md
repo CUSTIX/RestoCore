@@ -59,7 +59,10 @@ docker compose run --rm web pytest
 docker compose run --rm web ruff check .
 docker compose run --rm web python manage.py makemigrations
 docker compose run --rm web python manage.py migrate
+docker compose -f docker-compose.prod.yml -p restocore-prod up --build -d   # production-style stack on :8080
 ```
+
+Dependencies: runtime packages go in `requirements.txt`; test/lint tools in `requirements-dev.txt`.
 
 If a command here is wrong or missing, fix this file in the same change.
 
