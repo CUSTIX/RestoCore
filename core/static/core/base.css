@@ -1,49 +1,48 @@
 /* RestoCore design system: tokens, type, components, motion. No build step. */
 
 :root {
-  /* Brand */
-  --forest-950: #0c1a14;
-  --forest-900: #102219;
-  --forest-800: #163126;
-  --forest-700: #1f4535;
-  --forest-600: #2a5b46;
-  --forest-500: #3a7a5e;
-  --forest-300: #9cc5ae;
-  --cream-50: #fbf8f2;
-  --cream-100: #f5efe3;
-  --cream-200: #ece2cf;
-  --saffron: #e0a03a;
-  --ember: #d4623a;
-  --ember-600: #b94d28;
+  /* Brand: coffee browns, from espresso to oat milk */
+  --brew-950: #16100c;   /* espresso */
+  --brew-900: #1f1712;
+  --brew-800: #2c211a;   /* mocha */
+  --brew-700: #3f2e23;
+  --brew-600: #5b4334;   /* walnut */
+  --brew-500: #7d6150;
+  --brew-300: #c9b6a3;
+  --cream-50: #faf7f2;   /* oat milk */
+  --cream-100: #f2ebe1;
+  --cream-200: #e4d8c8;
+  --latte: #c4a484;      /* highlight on dark backgrounds */
+  --walnut: #7a5338;     /* highlight on light backgrounds */
+  --walnut-600: #5f3f2a;
 
   /* Semantic (light) */
-  --bg: #f7f5f0;
+  --bg: #f6f2ec;
   --bg-elevated: #ffffff;
-  --bg-sunken: #efece5;
-  --ink: #17201b;
-  --ink-2: #4b554f;
-  --ink-3: #7b847e;
-  --line: #e3ded3;
-  --line-strong: #cfc8ba;
-  --accent: var(--forest-700);
+  --bg-sunken: #ede6dc;
+  --ink: #1e1611;
+  --ink-2: #54473d;
+  --ink-3: #8a7c70;
+  --line: #e6ddd1;
+  --line-strong: #d3c6b6;
+  --accent: var(--brew-800);
   --accent-ink: #ffffff;
-  --accent-soft: #e2efe8;
-  --focus: #e0a03a;
-  --ok: #1d7a4e;
-  --ok-soft: #e1f3e9;
-  --warn: #a5650f;
-  --warn-soft: #fcf0d9;
-  --danger: #b3261e;
-  --danger-soft: #fde7e5;
-  --info: #23599e;
-  --info-soft: #e5eefb;
-
+  --accent-soft: #efe5d9;
+  --focus: #b08a63;
+  --ok: #3d7a4f;
+  --ok-soft: #e4f1e6;
+  --warn: #9a6514;
+  --warn-soft: #f8eedc;
+  --danger: #a8322a;
+  --danger-soft: #f9e6e3;
+  --info: #3d5f8a;
+  --info-soft: #e7eef6;
   --radius-sm: 8px;
   --radius: 14px;
   --radius-lg: 22px;
-  --shadow-sm: 0 1px 2px rgba(16, 34, 25, .06);
-  --shadow: 0 1px 2px rgba(16, 34, 25, .05), 0 8px 24px -12px rgba(16, 34, 25, .18);
-  --shadow-lg: 0 24px 60px -24px rgba(16, 34, 25, .35);
+  --shadow-sm: 0 1px 2px rgba(30, 22, 17, .06);
+  --shadow: 0 1px 2px rgba(30, 22, 17, .05), 0 8px 24px -12px rgba(30, 22, 17, .18);
+  --shadow-lg: 0 24px 60px -24px rgba(30, 22, 17, .35);
 
   --font-display: "Fraunces", "Iowan Old Style", Georgia, serif;
   --font-body: "Manrope", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -58,25 +57,25 @@
 }
 
 :root[data-theme="dark"] {
-  --bg: #0d1511;
-  --bg-elevated: #141f19;
-  --bg-sunken: #0a110d;
-  --ink: #e9efe9;
-  --ink-2: #b2bdb5;
-  --ink-3: #84918a;
-  --line: #24332b;
-  --line-strong: #33463b;
-  --accent: #5fae86;
-  --accent-ink: #08130d;
-  --accent-soft: #19342a;
-  --ok: #57c48c;
-  --ok-soft: #133224;
-  --warn: #e7b45a;
-  --warn-soft: #33270f;
-  --danger: #f2837a;
-  --danger-soft: #3b1714;
-  --info: #8db6f2;
-  --info-soft: #152539;
+  --bg: #14100d;
+  --bg-elevated: #1c1612;
+  --bg-sunken: #100c0a;
+  --ink: #f1e9e0;
+  --ink-2: #c4b6a8;
+  --ink-3: #95877a;
+  --line: #2f2620;
+  --line-strong: #43372e;
+  --accent: #c9a882;
+  --accent-ink: #1a120d;
+  --accent-soft: #33271f;
+  --ok: #7fc08f;
+  --ok-soft: #1c2c20;
+  --warn: #dcae64;
+  --warn-soft: #32261a;
+  --danger: #ec8f86;
+  --danger-soft: #3a1c19;
+  --info: #9bb8df;
+  --info-soft: #1b2533;
   --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 10px 30px -14px rgba(0, 0, 0, .6);
   --shadow-lg: 0 24px 60px -20px rgba(0, 0, 0, .7);
   color-scheme: dark;
@@ -94,7 +93,7 @@ h3 { font-size: 1rem; }
 p { margin: 0 0 1em; }
 code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: .88em;
   background: var(--bg-sunken); padding: .1em .4em; border-radius: 6px; }
-::selection { background: var(--saffron); color: var(--forest-950); }
+::selection { background: var(--latte); color: var(--brew-950); }
 :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 6px; }
 
 .container { width: 100%; max-width: 1180px; margin: 0 auto; padding: 0 20px; }
@@ -115,14 +114,14 @@ code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-si
   transition: transform .25s var(--ease-out), box-shadow .25s var(--ease-out), background .2s, color .2s;
   box-shadow: 0 1px 0 rgba(255, 255, 255, .15) inset, var(--shadow-sm);
 }
-.btn:hover { transform: translateY(-1px); box-shadow: 0 10px 22px -12px rgba(16, 34, 25, .55); }
+.btn:hover { transform: translateY(-1px); box-shadow: 0 10px 22px -12px rgba(30, 22, 17, .55); }
 .btn:active { transform: translateY(0) scale(.98); }
 .btn--small { padding: .38em .85em; font-size: .84rem; }
 .btn--ghost { --btn-bg: transparent; --btn-ink: var(--accent); --btn-line: var(--line-strong); box-shadow: none; }
 .btn--ghost:hover { --btn-bg: var(--accent-soft); }
 .btn--danger { --btn-bg: var(--danger); --btn-line: var(--danger); --btn-ink: #fff; }
-.btn--accent { --btn-bg: var(--ember); --btn-line: var(--ember); --btn-ink: #fff; }
-.btn--light { --btn-bg: var(--cream-50); --btn-ink: var(--forest-900); --btn-line: var(--cream-50); }
+.btn--accent { --btn-bg: var(--walnut); --btn-line: var(--walnut); --btn-ink: #fff; }
+.btn--light { --btn-bg: var(--cream-50); --btn-ink: var(--brew-900); --btn-line: var(--cream-50); }
 .btn--outline-light { --btn-bg: transparent; --btn-ink: #fff; --btn-line: rgba(255, 255, 255, .55); box-shadow: none; }
 .btn--outline-light:hover { --btn-bg: rgba(255, 255, 255, .12); }
 .btn--block { width: 100%; }
@@ -235,5 +234,5 @@ dl.details dd { margin: 0; font-weight: 600; }
 .error-page { min-height: 100vh; display: grid; place-items: center; text-align: center; padding: 24px;
   background: radial-gradient(1200px 600px at 50% -10%, var(--accent-soft), transparent 60%), var(--bg); }
 .error-page__code { font-family: var(--font-display); font-size: clamp(5rem, 18vw, 10rem); line-height: 1; font-weight: 600;
-  background: linear-gradient(135deg, var(--forest-700), var(--ember)); -webkit-background-clip: text; background-clip: text; color: transparent; margin: 0; }
+  background: linear-gradient(135deg, var(--brew-700), var(--walnut)); -webkit-background-clip: text; background-clip: text; color: transparent; margin: 0; }
 .error-page h1 { font-family: var(--font-display); font-weight: 500; }

@@ -22,7 +22,7 @@
       <div class="stat"><span data-count="{{ bookings.bookings }}">{{ bookings.bookings }}</span></div>
       <div class="stat-label">Bookings today · {{ bookings.guests }} guests</div>
     </div>
-    <div class="card stat-card stat-card--saffron">
+    <div class="card stat-card stat-card--latte">
       <a class="stat-link" href="{% url 'bookings:list' %}?status=pending" aria-label="Bookings to confirm"></a>
       <div class="stat-card__icon">{% icon "alert" %}</div>
       <div class="stat"><span data-count="{{ bookings.pending }}">{{ bookings.pending }}</span></div>
@@ -30,7 +30,7 @@
     </div>
   {% endif %}
   {% if kitchen_count is not None %}
-    <div class="card stat-card stat-card--ember">
+    <div class="card stat-card stat-card--walnut">
       <a class="stat-link" href="{% url 'sales:kitchen' %}" aria-label="Orders in the kitchen"></a>
       <div class="stat-card__icon">{% icon "flame" %}</div>
       <div class="stat"><span data-count="{{ kitchen_count }}">{{ kitchen_count }}</span></div>
