@@ -7,16 +7,12 @@
   <div class="container hero__grid">
     <div>
       <span class="hello" data-reveal>
-        <span class="hello__icon">{% icon "coffee" 15 %}<span class="steam"><i></i><i></i><i></i></span></span>
+        <span class="hello__icon">{% icon "coffee" 15 %}</span>
         Specialty coffee · All-day brunch
       </span>
       <h1>
-        <span data-split>Slow</span>
-        <span class="inline-pic" style="--d:.55s"><img src="{% static 'website/img/dishes/espresso.jpg' %}" alt=""></span>
-        <span data-split>coffee,</span>
-        <em data-split>warm</em>
-        <span class="inline-pic" style="--d:.8s"><img src="{% static 'website/img/dishes/croissant.jpg' %}" alt=""></span>
-        <em data-split>plates.</em>
+        <span data-split>Slow coffee,</span><br>
+        <em data-split>warm plates.</em>
       </h1>
       <p class="lead" data-reveal>{{ restaurant_name }} is a neighbourhood café for slow mornings and long afternoons: beans roasted in small batches, pastries out of the oven at seven, and a seat by the window for as long as you like.</p>
       <div class="hero__ctas" data-reveal>
@@ -38,11 +34,6 @@
       <div class="stack__caption">
         <span class="stack__cup">{% icon "coffee" 20 %}<span class="steam"><i></i><i></i><i></i></span></span>
         <span><small>Today's pour-over</small>Highland Arabica · cacao, citrus</span>
-      </div>
-      <div class="spin-badge stack__badge" aria-hidden="true">
-        <svg viewBox="0 0 120 120"><defs><path id="ring" d="M60 60 m-44 0 a44 44 0 1 1 88 0 a44 44 0 1 1 -88 0"/></defs>
-          <text><textPath href="#ring">Roasted weekly · Baked daily · Brewed slow ·</textPath></text></svg>
-        <span class="spin-badge__center">{% icon "bean" 20 %}</span>
       </div>
     </div>
   </div>
@@ -85,7 +76,7 @@
         <span class="label label--light" data-reveal><span class="label__no">(02)</span> House favourites</span>
         <h2 class="section-title" data-reveal>What everyone <em>orders twice</em>.</h2>
       </div>
-      <p class="lead" data-reveal style="max-width:34ch">Hover a dish to take a peek. Everything here is made the slow way, every day.</p>
+      <p class="lead index-head__lead" data-reveal>The plates and pours our regulars come back for, made the slow way every day.</p>
     </div>
     {% if signature %}
     <ol class="dish-index" data-dish-index data-stagger>
@@ -107,19 +98,53 @@
   </div>
 </section>
 
-<section class="section">
+<section class="section brew">
   <div class="container">
     <span class="label" data-reveal><span class="label__no">(03)</span> The ritual</span>
     <h2 class="section-title" data-reveal>Three things we <em>never rush</em>.</h2>
-    <div class="ritual" data-stagger>
-      <div class="step" data-reveal><span class="step__no">01</span><h3>{% icon "bean" 24 %} The bean</h3><p>Sourced from small highland farms, traceable to the lot and paid fairly.</p></div>
-      <div class="step" data-reveal><span class="step__no">02</span><h3>{% icon "flame" 24 %} The roast</h3><p>Roasted in small batches every week, so every cup is at its sweetest.</p></div>
-      <div class="step" data-reveal><span class="step__no">03</span><h3>{% icon "coffee" 24 %} The pour</h3><p>Dialled in every morning by baristas who weigh, time and taste each shot.</p></div>
+    <div class="brew__grid">
+      {# Scrolling through the steps pours the cup: see website/pour.js #}
+      <div class="brew__stage">
+        <div class="brew__scene" data-pour aria-hidden="true">
+        <svg viewBox="0 0 120 210" focusable="false">
+          <defs>
+            <clipPath id="pour-cup-clip"><path d="M38 142 h60 l-5.5 46 a8 8 0 0 1 -8 7 h-33 a8 8 0 0 1 -8 -7z"/></clipPath>
+            <linearGradient id="pour-coffee" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#7a4a2a"/><stop offset=".3" stop-color="#4f2e1a"/><stop offset="1" stop-color="#2a170c"/>
+            </linearGradient>
+          </defs>
+          <g class="pour__kettle" data-pour-kettle>
+            <path class="pour__line" d="M10 62 c-11 3 -11 21 0 24"/>
+            <path class="pour__body" d="M16 52 h34 a6 6 0 0 1 6 6 v20 a12 12 0 0 1 -12 12 h-22 a12 12 0 0 1 -12 -12 v-20 a6 6 0 0 1 6 -6z"/>
+            <rect class="pour__body" x="21" y="46" width="24" height="6" rx="3"/>
+            <circle class="pour__body" cx="33" cy="42" r="3"/>
+            <path class="pour__line pour__spout" d="M55 84 C 66 82, 62 60, 68 54"/>
+          </g>
+          <rect class="pour__stream" data-pour-stream x="66.6" y="55" width="2.8" height="0" rx="1.4"/>
+          <g clip-path="url(#pour-cup-clip)">
+            <rect data-pour-liquid x="30" y="196" width="76" height="60" fill="url(#pour-coffee)"/>
+            <rect class="pour__crema" data-pour-crema x="30" y="196" width="76" height="3"/>
+          </g>
+          <path class="pour__cup" d="M38 142 h60 l-5.5 46 a8 8 0 0 1 -8 7 h-33 a8 8 0 0 1 -8 -7z"/>
+          <path class="pour__cup" d="M97 152 c14 0 13 25 -3.5 25"/>
+          <ellipse class="pour__saucer" cx="68" cy="200" rx="42" ry="4.5"/>
+          <g class="pour__steam">
+            <path d="M56 132 c-5 -6 5 -10 0 -18"/><path d="M68 130 c-5 -6 5 -10 0 -18"/><path d="M80 132 c-5 -6 5 -10 0 -18"/>
+          </g>
+        </svg>
+          <span class="pour__label" data-pour-label>Scroll to brew</span>
+        </div>
+      </div>
+      <ol class="brew__steps" data-pour-zone>
+        <li class="step" data-pour-step><span class="step__no">01</span><h3>{% icon "bean" 24 %} The bean</h3><p>Sourced from small highland farms, traceable to the lot and paid fairly.</p></li>
+        <li class="step" data-pour-step><span class="step__no">02</span><h3>{% icon "flame" 24 %} The roast</h3><p>Roasted in small batches every week, so every cup is at its sweetest.</p></li>
+        <li class="step" data-pour-step><span class="step__no">03</span><h3>{% icon "coffee" 24 %} The pour</h3><p>Dialled in every morning by baristas who weigh, time and taste each shot.</p></li>
+      </ol>
     </div>
   </div>
 </section>
 
-<section class="section" style="padding-top:0">
+<section class="section section--flush-top">
   <div class="container">
     <div class="gallery" data-stagger>
       <figure class="g1" data-reveal="mask"><img src="{% static 'website/img/cafe-room.jpg' %}" alt="The café dining room" loading="lazy"><figcaption>Our living room</figcaption></figure>
@@ -131,11 +156,12 @@
   </div>
 </section>
 
-<section class="section" id="visit" style="padding-top:0">
+
+<section class="section section--flush-top" id="visit">
   <div class="container visit">
     <div class="visit__card" data-reveal="left">
       <span class="label"><span class="label__no">(04)</span> Visit us</span>
-      <h2 class="section-title" style="font-size:clamp(2.2rem,4vw,3.2rem)">Pull up a <em>chair</em>.</h2>
+      <h2 class="section-title visit__title">Pull up a <em>chair</em>.</h2>
       <ul class="contact-list">
         <li>{% icon "pin" %} 123 Demo Street, Sample City</li>
         <li>{% icon "phone" %} (02) 8000 0000</li>
@@ -157,7 +183,7 @@
   </div>
 </section>
 
-<section class="section" style="padding-top:0">
+<section class="section section--flush-top section--last">
   <div class="container">
     <div class="cta-band" data-reveal="zoom">
       <img src="{% static 'website/img/beans.jpg' %}" alt="" data-parallax="0.06" loading="lazy">
@@ -169,3 +195,4 @@
   </div>
 </section>
 {% endblock %}
+{% block scripts %}<script src="{% static 'website/pour.js' %}" defer></script>{% endblock %}

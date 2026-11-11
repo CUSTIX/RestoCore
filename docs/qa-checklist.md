@@ -5,8 +5,10 @@ Setup: `docker compose down -v`, `docker compose up --build`, then
 The login page lists the demo accounts (local DEBUG only) and fills them in with one click.
 
 ## Public site (logged out)
-- [ ] Home: headline with inline photos, photo stack shuffles every few seconds, ticker scrolls,
-      stats count up, sections reveal on scroll.
+- [ ] Home: photo stack shuffles every few seconds, ticker scrolls, stats count up, sections reveal on scroll.
+- [ ] Home "The ritual": the kettle-and-cup scene stays pinned while the three steps scroll past; the
+      kettle tilts and pours, the cup fills (percentage counts up), the step in view lights up, and
+      steam rises when it reads "Ready to sip". On phones the scene pins under the navbar.
 - [ ] Navbar: highlight glides between links on hover; "Open / Closed" chip matches the time;
       navbar narrows after scrolling; theme toggle switches light / dark and is remembered.
 - [ ] House favourites: hovering a dish with a mouse shows a floating photo next to the cursor.
