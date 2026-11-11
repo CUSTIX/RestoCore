@@ -1,7 +1,9 @@
 from decimal import Decimal
 
 from django import template
+from django.utils.safestring import mark_safe
 
+from core.icons import svg
 from core.roles import has_role as _has_role
 
 register = template.Library()
@@ -19,6 +21,18 @@ def money(value) -> str:
     if value in (None, ""):
         return ""
     return f"{Decimal(value):,.2f}"
+
+
+@register.simple_tag
+def icon(name: str, size: int = 20, css: str = ""):
+    """Usage: {% icon "calendar" %} or {% icon "check" 16 "text-ok" %}"""
+    return mark_safe(svg(name, size, css))  # noqa: S308 - fixed, trusted SVG markup
+
+
+@register.filter
+def initials(user) -> str:
+    name = (user.get_full_name() or user.get_username() or "?").split()
+    return "".join(part[0] for part in name[:2]).upper()
 
 
 @register.filter

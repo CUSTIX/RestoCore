@@ -40,7 +40,8 @@ LOGIN_URL = "accounts:login"
 LOGIN_REDIRECT_URL = "dashboard:index"
 LOGOUT_REDIRECT_URL = "website:home"
 
-RESTAURANT_NAME = os.environ.get("RESTAURANT_NAME", "Casa Verde")
+RESTAURANT_NAME = os.environ.get("RESTAURANT_NAME", "Little Roast Café")
+CURRENCY_SYMBOL = os.environ.get("CURRENCY_SYMBOL", "₱")
 
 # Read-only API for the MCP server. Empty token = API disabled.
 API_TOKEN = os.environ.get("RESTOCORE_API_TOKEN", "")

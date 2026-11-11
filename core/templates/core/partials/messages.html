@@ -1,7 +1,13 @@
+{% load core %}
 {% if messages %}
-<div class="alerts" role="status">
+<div class="toasts" role="status" aria-live="polite">
   {% for message in messages %}
-    <div class="alert alert--{{ message.tags|default:'info' }}">{{ message }}</div>
+    <div class="toast toast--{{ message.tags|default:'info' }}">
+      <span class="toast__icon">{% if message.tags == 'success' %}{% icon "check" 16 %}{% elif message.tags == 'error' or message.tags == 'warning' %}{% icon "alert" 16 %}{% else %}{% icon "star" 16 %}{% endif %}</span>
+      <div class="toast__body">{{ message }}</div>
+      <button type="button" class="toast__close" aria-label="Dismiss">{% icon "x" 16 %}</button>
+      <span class="toast__timer"></span>
+    </div>
   {% endfor %}
 </div>
 {% endif %}
