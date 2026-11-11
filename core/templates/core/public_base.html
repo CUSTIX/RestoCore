@@ -8,7 +8,7 @@
     <a class="brand" href="{% url 'website:home' %}" aria-label="{{ restaurant_name }}, home">
       <span class="brand__mark">{% icon "coffee" 18 %}</span>{{ restaurant_name }}
     </a>
-    <button type="button" class="menu-toggle" data-nav-toggle aria-controls="site-nav" aria-expanded="false" aria-label="Open menu">{% icon "menu" 26 %}</button>
+    <button type="button" class="menu-toggle" data-nav-toggle aria-controls="site-nav" aria-expanded="false" aria-label="Open menu">{% icon "menu" 26 "icon-open" %}{% icon "x" 26 "icon-close" %}</button>
     <nav class="site-nav" id="site-nav" aria-label="Main">
       <a href="{% url 'website:home' %}"{% if request.resolver_match.url_name == 'home' %} aria-current="page"{% endif %}>Home</a>
       <a href="{% url 'website:menu' %}"{% if request.resolver_match.url_name == 'menu' %} aria-current="page"{% endif %}>Menu</a>

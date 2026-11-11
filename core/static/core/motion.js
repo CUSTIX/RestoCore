@@ -33,6 +33,9 @@
   document.addEventListener("keydown", function (e) {
     if (e.key === "Escape") root.classList.remove("nav-open");
   });
+  document.querySelectorAll(".site-nav a").forEach(function (a) {
+    a.addEventListener("click", function () { root.classList.remove("nav-open"); });
+  });
 
   /* Split headline words for a staggered rise */
   document.querySelectorAll("[data-split]").forEach(function (el) {
