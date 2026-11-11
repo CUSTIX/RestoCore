@@ -20,4 +20,6 @@ def restocore(request):
         "nav_items": nav,
         "current_roles": sorted(roles),
         "restaurant_name": settings.RESTAURANT_NAME,
+        # Local demo convenience only: never shown when DEBUG is off.
+        "show_demo_logins": settings.DEBUG,
     }

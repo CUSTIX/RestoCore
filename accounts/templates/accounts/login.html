@@ -11,5 +11,18 @@
       <button type="submit" class="btn">Log in</button>
     </form>
   </div>
+  {% if show_demo_logins %}
+  <div class="card auth-card">
+    <h2>Demo accounts (local only)</h2>
+    <p class="muted">Run <code>python manage.py seed_demo</code> first. Password for all: the <code>DEMO_PASSWORD</code> in <code>.env</code> (default <code>restocore-demo</code>).</p>
+    <dl class="details">
+      <dt><code>owner</code></dt><dd>Everything, incl. payroll &amp; admin</dd>
+      <dt><code>manager</code></dt><dd>Everything except payroll</dd>
+      <dt><code>cashier</code></dt><dd>Point of sale, orders</dd>
+      <dt><code>kitchen</code></dt><dd>Kitchen board, inventory</dd>
+      <dt><code>staff</code></dt><dd>Bookings</dd>
+    </dl>
+  </div>
+  {% endif %}
 </div>
 {% endblock %}

@@ -50,5 +50,13 @@ def test_set_user_role_replaces_previous_role(make_user):
 
 
 @pytest.mark.django_db
+@pytest.mark.parametrize("debug,shown", [(True, True), (False, False)])
+def test_demo_logins_only_shown_in_debug(client, settings, debug, shown):
+    settings.DEBUG = debug
+    html = client.get("/accounts/login/").content.decode()
+    assert ("Demo accounts" in html) is shown
+
+
+@pytest.mark.django_db
 def test_password_change_page_requires_login(client):
     assert client.get("/accounts/password/").status_code == 302
