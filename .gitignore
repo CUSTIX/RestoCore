@@ -22,3 +22,6 @@ media/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Local-only overrides (e.g. demo branding). Never committed.
+local/

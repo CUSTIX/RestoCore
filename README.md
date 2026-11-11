@@ -53,6 +53,15 @@ accounts: `restocore-demo` (set by `DEMO_PASSWORD` in `.env`). To start over:
 | **Dashboard** | Role-aware: sales today and last 7 days, bookings, kitchen queue, low stock, pending leave, who is on shift. |
 | **API + MCP** | Token-protected read-only JSON API and an MCP server with 5 read-only tools. See [docs/mcp.md](docs/mcp.md). |
 
+## Branding and themes
+
+- The café name comes from `RESTAURANT_NAME` and the currency symbol from `CURRENCY_SYMBOL` in `.env`.
+- The public site and staff area both have light and dark themes (toggle in the navbar; defaults
+  to the visitor's system setting).
+- **Local logo override:** put a template at `local/templates/brand/mark.html` and it replaces the
+  default cup mark everywhere. The `local/` folder is gitignored, so real third-party logos used
+  for a local demo are never committed.
+
 ## Tests, lint, and checks
 
 ```bash
