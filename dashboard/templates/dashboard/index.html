@@ -1,86 +1,124 @@
 {% extends "core/app_base.html" %}
 {% load core %}
 {% block title %}Dashboard{% endblock %}
+{% block eyebrow %}<div class="page-header__eyebrow">{% now "l, F j" %}</div>{% endblock %}
 {% block page_title %}Welcome, {{ user.first_name|default:user.username }}{% endblock %}
+{% block page_actions %}
+  {% if user|has_role:"Owner,Manager,Cashier" %}<a class="btn" href="{% url 'sales:pos' %}">{% icon "plus" 18 %} New order</a>{% endif %}
+  {% if user|has_role:"Owner,Manager,Staff" %}<a class="btn btn--ghost" href="{% url 'bookings:create' %}">{% icon "calendar" 18 %} New booking</a>{% endif %}
+{% endblock %}
 {% block content %}
 <div class="grid">
   {% if sales %}
-    <div class="card"><div class="stat">{{ sales.revenue|money }}</div><div class="stat-label">Sales today · {{ sales.orders }} order{{ sales.orders|pluralize }}</div></div>
+    <div class="card stat-card">
+      <div class="stat-card__icon">{% icon "trend" %}</div>
+      <div class="stat">{{ currency }}<span data-count="{{ sales.revenue }}" data-decimals="2">{{ sales.revenue|money }}</span></div>
+      <div class="stat-label">Sales today · {{ sales.orders }} order{{ sales.orders|pluralize }}</div>
+    </div>
   {% endif %}
   {% if bookings %}
-    <div class="card"><div class="stat">{{ bookings.bookings }}</div><div class="stat-label">Bookings today · {{ bookings.guests }} guests</div></div>
-    <div class="card"><div class="stat">{{ bookings.pending }}</div><div class="stat-label"><a href="{% url 'bookings:list' %}?status=pending">Bookings to confirm</a></div></div>
+    <div class="card stat-card stat-card--info">
+      <div class="stat-card__icon">{% icon "calendar" %}</div>
+      <div class="stat"><span data-count="{{ bookings.bookings }}">{{ bookings.bookings }}</span></div>
+      <div class="stat-label">Bookings today · {{ bookings.guests }} guests</div>
+    </div>
+    <div class="card stat-card stat-card--saffron">
+      <a class="stat-link" href="{% url 'bookings:list' %}?status=pending" aria-label="Bookings to confirm"></a>
+      <div class="stat-card__icon">{% icon "alert" %}</div>
+      <div class="stat"><span data-count="{{ bookings.pending }}">{{ bookings.pending }}</span></div>
+      <div class="stat-label">Bookings to confirm</div>
+    </div>
   {% endif %}
   {% if kitchen_count is not None %}
-    <div class="card"><div class="stat">{{ kitchen_count }}</div><div class="stat-label"><a href="{% url 'sales:kitchen' %}">Orders in the kitchen</a></div></div>
+    <div class="card stat-card stat-card--ember">
+      <a class="stat-link" href="{% url 'sales:kitchen' %}" aria-label="Orders in the kitchen"></a>
+      <div class="stat-card__icon">{% icon "flame" %}</div>
+      <div class="stat"><span data-count="{{ kitchen_count }}">{{ kitchen_count }}</span></div>
+      <div class="stat-label">Orders in the kitchen</div>
+    </div>
   {% endif %}
   {% if pending_leave is not None %}
-    <div class="card"><div class="stat">{{ pending_leave }}</div><div class="stat-label"><a href="{% url 'staff:leave_list' %}">Leave requests to review</a></div></div>
+    <div class="card stat-card">
+      <a class="stat-link" href="{% url 'staff:leave_list' %}" aria-label="Leave requests to review"></a>
+      <div class="stat-card__icon">{% icon "sun" %}</div>
+      <div class="stat"><span data-count="{{ pending_leave }}">{{ pending_leave }}</span></div>
+      <div class="stat-label">Leave requests to review</div>
+    </div>
   {% endif %}
 </div>
 
-<div class="grid grid--2">
+<div class="grid grid--3">
   {% if week %}
   <div class="card">
-    <h2>Sales, last 7 days</h2>
-    <table>
-      <tbody>
+    <h2>{% icon "trend" 18 %} Sales, last 7 days</h2>
+    <div class="bars">
       {% for d in week %}
-        <tr>
-          <td class="nowrap">{{ d.day|date:"D j" }}</td>
-          <td style="width:60%"><div style="background:var(--brand);height:12px;border-radius:6px;width:{{ d.pct }}%" aria-hidden="true"></div></td>
-          <td class="num">{{ d.revenue|money }}</td>
-        </tr>
+        <div class="bar-row{% if forloop.last %} is-today{% endif %}">
+          <span class="bar-row__label">{{ d.day|date:"D j" }}</span>
+          <span class="bar-row__track"><span class="bar-row__fill" style="--pct:{{ d.pct }}%;--i:{{ forloop.counter0 }}"></span></span>
+          <span class="bar-row__value">{{ d.revenue|money }}</span>
+        </div>
       {% endfor %}
-      </tbody>
-    </table>
+    </div>
     {% if sales.top_items %}
-      <h2 style="margin-top:1rem">Top items today</h2>
-      <ol>{% for t in sales.top_items %}<li>{{ t.name }}: {{ t.qty }} sold</li>{% endfor %}</ol>
+      <h2 style="margin-top:1.4rem">{% icon "star" 18 %} Top items today</h2>
+      <ul class="list">
+        {% for t in sales.top_items %}
+          <li><span class="rank">{{ forloop.counter }}</span><span class="list__main"><span class="list__title">{{ t.name }}</span></span><span class="badge badge--plain">{{ t.qty }} sold</span></li>
+        {% endfor %}
+      </ul>
     {% endif %}
   </div>
   {% endif %}
 
   {% if upcoming_bookings is not None %}
   <div class="card">
-    <h2>Upcoming bookings</h2>
+    <h2>{% icon "calendar" 18 %} Upcoming bookings</h2>
     {% if upcoming_bookings %}
-      <table><tbody>
+      <ul class="list">
       {% for b in upcoming_bookings %}
-        <tr><td class="nowrap">{{ b.date|date:"D j" }}<br><small class="muted">{{ b.time|time:"g:i A" }}</small></td><td><a href="{% url 'bookings:detail' b.pk %}">{{ b.name }}</a><br><small class="muted">{{ b.party_size }} guest{{ b.party_size|pluralize }}</small></td><td class="right nowrap">{% include "bookings/_status_badge.html" with status=b.status label=b.get_status_display %}</td></tr>
+        <li>
+          <span class="rank" style="width:auto;padding:0 .5rem">{{ b.time|time:"g:i A" }}</span>
+          <span class="list__main"><a class="list__title" href="{% url 'bookings:detail' b.pk %}">{{ b.name }}</a><span class="list__sub">{{ b.date|date:"D, M j" }} · {{ b.party_size }} guest{{ b.party_size|pluralize }}</span></span>
+          {% include "bookings/_status_badge.html" with status=b.status label=b.get_status_display %}
+        </li>
       {% endfor %}
-      </tbody></table>
+      </ul>
     {% else %}<p class="muted">No upcoming bookings.</p>{% endif %}
   </div>
   {% endif %}
 
   {% if low_stock is not None %}
   <div class="card">
-    <h2>Low stock</h2>
+    <h2>{% icon "package" 18 %} Low stock</h2>
     {% if low_stock %}
-      <table><tbody>
-      {% for i in low_stock %}<tr class="is-low"><td><a href="{% url 'inventory:detail' i.pk %}">{{ i.name }}</a></td><td class="num">{{ i.quantity|floatformat:"-3" }} {{ i.unit }}</td><td class="num muted">reorder at {{ i.reorder_level|floatformat:"-3" }}</td></tr>{% endfor %}
-      </tbody></table>
+      <ul class="list">
+      {% for i in low_stock %}
+        <li><span class="badge badge--warn">Low</span><span class="list__main"><a class="list__title" href="{% url 'inventory:detail' i.pk %}">{{ i.name }}</a><span class="list__sub">reorder at {{ i.reorder_level|floatformat:"-3" }} {{ i.unit }}</span></span><strong>{{ i.quantity|floatformat:"-3" }} {{ i.unit }}</strong></li>
+      {% endfor %}
+      </ul>
     {% else %}<p class="muted">All stock is above reorder level.</p>{% endif %}
   </div>
   {% endif %}
 
   {% if clocked_in is not None %}
   <div class="card">
-    <h2>On shift now</h2>
+    <h2>{% icon "users" 18 %} On shift now</h2>
     {% if clocked_in %}
-      <ul>{% for e in clocked_in %}<li>{{ e.employee }} <span class="muted">since {{ e.clock_in|date:"g:i A" }}</span></li>{% endfor %}</ul>
+      <ul class="list">
+        {% for e in clocked_in %}<li><span class="live-dot"></span><span class="list__main"><span class="list__title">{{ e.employee }}</span><span class="list__sub">{{ e.employee.position }}</span></span><span class="muted">since {{ e.clock_in|date:"g:i A" }}</span></li>{% endfor %}
+      </ul>
     {% else %}<p class="muted">Nobody is clocked in.</p>{% endif %}
   </div>
   {% endif %}
 
   <div class="card">
-    <h2>My work</h2>
-    {% if my_open_entry %}<p><span class="badge badge--info">Clocked in since {{ my_open_entry.clock_in|date:"g:i A" }}</span></p>{% endif %}
+    <h2>{% icon "user" 18 %} My work</h2>
+    {% if my_open_entry %}<p><span class="badge badge--ok">Clocked in since {{ my_open_entry.clock_in|date:"g:i A" }}</span></p>{% endif %}
     {% if my_shifts %}
-      <ul>{% for s in my_shifts %}<li>{{ s.date|date:"D, M j" }} · {{ s.start_time|time:"g:i A" }} – {{ s.end_time|time:"g:i A" }}</li>{% endfor %}</ul>
+      <ul class="list">{% for s in my_shifts %}<li><span class="rank">{{ s.date|date:"j" }}</span><span class="list__main"><span class="list__title">{{ s.date|date:"l" }}</span><span class="list__sub">{{ s.start_time|time:"g:i A" }} – {{ s.end_time|time:"g:i A" }}</span></span></li>{% endfor %}</ul>
     {% else %}<p class="muted">No shifts in the next 7 days.</p>{% endif %}
-    <a class="btn btn--ghost btn--small" href="{% url 'staff:me' %}">Open my work</a>
+    <a class="btn btn--ghost btn--small" href="{% url 'staff:me' %}" style="margin-top:.8rem">Open my work {% icon "arrow" 16 %}</a>
   </div>
 </div>
 {% endblock %}

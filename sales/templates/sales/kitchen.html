@@ -1,22 +1,31 @@
 {% extends "core/app_base.html" %}
+{% load core %}
 {% block title %}Kitchen{% endblock %}
 {% block page_title %}Kitchen board{% endblock %}
-{% block page_actions %}<a class="btn btn--ghost" href="{% url 'sales:kitchen' %}">Refresh</a>{% endblock %}
+{% block page_actions %}<span class="badge badge--ok">Auto-refresh 30s</span><a class="btn btn--ghost" href="{% url 'sales:kitchen' %}">Refresh</a>{% endblock %}
 {% block content %}
 {% if orders %}
-<div class="kitchen-board">
-  {% for o in orders %}
-  <div class="card">
-    <h2>{{ o.number }} <span class="badge {% if o.kitchen_status == 'queued' %}badge--warn{% elif o.kitchen_status == 'preparing' %}badge--info{% else %}badge--ok{% endif %}">{{ o.get_kitchen_status_display }}</span></h2>
-    <p class="muted">{{ o.get_order_type_display }}{% if o.table_label %} · Table {{ o.table_label }}{% endif %} · {{ o.created_at|timesince }} ago</p>
-    <ul>{% for line in o.lines.all %}<li><strong>{{ line.quantity }} ×</strong> {{ line.name }}</li>{% endfor %}</ul>
-    <form method="post" action="{% url 'sales:kitchen_advance' o.pk %}">
-      {% csrf_token %}
-      <button class="btn" type="submit">
-        {% if o.kitchen_status == 'queued' %}Start preparing{% elif o.kitchen_status == 'preparing' %}Mark ready{% else %}Mark served{% endif %}
-      </button>
-    </form>
-  </div>
+<div class="kanban">
+  {% for column, label, count in columns %}
+    <section class="kanban__col" aria-label="{{ label }}">
+      <div class="kanban__head"><span>{{ label }}</span><span class="kanban__count">{{ count }}</span></div>
+      {% for o in orders %}{% if o.kitchen_status == column %}
+        <article class="ticket ticket--{{ o.kitchen_status }}" style="--i:{{ forloop.counter0 }}">
+          <div class="ticket__top">
+            <span class="ticket__no">{{ o.number }}</span>
+            <span class="ticket__time" data-since="{{ o.created_at|date:'c' }}" data-late-after="15">{{ o.created_at|timesince }}</span>
+          </div>
+          <p class="ticket__meta">{{ o.get_order_type_display }}{% if o.table_label %} · Table {{ o.table_label }}{% endif %}</p>
+          <ul>{% for line in o.lines.all %}<li><strong>{{ line.quantity }}×</strong> {{ line.name }}</li>{% endfor %}</ul>
+          <form method="post" action="{% url 'sales:kitchen_advance' o.pk %}">
+            {% csrf_token %}
+            <button class="btn btn--block{% if o.kitchen_status == 'ready' %} btn--accent{% endif %}" type="submit">
+              {% if o.kitchen_status == 'queued' %}{% icon "flame" 16 %} Start preparing{% elif o.kitchen_status == 'preparing' %}{% icon "check" 16 %} Mark ready{% else %}{% icon "arrow" 16 %} Mark served{% endif %}
+            </button>
+          </form>
+        </article>
+      {% endif %}{% endfor %}
+    </section>
   {% endfor %}
 </div>
 {% else %}

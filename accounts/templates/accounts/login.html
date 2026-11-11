@@ -1,28 +1,45 @@
-{% extends "core/public_base.html" %}
+{% extends "core/base.html" %}
+{% load static core %}
 {% block title %}Staff login{% endblock %}
-{% block content %}
-<div class="container">
-  <div class="card auth-card">
-    <h1>Staff login</h1>
-    <form method="post" novalidate>
-      {% csrf_token %}
-      {% include "core/partials/form.html" with form=form %}
-      <input type="hidden" name="next" value="{{ next }}">
-      <button type="submit" class="btn">Log in</button>
-    </form>
-  </div>
-  {% if show_demo_logins %}
-  <div class="card auth-card">
-    <h2>Demo accounts (local only)</h2>
-    <p class="muted">Run <code>python manage.py seed_demo</code> first. Password for all: the <code>DEMO_PASSWORD</code> in <code>.env</code> (default <code>restocore-demo</code>).</p>
-    <dl class="details">
-      <dt><code>owner</code></dt><dd>Everything, incl. payroll &amp; admin</dd>
-      <dt><code>manager</code></dt><dd>Everything except payroll</dd>
-      <dt><code>cashier</code></dt><dd>Point of sale, orders</dd>
-      <dt><code>kitchen</code></dt><dd>Kitchen board, inventory</dd>
-      <dt><code>staff</code></dt><dd>Bookings</dd>
-    </dl>
-  </div>
-  {% endif %}
+{% block styles %}<link rel="stylesheet" href="{% static 'core/app.css' %}">{% endblock %}
+{% block body_class %}app{% endblock %}
+{% block body %}
+<div class="auth">
+  <section class="auth__visual" aria-hidden="true">
+    <img src="{% static 'website/img/sign.jpg' %}" alt="">
+    <a class="sidebar__brand" href="{% url 'website:home' %}" style="position:absolute;top:28px;left:28px;z-index:2">
+      <span class="logo-mark">R</span><span class="sidebar__name">RestoCore<small>{{ restaurant_name }}</small></span>
+    </a>
+    <p class="auth__quote" data-split>Every table, ticket and shift in one calm place.</p>
+    <p style="opacity:.8;max-width:42ch">Bookings, point of sale, kitchen, inventory and your team, built for the people who run the floor.</p>
+  </section>
+  <section class="auth__panel">
+    <div class="auth__box">
+      {% include "core/partials/messages.html" %}
+      <p class="page-header__eyebrow">Staff area</p>
+      <h1>Welcome back</h1>
+      <p class="muted">Sign in to start your shift.</p>
+      <form method="post" novalidate>
+        {% csrf_token %}
+        {% include "core/partials/form.html" with form=form %}
+        <input type="hidden" name="next" value="{{ next }}">
+        <button type="submit" class="btn btn--block" data-magnetic>Log in {% icon "arrow" 18 %}<span class="btn__shine"></span></button>
+      </form>
+      {% if show_demo_logins %}
+      <div class="card" style="margin-top:1.6rem">
+        <h2>{% icon "star" 18 %} Demo accounts</h2>
+        <p class="muted" style="font-size:.85rem">Local demo only. Run <code>seed_demo</code> first. Click an account to fill the form; password is <code>{{ demo_password }}</code>.</p>
+        <div class="demo-chips">
+          <button type="button" class="demo-chip" data-demo-user="owner" data-demo-pass="{{ demo_password }}"><strong>owner</strong><span>Everything + payroll</span></button>
+          <button type="button" class="demo-chip" data-demo-user="manager" data-demo-pass="{{ demo_password }}"><strong>manager</strong><span>Runs the floor</span></button>
+          <button type="button" class="demo-chip" data-demo-user="cashier" data-demo-pass="{{ demo_password }}"><strong>cashier</strong><span>POS &amp; orders</span></button>
+          <button type="button" class="demo-chip" data-demo-user="kitchen" data-demo-pass="{{ demo_password }}"><strong>kitchen</strong><span>Tickets &amp; stock</span></button>
+          <button type="button" class="demo-chip" data-demo-user="staff" data-demo-pass="{{ demo_password }}"><strong>staff</strong><span>Bookings</span></button>
+        </div>
+      </div>
+      {% endif %}
+      <p style="margin-top:1.4rem"><a href="{% url 'website:home' %}">&larr; Back to the restaurant site</a></p>
+    </div>
+  </section>
 </div>
 {% endblock %}

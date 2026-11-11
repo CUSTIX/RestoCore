@@ -1,33 +1,57 @@
 {% extends "core/base.html" %}
+{% load static core %}
+{% block styles %}<link rel="stylesheet" href="{% static 'core/app.css' %}">{% endblock %}
 {% block body_class %}app{% endblock %}
 {% block body %}
 <div class="app-shell">
-  <aside class="sidebar" aria-label="Staff navigation">
-    <a class="brand brand--light" href="{% url 'dashboard:index' %}">RestoCore</a>
-    <nav>
-      {% for item in nav_items %}
-        <a href="{{ item.href }}" class="sidebar__link{% if item.section == active_section %} is-active{% endif %}">{{ item.label }}</a>
-      {% endfor %}
-    </nav>
+  <aside class="sidebar" id="sidebar" aria-label="Staff navigation">
+    <a class="sidebar__brand" href="{% url 'dashboard:index' %}">
+      <span class="logo-mark">R</span>
+      <span class="sidebar__name">RestoCore<small>{{ restaurant_name }}</small></span>
+    </a>
+    {% for group, items in nav_groups %}
+      <nav class="sidebar__group" aria-label="{{ group }}">
+        <div class="sidebar__label">{{ group }}</div>
+        {% for item in items %}
+          <a href="{{ item.href }}" class="sidebar__link{% if item.section == active_section %} is-active{% endif %}" title="{{ item.label }}"{% if item.section == active_section %} aria-current="page"{% endif %}>
+            {% icon item.icon %}<span class="sidebar__text">{{ item.label }}</span>
+          </a>
+        {% endfor %}
+      </nav>
+    {% endfor %}
     <div class="sidebar__footer">
-      <a href="{% url 'website:home' %}" class="sidebar__link">Public site</a>
+      <a href="{% url 'website:home' %}" class="sidebar__link" title="Public site">{% icon "globe" %}<span class="sidebar__text">Public site</span></a>
+      <button type="button" class="sidebar__link sidebar__collapse" data-sidebar-toggle title="Collapse sidebar">{% icon "panel" %}<span class="sidebar__text">Collapse</span></button>
     </div>
   </aside>
+  <div class="scrim" data-nav-toggle></div>
+
   <div class="app-main">
     <header class="topbar">
-      <div>
-        <strong>{{ user.get_full_name|default:user.username }}</strong>
-        {% for role in current_roles %}<span class="badge">{{ role }}</span>{% empty %}<span class="badge badge--muted">No role</span>{% endfor %}
+      <div class="topbar__left">
+        <button type="button" class="icon-btn nav-toggle" data-nav-toggle aria-controls="sidebar" aria-expanded="false" aria-label="Open navigation">{% icon "menu" %}</button>
+        <div class="topbar__crumb">{{ restaurant_name }} / <strong>{% for item in nav_items %}{% if item.section == active_section %}{{ item.label }}{% endif %}{% endfor %}</strong></div>
       </div>
       <div class="topbar__actions">
-        <a href="{% url 'accounts:password_change' %}">Change password</a>
-        <form method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}<button type="submit" class="link-button">Log out</button></form>
+        <button type="button" class="icon-btn theme-toggle" data-theme-toggle aria-label="Toggle dark mode" title="Toggle dark mode">{% icon "sun" 18 "icon-sun" %}{% icon "moon" 18 "icon-moon" %}</button>
+        <a class="icon-btn" href="{% url 'accounts:password_change' %}" aria-label="Change password" title="Change password">{% icon "key" 18 %}</a>
+        <div class="user-chip">
+          <span class="avatar">{{ user|initials }}</span>
+          <span class="user-chip__meta">
+            <span class="user-chip__name">{{ user.get_full_name|default:user.username }}</span>
+            <span class="user-chip__role">{% for role in current_roles %}{{ role }}{% if not forloop.last %} · {% endif %}{% empty %}No role{% endfor %}</span>
+          </span>
+        </div>
+        <form method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}<button type="submit" class="icon-btn" aria-label="Log out" title="Log out">{% icon "logout" 18 %}</button></form>
       </div>
     </header>
-    <main class="content">
+    <main class="content" id="main">
       {% include "core/partials/messages.html" %}
       <div class="page-header">
-        <h1>{% block page_title %}{% endblock %}</h1>
+        <div>
+          {% block eyebrow %}{% endblock %}
+          <h1>{% block page_title %}{% endblock %}</h1>
+        </div>
         <div class="page-header__actions">{% block page_actions %}{% endblock %}</div>
       </div>
       {% block content %}{% endblock %}

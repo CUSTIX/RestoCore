@@ -118,9 +118,19 @@ class KitchenView(RoleRequiredMixin, TemplateView):
     template_name = "sales/kitchen.html"
 
     def get_context_data(self, **kwargs):
+        orders = list(selectors.kitchen_queue())
+        statuses = (
+            Order.KitchenStatus.QUEUED,
+            Order.KitchenStatus.PREPARING,
+            Order.KitchenStatus.READY,
+        )
+        columns = [
+            (s.value, s.label, sum(1 for o in orders if o.kitchen_status == s)) for s in statuses
+        ]
         return {
             **super().get_context_data(**kwargs),
-            "orders": selectors.kitchen_queue(),
+            "orders": orders,
+            "columns": columns,
             "active_section": "kitchen",
         }
 
