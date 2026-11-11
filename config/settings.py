@@ -8,11 +8,18 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Required: fail loudly at startup instead of running with a guessable key.
 SECRET_KEY = os.environ["DJANGO_SECRET_KEY"]
 
+
+def env_bool(name: str, default: bool = False) -> bool:
+    return os.environ.get(name, str(default)).lower() in ("1", "true", "yes", "on")
+
+
 # Safe default: DEBUG is off unless explicitly turned on.
-DEBUG = os.environ.get("DJANGO_DEBUG", "False").lower() in ("1", "true", "yes")
+DEBUG = env_bool("DJANGO_DEBUG")
 
 _hosts = os.environ.get("DJANGO_ALLOWED_HOSTS", "")
 ALLOWED_HOSTS = [h.strip() for h in _hosts.split(",") if h.strip()]
+_origins = os.environ.get("DJANGO_CSRF_TRUSTED_ORIGINS", "")
+CSRF_TRUSTED_ORIGINS = [o.strip() for o in _origins.split(",") if o.strip()]
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -51,6 +58,8 @@ SALES_TAX_RATE = os.environ.get("SALES_TAX_RATE", "0.12")
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    # Serves collected static files efficiently from the app itself (no separate web server).
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -107,5 +116,43 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
+# Production: compressed, fingerprinted files (needs collectstatic, done in the prod image build).
+# Dev and tests: plain storage so no collectstatic step is needed.
+STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"
+        if env_bool("DJANGO_STATIC_MANIFEST")
+        else "django.contrib.staticfiles.storage.StaticFilesStorage"
+    },
+}
+
+# Outside production there is no collectstatic step: let WhiteNoise serve straight from app folders.
+WHITENOISE_USE_FINDERS = not env_bool("DJANGO_STATIC_MANIFEST")
+
+# HTTPS hardening. Turn on with DJANGO_HTTPS=true when the site is served over HTTPS
+# (behind a proxy that sets X-Forwarded-Proto). `manage.py check --deploy` passes with it on.
+if env_bool("DJANGO_HTTPS"):
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = int(os.environ.get("DJANGO_HSTS_SECONDS", "31536000"))
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = env_bool("DJANGO_HSTS_INCLUDE_SUBDOMAINS", True)
+    SECURE_HSTS_PRELOAD = env_bool("DJANGO_HSTS_PRELOAD", False)
+    if not SECURE_HSTS_PRELOAD:
+        # Preload-list submission is hard to undo, so it is opt-in (DJANGO_HSTS_PRELOAD=true).
+        SILENCED_SYSTEM_CHECKS = ["security.W021"]
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_REFERRER_POLICY = "same-origin"
+SESSION_COOKIE_HTTPONLY = True
+X_FRAME_OPTIONS = "DENY"
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {"console": {"class": "logging.StreamHandler"}},
+    "root": {"handlers": ["console"], "level": os.environ.get("DJANGO_LOG_LEVEL", "INFO")},
+}
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"

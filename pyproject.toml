@@ -19,3 +19,5 @@ testpaths = [
     "staff", "payroll", "api", "mcp_server",
 ]
 python_files = ["test_*.py"]
+# STATIC_ROOT only exists in the prod image (collectstatic at build); that is expected in tests.
+filterwarnings = ["ignore:No directory at:UserWarning"]

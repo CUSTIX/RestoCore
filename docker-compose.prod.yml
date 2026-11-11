@@ -1,0 +1,44 @@
+# Production-style stack: the same app, built as the lean `prod` image.
+#   docker compose -f docker-compose.prod.yml -p restocore-prod up --build -d
+# Differences from docker-compose.yml (dev):
+#   - `prod` target: gunicorn, no test tools, static files collected and fingerprinted at build
+#   - no source bind-mount: the container runs exactly the code baked into the image
+#   - DEBUG off; WhiteNoise serves static files; restart policies
+# For a real deployment, put HTTPS in front and set DJANGO_HTTPS=true plus real secrets.
+services:
+  db:
+    image: postgres:17
+    env_file: .env
+    volumes:
+      - pgdata-prod:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  web:
+    build:
+      context: .
+      target: prod
+    env_file: .env
+    environment:
+      DJANGO_DEBUG: "False"
+      DJANGO_STATIC_MANIFEST: "true"
+    # Migrations run once at start-up; gunicorn then serves the app.
+    command: sh -c "python manage.py migrate --noinput && exec gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 3 --access-logfile - --error-logfile -"
+    ports:
+      - "127.0.0.1:8080:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz/', timeout=3)\""]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  pgdata-prod:

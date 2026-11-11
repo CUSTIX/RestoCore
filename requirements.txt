@@ -1,8 +1,6 @@
+# Runtime dependencies (installed in every image, including production)
 Django==5.2.19
 psycopg[binary]==3.3.8
-Faker==40.50.0
-
-# Dev / test tools (split into a separate file at deploy time, step 6)
-pytest==8.4.2
-pytest-django==4.14.0
-ruff==0.17.4
+gunicorn==26.2.0
+whitenoise==6.11.0
+Faker==40.50.0  # used by `manage.py seed_demo` (demo data in any environment)
