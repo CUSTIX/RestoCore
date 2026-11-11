@@ -1,22 +1,22 @@
 {% extends "core/public_base.html" %}
 {% load static core %}
 {% block title %}Reserve a table{% endblock %}
-{% block public_class %} public--solid{% endblock %}
 {% block content %}
 <div class="container book">
-  <aside class="book__aside" data-reveal="left">
-    <div class="arch"><img src="{% static 'website/img/street.jpg' %}" alt="Tables outside a café on a quiet street"></div>
-    <ul class="book__facts">
-      <li>{% icon "clock" %} Seating from {{ opening|time:"g:i A" }} to {{ last_seating|time:"g:i A" }}, every day</li>
-      <li>{% icon "users" %} Tables for 1 to 20 guests</li>
-      <li>{% icon "phone" %} We confirm every booking by phone or email</li>
-      <li>{% icon "heart" %} Celebrating? Tell us in the notes</li>
+  <aside class="book__aside">
+    <span class="label" data-reveal><span class="label__no">(book)</span> Reservations</span>
+    <h1><span data-split>Save a seat</span> <em data-split>by the window.</em></h1>
+    <div class="arch" data-reveal="zoom"><img src="{% static 'website/img/street.jpg' %}" alt="Tables outside a café on a quiet street"></div>
+    <ul class="book__facts" data-stagger>
+      <li data-reveal>{% icon "clock" %} Seating {{ opening|time:"g:i A" }} – {{ last_seating|time:"g:i A" }}, every day</li>
+      <li data-reveal>{% icon "users" %} Tables for 1 to 20 guests</li>
+      <li data-reveal>{% icon "phone" %} We confirm every booking by phone or email</li>
+      <li data-reveal>{% icon "heart" %} Celebrating? Tell us in the notes</li>
     </ul>
   </aside>
 
   <div class="book__card" data-reveal>
-    <span class="eyebrow">Reservations</span>
-    <h1>Save a seat at {{ restaurant_name }}</h1>
+    <h2>Book a table at {{ restaurant_name }}</h2>
     <p class="muted">It takes less than a minute. Walk-ins are always welcome too.</p>
     <form method="post" novalidate data-booking-form>
       {% csrf_token %}
@@ -37,7 +37,7 @@
           {% endif %}
         {% endfor %}
       </div>
-      <button type="submit" class="btn btn--block" style="padding:1em" data-magnetic>Request my table {% icon "arrow" 18 %}<span class="btn__shine"></span></button>
+      <button type="submit" class="btn btn--espresso btn--block" style="padding:1em" data-magnetic>Request my table <span class="btn__dot">{% icon "arrow" 14 %}</span></button>
     </form>
   </div>
 </div>

@@ -33,7 +33,7 @@
   document.addEventListener("keydown", function (e) {
     if (e.key === "Escape") root.classList.remove("nav-open");
   });
-  document.querySelectorAll(".site-nav a").forEach(function (a) {
+  document.querySelectorAll(".nav-sheet a").forEach(function (a) {
     a.addEventListener("click", function () { root.classList.remove("nav-open"); });
   });
 
@@ -221,6 +221,71 @@
     window.addEventListener("pointerup", function () { down = false; track.classList.remove("is-dragging"); });
     track.addEventListener("click", function (e) { if (moved) { e.preventDefault(); e.stopPropagation(); } }, true);
   });
+
+  /* Pill nav: an indicator glides to the hovered link and rests on the current page */
+  document.querySelectorAll("[data-nav-links]").forEach(function (nav) {
+    var pill = nav.querySelector(".nav-indicator");
+    if (!pill) return;
+    var links = nav.querySelectorAll("a");
+    var current = nav.querySelector('a[aria-current="page"]');
+    function moveTo(a) {
+      if (!a) { pill.style.opacity = "0"; return; }
+      pill.style.width = a.offsetWidth + "px";
+      pill.style.transform = "translateX(" + a.offsetLeft + "px)";
+      pill.style.opacity = "1";
+    }
+    links.forEach(function (a) { a.addEventListener("mouseenter", function () { moveTo(a); }); a.addEventListener("focus", function () { moveTo(a); }); });
+    nav.addEventListener("mouseleave", function () { moveTo(current); });
+    window.addEventListener("resize", function () { moveTo(current); });
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { moveTo(current); });
+    moveTo(current);
+  });
+
+  /* Photo stack: the front card moves to the back every few seconds */
+  document.querySelectorAll("[data-stack]").forEach(function (stack) {
+    var cards = Array.prototype.slice.call(stack.querySelectorAll(".stack__card"));
+    if (cards.length < 2 || reduce) return;
+    var paused = false;
+    stack.addEventListener("mouseenter", function () { paused = true; });
+    stack.addEventListener("mouseleave", function () { paused = false; });
+    setInterval(function () {
+      if (paused || document.hidden) return;
+      cards.forEach(function (card) {
+        var pos = parseInt(card.getAttribute("data-pos"), 10);
+        card.setAttribute("data-pos", String((pos + cards.length - 1) % cards.length));
+      });
+    }, 3800);
+  });
+
+  /* Dish index: a photo follows the cursor while hovering a row (fine pointers only) */
+  var preview = document.querySelector("[data-cursor-preview]");
+  /* Turn on at the first real mouse movement: proves there's a mouse, unlike media queries. */
+  if (preview && !reduce) window.addEventListener("mousemove", setupPreview, { once: true, passive: true });
+  function setupPreview(first) {
+    var rows = document.querySelectorAll("[data-dish-index] [data-preview]");
+    var imgs = {};
+    rows.forEach(function (row) {
+      var src = row.getAttribute("data-preview");
+      if (!imgs[src]) {
+        var img = document.createElement("img");
+        img.src = src; img.alt = ""; img.loading = "lazy";
+        preview.appendChild(img);
+        imgs[src] = img;
+      }
+      row.addEventListener("mouseenter", function () {
+        Object.keys(imgs).forEach(function (k) { imgs[k].classList.toggle("is-active", k === src); });
+        preview.classList.add("is-on");
+      });
+      row.addEventListener("mouseleave", function () { preview.classList.remove("is-on"); });
+    });
+    var tx = first.clientX + 170, ty = first.clientY, px = tx, py = ty;
+    window.addEventListener("mousemove", function (e) { tx = e.clientX + 170; ty = e.clientY; }, { passive: true });
+    (function follow() {
+      px += (tx - px) * 0.14; py += (ty - py) * 0.14;
+      preview.style.left = px + "px"; preview.style.top = py + "px";
+      requestAnimationFrame(follow);
+    })();
+  }
 
   /* Demo login chips fill the form (local DEBUG only) */
   document.querySelectorAll("[data-demo-user]").forEach(function (chip) {

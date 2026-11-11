@@ -3,46 +3,65 @@
 {% block styles %}<link rel="stylesheet" href="{% static 'website/site.css' %}">{% endblock %}
 {% block body_class %}public{% block public_class %}{% endblock %}{% endblock %}
 {% block body %}
+{% with page=request.resolver_match.url_name %}
 <header class="site-header" data-header>
-  <div class="container site-header__inner">
+  <div class="nav-pill">
     <a class="brand" href="{% url 'website:home' %}" aria-label="{{ restaurant_name }}, home">
-      <span class="brand__mark">{% icon "coffee" 18 %}</span>{{ restaurant_name }}
+      {% include "brand/mark.html" %}<span class="brand__name">{{ restaurant_name }}</span>
     </a>
-    <button type="button" class="menu-toggle" data-nav-toggle aria-controls="site-nav" aria-expanded="false" aria-label="Open menu">{% icon "menu" 26 "icon-open" %}{% icon "x" 26 "icon-close" %}</button>
-    <nav class="site-nav" id="site-nav" aria-label="Main">
-      <a href="{% url 'website:home' %}"{% if request.resolver_match.url_name == 'home' %} aria-current="page"{% endif %}>Home</a>
-      <a href="{% url 'website:menu' %}"{% if request.resolver_match.url_name == 'menu' %} aria-current="page"{% endif %}>Menu</a>
+    <nav class="nav-links" aria-label="Main" data-nav-links>
+      <span class="nav-indicator" aria-hidden="true"></span>
+      <a href="{% url 'website:home' %}"{% if page == 'home' %} aria-current="page"{% endif %}>Home</a>
+      <a href="{% url 'website:menu' %}"{% if page == 'menu' %} aria-current="page"{% endif %}>Menu</a>
       <a href="{% url 'website:home' %}#visit">Visit</a>
       {% if user.is_authenticated %}
         <a href="{% url 'dashboard:index' %}">Staff area</a>
       {% else %}
         <a href="{% url 'accounts:login' %}">Staff login</a>
       {% endif %}
-      <a href="{% url 'public_bookings:create' %}" class="btn btn--small" data-magnetic>Reserve a table</a>
     </nav>
+    <div class="nav-actions">
+      <button type="button" class="theme-btn" data-theme-toggle aria-label="Toggle dark mode" title="Light / dark">{% icon "sun" 18 "icon-sun" %}{% icon "moon" 18 "icon-moon" %}</button>
+      <span class="status-chip"><i class="status-dot{% if not cafe_open_now %} is-closed{% endif %}"></i>{% if cafe_open_now %}Open · until {{ cafe_closing|time:"g A" }}{% else %}Closed · opens {{ cafe_opening|time:"g A" }}{% endif %}</span>
+      <a href="{% url 'public_bookings:create' %}" class="btn btn--espresso" data-magnetic>Reserve <span class="btn__dot">{% icon "arrow" 14 %}</span></a>
+      <button type="button" class="menu-toggle" data-nav-toggle aria-controls="nav-sheet" aria-expanded="false">{% icon "menu" 18 "icon-open" %}{% icon "x" 18 "icon-close" %} Menu</button>
+    </div>
+  </div>
+  <div class="nav-sheet" id="nav-sheet">
+    <span class="status-chip"><i class="status-dot{% if not cafe_open_now %} is-closed{% endif %}"></i>{% if cafe_open_now %}Open · until {{ cafe_closing|time:"g A" }}{% else %}Closed · opens {{ cafe_opening|time:"g A" }}{% endif %}</span>
+    <a href="{% url 'website:home' %}">Home {% icon "arrow" 22 %}</a>
+    <a href="{% url 'website:menu' %}">Menu {% icon "arrow" 22 %}</a>
+    <a href="{% url 'website:home' %}#visit">Visit {% icon "arrow" 22 %}</a>
+    {% if user.is_authenticated %}<a href="{% url 'dashboard:index' %}">Staff area {% icon "arrow" 22 %}</a>{% else %}<a href="{% url 'accounts:login' %}">Staff login {% icon "arrow" 22 %}</a>{% endif %}
+    <a href="{% url 'public_bookings:create' %}" class="btn btn--oat">Reserve a table <span class="btn__dot">{% icon "arrow" 14 %}</span></a>
   </div>
 </header>
+{% endwith %}
 {% include "core/partials/messages.html" %}
 <main id="main">
   {% block content %}{% endblock %}
 </main>
-<footer class="site-footer grain">
+<footer class="site-footer">
   <div class="container">
-    <p class="site-footer__big" data-reveal>Come <em>slow down</em>.</p>
+    <div class="footer-brand" data-reveal>
+      <a class="brand" href="{% url 'website:home' %}">{% include "brand/mark.html" %}<span class="footer-brand__name">{{ restaurant_name }}</span></a>
+      <a class="btn btn--oat" href="{% url 'public_bookings:create' %}">Reserve a table <span class="btn__dot">{% icon "arrow" 14 %}</span></a>
+    </div>
     <div class="site-footer__cols">
-      <div>
-        <h4>{{ restaurant_name }}</h4>
-        <p>Slow coffee, warm plates and a seat for as long as you like.</p>
-      </div>
+      <p class="site-footer__lead">Slow coffee, warm plates and a seat for <em>as long as you like</em>.</p>
       <div>
         <h4>Visit</h4>
-        <a href="{% url 'website:home' %}#visit">123 Demo Street, Sample City</a>
-        <a href="{% url 'website:home' %}#visit">Open daily · 11:00 AM – 10:00 PM</a>
+        <p>123 Demo Street, Sample City</p>
+        <p>Daily · {{ cafe_opening|time:"g:i A" }} – {{ cafe_closing|time:"g:i A" }}</p>
       </div>
       <div>
         <h4>Explore</h4>
         <a href="{% url 'website:menu' %}">Menu</a>
         <a href="{% url 'public_bookings:create' %}">Reserve a table</a>
+        <a href="{% url 'website:home' %}#visit">Find us</a>
+      </div>
+      <div>
+        <h4>Team</h4>
         <a href="{% url 'accounts:login' %}">Staff login</a>
       </div>
     </div>

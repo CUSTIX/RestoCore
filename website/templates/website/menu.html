@@ -2,23 +2,24 @@
 {% load static core %}
 {% block title %}Menu{% endblock %}
 {% block content %}
-<section class="page-hero grain">
-  <img src="{% static 'website/img/tools.jpg' %}" alt="">
-  <div class="container">
-    <span class="eyebrow">The menu</span>
-    <h1><span data-split>Brewed, baked</span> <em data-split>&amp; plated.</em></h1>
-    <p class="lead">Everything is made in house, from the espresso blend to the sourdough. Tax is added at the counter.</p>
+<section class="page-intro">
+  <div class="container page-intro__grid">
+    <div>
+      <span class="label"><span class="label__no">(menu)</span> Brewed, baked &amp; plated</span>
+      <h1><span data-split>Something</span> <em data-split>for every hour.</em></h1>
+      <p class="lead">Everything is made in house, from the espresso blend to the sourdough. Tax is added at the counter.</p>
+    </div>
+    <div class="page-intro__pic" data-reveal="zoom"><img src="{% static 'website/img/tools.jpg' %}" alt="Coffee tools and beans on a wooden board"></div>
   </div>
 </section>
 
 {% if categories %}
-<nav class="menu-nav" aria-label="Menu sections">
-  <div class="container menu-nav__inner" data-spy>
+<nav class="menu-nav container" aria-label="Menu sections">
+  <div class="menu-nav__inner" data-spy>
     {% for cat in categories %}<a href="#cat-{{ cat.pk }}">{{ cat.name }}</a>{% endfor %}
   </div>
 </nav>
 {% endif %}
-
 <div class="container">
   {% for cat in categories %}
     <section class="menu-category" id="cat-{{ cat.pk }}">
@@ -54,11 +55,11 @@
 
 <section class="section">
   <div class="container">
-    <div class="cta-band grain" data-reveal="zoom">
+    <div class="cta-band" data-reveal="zoom">
       <img src="{% static 'website/img/window-table.jpg' %}" alt="" data-parallax="0.06" loading="lazy">
-      <span class="eyebrow">Hungry yet?</span>
+      <span class="label label--light">Hungry yet?</span>
       <h2>Save yourself <em>a seat</em>.</h2>
-      <a class="btn btn--light" href="{% url 'public_bookings:create' %}" data-magnetic>Reserve a table {% icon "arrow" 18 %}<span class="btn__shine"></span></a>
+      <a class="btn btn--oat" href="{% url 'public_bookings:create' %}" data-magnetic>Reserve a table <span class="btn__dot">{% icon "arrow" 14 %}</span></a>
     </div>
   </div>
 </section>

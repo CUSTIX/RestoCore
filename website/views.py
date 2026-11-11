@@ -1,37 +1,31 @@
-import datetime as dt
-
 from django.utils import timezone
 from django.views.generic import TemplateView
 
-from bookings import selectors as bookings
 from sales import selectors as sales
+from website.context_processors import cafe_status
 
-CLOSING_TIME = dt.time(22, 0)
 WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 
 
-def _hours_context() -> dict:
-    opening, last_seating = bookings.opening_hours()
-    now = timezone.localtime()
-    return {
-        "opening": opening,
-        "last_seating": last_seating,
-        "closing": CLOSING_TIME,
-        "open_now": opening <= now.time() < CLOSING_TIME,
-        "week": [{"day": d, "is_today": i == now.weekday()} for i, d in enumerate(WEEKDAYS)],
-    }
+def _week() -> list[dict]:
+    today = timezone.localtime().weekday()
+    return [{"day": d, "is_today": i == today} for i, d in enumerate(WEEKDAYS)]
 
 
 class HomeView(TemplateView):
     template_name = "website/home.html"
 
     def get_context_data(self, **kwargs):
-        signature = sales.signature_dishes(limit=8)
+        status = cafe_status(self.request)
         return {
             **super().get_context_data(**kwargs),
-            **_hours_context(),
-            "signature": signature,
-            "featured": signature,
+            # kept for templates/tests that use the shorter names
+            "opening": status["cafe_opening"],
+            "last_seating": status["cafe_last_seating"],
+            "closing": status["cafe_closing"],
+            "open_now": status["cafe_open_now"],
+            "week": _week(),
+            "signature": sales.signature_dishes(limit=6),
         }
 
 
@@ -39,8 +33,4 @@ class MenuView(TemplateView):
     template_name = "website/menu.html"
 
     def get_context_data(self, **kwargs):
-        return {
-            **super().get_context_data(**kwargs),
-            **_hours_context(),
-            "categories": sales.public_menu(),
-        }
+        return {**super().get_context_data(**kwargs), "categories": sales.public_menu()}

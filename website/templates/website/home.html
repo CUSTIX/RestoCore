@@ -3,39 +3,57 @@
 {% block title %}{{ restaurant_name }}: specialty coffee & all-day brunch{% endblock %}
 {% block content %}
 
-<section class="hero grain" aria-label="Welcome">
-  <div class="hero__media"><img src="{% static 'website/img/hero.jpg' %}" alt="" fetchpriority="high"></div>
-  <div class="container hero__content">
-    <span class="eyebrow">Specialty coffee · All-day brunch</span>
-    <h1><span data-split>Slow coffee,</span> <em data-split>warm plates.</em></h1>
-    <p class="lead">Welcome to {{ restaurant_name }}: beans roasted in small batches, pastries out of the oven every morning, and a seat by the window that's yours for as long as you like.</p>
-    <div class="hero__ctas">
-      <a class="btn btn--light" href="{% url 'public_bookings:create' %}" data-magnetic>Reserve a table {% icon "arrow" 18 %}<span class="btn__shine"></span></a>
-      <a class="btn btn--outline-light" href="{% url 'website:menu' %}">Explore the menu</a>
+<section class="hero" aria-label="Welcome">
+  <div class="container hero__grid">
+    <div>
+      <span class="hello" data-reveal>
+        <span class="hello__icon">{% icon "coffee" 15 %}<span class="steam"><i></i><i></i><i></i></span></span>
+        Specialty coffee · All-day brunch
+      </span>
+      <h1>
+        <span data-split>Slow</span>
+        <span class="inline-pic" style="--d:.55s"><img src="{% static 'website/img/dishes/espresso.jpg' %}" alt=""></span>
+        <span data-split>coffee,</span>
+        <em data-split>warm</em>
+        <span class="inline-pic" style="--d:.8s"><img src="{% static 'website/img/dishes/croissant.jpg' %}" alt=""></span>
+        <em data-split>plates.</em>
+      </h1>
+      <p class="lead" data-reveal>{{ restaurant_name }} is a neighbourhood café for slow mornings and long afternoons: beans roasted in small batches, pastries out of the oven at seven, and a seat by the window for as long as you like.</p>
+      <div class="hero__ctas" data-reveal>
+        <a class="btn btn--espresso" href="{% url 'public_bookings:create' %}" data-magnetic>Reserve a table <span class="btn__dot">{% icon "arrow" 14 %}</span></a>
+        <a class="btn btn--line" href="{% url 'website:menu' %}">See the menu</a>
+      </div>
+      <div class="hero__facts" data-reveal>
+        <span>{% icon "clock" 16 %} {{ opening|time:"g A" }} – {{ closing|time:"g A" }} daily</span>
+        <span>{% icon "pin" 16 %} 123 Demo Street</span>
+        <span>{% icon "wifi" 16 %} Free Wi-Fi</span>
+        <span>{% icon "heart" 16 %} Dogs welcome</span>
+      </div>
     </div>
-    <div class="hero__strip">
-      <span><i class="open-dot{% if not open_now %} is-closed{% endif %}"></i>{% if open_now %}Open now{% else %}Closed now{% endif %} · {{ opening|time:"g A" }} – {{ closing|time:"g A" }}</span>
-      <span>{% icon "pin" 16 %} 123 Demo Street, Sample City</span>
-      <span>{% icon "wifi" 16 %} Free Wi-Fi</span>
-      <span>{% icon "heart" 16 %} Pet friendly</span>
+
+    <div class="stack" data-stack data-reveal="zoom" aria-label="Photos from the café">
+      <figure class="stack__card" data-pos="0" style="margin:0"><img src="{% static 'website/img/hero.jpg' %}" alt="A barista pouring a pour-over coffee"></figure>
+      <figure class="stack__card" data-pos="1" style="margin:0"><img src="{% static 'website/img/dishes/pancakes.jpg' %}" alt="Buttermilk pancakes with berries"></figure>
+      <figure class="stack__card" data-pos="2" style="margin:0"><img src="{% static 'website/img/iced.jpg' %}" alt="An iced latte"></figure>
+      <div class="stack__caption">
+        <span class="stack__cup">{% icon "coffee" 20 %}<span class="steam"><i></i><i></i><i></i></span></span>
+        <span><small>Today's pour-over</small>Highland Arabica · cacao, citrus</span>
+      </div>
+      <div class="spin-badge stack__badge" aria-hidden="true">
+        <svg viewBox="0 0 120 120"><defs><path id="ring" d="M60 60 m-44 0 a44 44 0 1 1 88 0 a44 44 0 1 1 -88 0"/></defs>
+          <text><textPath href="#ring">Roasted weekly · Baked daily · Brewed slow ·</textPath></text></svg>
+        <span class="spin-badge__center">{% icon "bean" 20 %}</span>
+      </div>
     </div>
   </div>
-  <aside class="brew-card" aria-label="Today's brew">
-    <div class="brew-card__top">
-      <div class="brew-card__cup">{% icon "coffee" 26 %}<span class="steam"><i></i><i></i><i></i></span></div>
-      <div><small>Today's pour-over</small><strong>Highland Arabica</strong></div>
-    </div>
-    <div class="brew-card__notes"><span>Cacao</span><span>Citrus peel</span><span>Brown sugar</span></div>
-  </aside>
-  <div class="scroll-cue" aria-hidden="true">Scroll</div>
 </section>
 
-<div class="marquee" aria-hidden="true">
-  <div class="marquee__track">
+<div class="ticker" aria-hidden="true">
+  <div class="ticker__track">
     {% for _ in "ab" %}
-      <span class="marquee__item">Slow coffee</span><span class="marquee__item">Fresh pastries</span>
-      <span class="marquee__item">All-day brunch</span><span class="marquee__item">Single-origin pour-overs</span>
-      <span class="marquee__item">Matcha, whisked to order</span><span class="marquee__item">Stay a while</span>
+      <span class="ticker__item">Slow coffee</span><span class="ticker__item">fresh pastries</span>
+      <span class="ticker__item">All-day brunch</span><span class="ticker__item">single-origin pour-overs</span>
+      <span class="ticker__item">Matcha, whisked to order</span><span class="ticker__item">stay a while</span>
     {% endfor %}
   </div>
 </div>
@@ -44,18 +62,13 @@
   <div class="container story">
     <div class="story__media" data-reveal="left">
       <div class="arch"><img src="{% static 'website/img/interior.jpg' %}" alt="A bright café full of plants and wooden tables" data-parallax="0.08" loading="lazy"></div>
-      <div class="story__float" data-reveal="zoom"><img src="{% static 'website/img/iced.jpg' %}" alt="An iced latte with cream swirling into coffee" loading="lazy"></div>
-      <div class="spin-badge" style="position:absolute;left:-26px;top:10%" aria-hidden="true">
-        <svg viewBox="0 0 120 120"><defs><path id="ring" d="M60 60 m-46 0 a46 46 0 1 1 92 0 a46 46 0 1 1 -92 0"/></defs>
-          <text><textPath href="#ring">Freshly roasted · Baked daily · Brewed slow ·</textPath></text></svg>
-        <span class="spin-badge__center">{% icon "bean" 22 %}</span>
-      </div>
+      <div class="story__float" data-reveal="zoom"><img src="{% static 'website/img/latte-art.jpg' %}" alt="Latte art in a white cup" loading="lazy"></div>
     </div>
     <div>
-      <span class="eyebrow" data-reveal>Our story</span>
+      <span class="label" data-reveal><span class="label__no">(01)</span> Our story</span>
       <h2 class="section-title" data-reveal>A neighbourhood café that <em>takes its time</em>.</h2>
       <p class="lead" data-reveal>We started with one espresso machine and a simple idea: good coffee is worth waiting for. Today we roast our own beans, laminate croissants over three days, and cook brunch from scratch, all day long.</p>
-      <p class="lead" data-reveal>Bring a book, bring your laptop, bring the dog. Refills of brewed coffee are on us before ten.</p>
+      <p class="quote" data-reveal>“Bring a book, bring the laptop, bring the dog. Refills of brewed coffee are on us before ten.”</p>
       <div class="stats" data-stagger>
         <div data-reveal><strong><span data-count="8">8</span></strong><span>coffees on the bar</span></div>
         <div data-reveal><strong><span data-count="3">3</span>-day</strong><span>laminated croissants</span></div>
@@ -65,32 +78,28 @@
   </div>
 </section>
 
-<section class="section section--dark grain">
+<section class="section section--espresso">
   <div class="container">
-    <div class="section-head">
+    <div class="index-head">
       <div>
-        <span class="eyebrow" data-reveal>House favourites</span>
+        <span class="label label--light" data-reveal><span class="label__no">(02)</span> House favourites</span>
         <h2 class="section-title" data-reveal>What everyone <em>orders twice</em>.</h2>
       </div>
-      <div class="carousel-controls" data-reveal>
-        <button type="button" class="round-btn round-btn--prev" data-carousel-prev="signature" aria-label="Previous">{% icon "arrow" 20 %}</button>
-        <button type="button" class="round-btn" data-carousel-next="signature" aria-label="Next">{% icon "arrow" 20 %}</button>
-      </div>
+      <p class="lead" data-reveal style="max-width:34ch">Hover a dish to take a peek. Everything here is made the slow way, every day.</p>
     </div>
     {% if signature %}
-    <div class="carousel" id="signature" data-carousel data-stagger>
+    <ol class="dish-index" data-dish-index data-stagger>
       {% for item in signature %}
-        <article class="dish-card{% if not item.photo %} dish-card--fallback{% endif %}" data-tilt data-reveal>
-          {% if item.photo %}<img src="{% static item.photo %}" alt="{{ item.name }}" loading="lazy" draggable="false">{% endif %}
-          <div class="dish-card__body">
-            <span class="dish-card__tag">{% if item.is_signature %}Signature{% else %}{{ item.category.name }}{% endif %}</span>
-            <h3>{{ item.name }}</h3>
-            <p>{{ item.description }}</p>
-            <span class="dish-card__price">{{ currency }}{{ item.price|money }}</span>
-          </div>
-        </article>
+        <li class="dish-row" data-reveal{% if item.photo %} data-preview="{% static item.photo %}"{% endif %}>
+          <span class="dish-row__no">{{ forloop.counter|stringformat:"02d" }}</span>
+          {% if item.photo %}<span class="dish-row__thumb"><img src="{% static item.photo %}" alt="" loading="lazy"></span>{% endif %}
+          <span class="dish-row__name">{{ item.name }}<small>{{ item.description }}</small></span>
+          <span class="dish-row__tag">{% if item.is_signature %}Signature{% else %}{{ item.category.name }}{% endif %}</span>
+          <span class="dish-row__price">{{ currency }}{{ item.price|money }}</span>
+        </li>
       {% endfor %}
-    </div>
+    </ol>
+    <div class="cursor-preview" aria-hidden="true" data-cursor-preview></div>
     {% else %}
       <p class="lead">Our menu is being updated. Please check back soon.</p>
     {% endif %}
@@ -100,16 +109,12 @@
 
 <section class="section">
   <div class="container">
-    <div class="section-head">
-      <div>
-        <span class="eyebrow" data-reveal>From bean to cup</span>
-        <h2 class="section-title" data-reveal>Three things we <em>never rush</em>.</h2>
-      </div>
-    </div>
-    <div class="pillars" data-stagger>
-      <div class="pillar" data-reveal><div class="pillar__icon">{% icon "bean" 26 %}</div><h3>The bean</h3><p>Sourced from small farms in the highlands, traceable to the lot and paid fairly.</p></div>
-      <div class="pillar" data-reveal><div class="pillar__icon">{% icon "flame" 26 %}</div><h3>The roast</h3><p>Roasted in small batches every week, so every cup is at its sweetest.</p></div>
-      <div class="pillar" data-reveal><div class="pillar__icon">{% icon "coffee" 26 %}</div><h3>The pour</h3><p>Dialled in every morning by baristas who weigh, time and taste each shot.</p></div>
+    <span class="label" data-reveal><span class="label__no">(03)</span> The ritual</span>
+    <h2 class="section-title" data-reveal>Three things we <em>never rush</em>.</h2>
+    <div class="ritual" data-stagger>
+      <div class="step" data-reveal><span class="step__no">01</span><h3>{% icon "bean" 24 %} The bean</h3><p>Sourced from small highland farms, traceable to the lot and paid fairly.</p></div>
+      <div class="step" data-reveal><span class="step__no">02</span><h3>{% icon "flame" 24 %} The roast</h3><p>Roasted in small batches every week, so every cup is at its sweetest.</p></div>
+      <div class="step" data-reveal><span class="step__no">03</span><h3>{% icon "coffee" 24 %} The pour</h3><p>Dialled in every morning by baristas who weigh, time and taste each shot.</p></div>
     </div>
   </div>
 </section>
@@ -118,10 +123,10 @@
   <div class="container">
     <div class="gallery" data-stagger>
       <figure class="g1" data-reveal="mask"><img src="{% static 'website/img/cafe-room.jpg' %}" alt="The café dining room" loading="lazy"><figcaption>Our living room</figcaption></figure>
-      <figure class="g2" data-reveal="mask"><img src="{% static 'website/img/counter.jpg' %}" alt="The espresso bar and counter" loading="lazy"><figcaption>The bar</figcaption></figure>
-      <figure class="g3" data-reveal="mask"><img src="{% static 'website/img/latte-art.jpg' %}" alt="Latte art in a white cup" loading="lazy"><figcaption>Latte art, every time</figcaption></figure>
+      <figure class="g2" data-reveal="mask"><img src="{% static 'website/img/counter.jpg' %}" alt="The espresso bar" loading="lazy"><figcaption>The bar</figcaption></figure>
+      <figure class="g3" data-reveal="mask"><img src="{% static 'website/img/tools.jpg' %}" alt="Coffee tools and beans on a wooden board" loading="lazy"><figcaption>Dialled in daily</figcaption></figure>
       <figure class="g4" data-reveal="mask"><img src="{% static 'website/img/brunch.jpg' %}" alt="A brunch spread with waffles and eggs" loading="lazy"><figcaption>Weekend brunch</figcaption></figure>
-      <figure class="g5" data-reveal="mask"><img src="{% static 'website/img/cups.jpg' %}" alt="A table of coffee cups seen from above" loading="lazy"><figcaption>Tasting flight</figcaption></figure>
+      <figure class="g5" data-reveal="mask"><img src="{% static 'website/img/cups.jpg' %}" alt="Coffee cups seen from above" loading="lazy"><figcaption>Tasting flight</figcaption></figure>
     </div>
   </div>
 </section>
@@ -129,8 +134,8 @@
 <section class="section" id="visit" style="padding-top:0">
   <div class="container visit">
     <div class="visit__card" data-reveal="left">
-      <span class="eyebrow">Visit us</span>
-      <h2 class="section-title" style="font-size:clamp(2rem,4vw,3rem)">Pull up a <em>chair</em>.</h2>
+      <span class="label"><span class="label__no">(04)</span> Visit us</span>
+      <h2 class="section-title" style="font-size:clamp(2.2rem,4vw,3.2rem)">Pull up a <em>chair</em>.</h2>
       <ul class="contact-list">
         <li>{% icon "pin" %} 123 Demo Street, Sample City</li>
         <li>{% icon "phone" %} (02) 8000 0000</li>
@@ -144,6 +149,7 @@
       </dl>
     </div>
     <div class="map" data-reveal="right" role="img" aria-label="Map showing the café location">
+      <span class="map__park"></span>
       <span class="map__road map__road--h"></span><span class="map__road map__road--v"></span>
       <span class="map__label">{{ restaurant_name }}</span>
       <span class="map__pin">{% icon "pin" 46 %}</span>
@@ -153,12 +159,12 @@
 
 <section class="section" style="padding-top:0">
   <div class="container">
-    <div class="cta-band grain" data-reveal="zoom">
+    <div class="cta-band" data-reveal="zoom">
       <img src="{% static 'website/img/beans.jpg' %}" alt="" data-parallax="0.06" loading="lazy">
-      <span class="eyebrow">Reservations</span>
+      <span class="label label--light"><span class="label__no">(05)</span> Reservations</span>
       <h2>Your table <em>is waiting</em>.</h2>
-      <p class="lead" style="color:rgba(255,255,255,.8)">Book ahead for groups, birthdays and lazy weekend brunches. We'll confirm by phone.</p>
-      <a class="btn btn--light" href="{% url 'public_bookings:create' %}" data-magnetic>Reserve a table {% icon "arrow" 18 %}<span class="btn__shine"></span></a>
+      <p class="lead">Book ahead for groups, birthdays and lazy weekend brunches. We'll confirm by phone.</p>
+      <a class="btn btn--oat" href="{% url 'public_bookings:create' %}" data-magnetic>Reserve a table <span class="btn__dot">{% icon "arrow" 14 %}</span></a>
     </div>
   </div>
 </section>
