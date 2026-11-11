@@ -9,8 +9,13 @@ The login page lists the demo accounts (local DEBUG only) and fills them in with
 - [ ] Home "The ritual": the kettle-and-cup scene stays pinned while the three steps scroll past; the
       kettle tilts and pours, the cup fills (percentage counts up), the step in view lights up, and
       steam rises when it reads "Ready to sip". On phones the scene pins under the navbar.
-- [ ] Navbar: highlight glides between links on hover; "Open / Closed" chip matches the time;
-      navbar narrows after scrolling; theme toggle switches light / dark and is remembered.
+- [ ] Navbar: drops in on load; highlight glides between links on hover and moves to "Visit" when
+      that section is on screen; "Open / Closed" chip matches the time; navbar narrows after scrolling
+      and a thin line along its bottom shows scroll progress; person icon goes to staff login;
+      theme toggle switches light / dark and is remembered.
+- [ ] Hero photos: click/tap a photo, swipe, or use the arrows and dots to change it; autoplay pauses
+      for a few seconds after you do.
+- [ ] Browser tab shows the brand icon (`/favicon.svg`; local branding overrides it).
 - [ ] House favourites: hovering a dish with a mouse shows a floating photo next to the cursor.
 - [ ] `/menu/`: only available items; category bar is centred under the navbar and highlights the
       section you are reading; tapping a category jumps to it.
@@ -57,7 +62,8 @@ The login page lists the demo accounts (local DEBUG only) and fills them in with
 - [ ] Dark mode in the staff area (sun/moon button in the top bar).
 
 ## Phones and tablets
-- [ ] Public: navbar becomes logo + theme + "Menu" button with a drop-down sheet; no sideways scroll.
+- [ ] Public: navbar becomes logo + theme + "Menu" button with a drop-down sheet (links slide in,
+      page behind doesn't scroll, tapping outside closes it); no sideways scroll.
 - [ ] Staff: ☰ opens the sidebar drawer; tap outside or Esc closes it.
 - [ ] Tables (bookings, orders, inventory…) show as one card per row on phones.
 - [ ] POS on a phone: dishes two per row; a bottom bar shows item count + total with Checkout.

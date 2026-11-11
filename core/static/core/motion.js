@@ -109,19 +109,31 @@
     if (close) close.addEventListener("click", function () { dismiss(toast); });
   });
 
-  /* Public header: solid after scrolling, hides while scrolling down */
+  /* Public header: narrows and turns solid after scrolling; a thin line shows how far down the page you are */
   var header = document.querySelector("[data-header]");
   if (header) {
-    var lastY = window.scrollY;
+    var headerTick = false;
     var onScroll = function () {
+      headerTick = false;
       var y = window.scrollY;
+      var max = document.documentElement.scrollHeight - window.innerHeight;
       header.classList.toggle("is-scrolled", y > 40);
-      header.classList.toggle("is-hidden", y > 300 && y > lastY && !root.classList.contains("nav-open"));
-      lastY = y;
+      header.style.setProperty("--progress", max > 0 ? Math.min(1, y / max).toFixed(4) : "0");
     };
-    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("scroll", function () {
+      if (!headerTick) { headerTick = true; requestAnimationFrame(onScroll); }
+    }, { passive: true });
+    window.addEventListener("resize", onScroll);
     onScroll();
   }
+  /* Public mobile menu: tapping outside the sheet closes it */
+  document.addEventListener("click", function (e) {
+    if (!root.classList.contains("nav-open") || !document.body.classList.contains("public")) return;
+    if (!e.target.closest(".nav-sheet, [data-nav-toggle]")) {
+      root.classList.remove("nav-open");
+      document.querySelectorAll("[data-nav-toggle]").forEach(function (b) { b.setAttribute("aria-expanded", "false"); });
+    }
+  });
 
   /* Parallax: data-parallax="0.15" moves the element with scroll */
   var parallax = document.querySelectorAll("[data-parallax]");
@@ -240,21 +252,66 @@
     window.addEventListener("resize", function () { moveTo(current); });
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { moveTo(current); });
     moveTo(current);
+
+    /* On the home page the highlight moves to "Visit" while that section is on screen. */
+    var home = current;
+    nav.querySelectorAll("[data-spy-target]").forEach(function (a) {
+      var section = document.getElementById(a.getAttribute("data-spy-target"));
+      if (!section || !("IntersectionObserver" in window)) return;
+      new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          current = e.isIntersecting ? a : home;
+          if (current) current.setAttribute("aria-current", "page");
+          if (e.isIntersecting && home) home.removeAttribute("aria-current");
+          if (!e.isIntersecting) a.removeAttribute("aria-current");
+          moveTo(current);
+        });
+      }, { rootMargin: "-40% 0px -40% 0px" }).observe(section);
+    });
   });
 
-  /* Photo stack: the front card moves to the back every few seconds */
+  /* Photo stack: shuffles on its own; click/tap a photo, swipe, or use the arrows and dots to flip
+     through. Any manual change pauses the autoplay for a few seconds. */
   document.querySelectorAll("[data-stack]").forEach(function (stack) {
     var cards = Array.prototype.slice.call(stack.querySelectorAll(".stack__card"));
-    if (cards.length < 2 || reduce) return;
-    var paused = false;
-    stack.addEventListener("mouseenter", function () { paused = true; });
-    stack.addEventListener("mouseleave", function () { paused = false; });
-    setInterval(function () {
-      if (paused || document.hidden) return;
-      cards.forEach(function (card) {
-        var pos = parseInt(card.getAttribute("data-pos"), 10);
-        card.setAttribute("data-pos", String((pos + cards.length - 1) % cards.length));
+    var n = cards.length;
+    if (n < 2) return;
+    var dots = stack.querySelectorAll("[data-stack-dot]");
+    var hovering = false, holdUntil = 0;
+    function front() {
+      for (var i = 0; i < n; i++) if (cards[i].getAttribute("data-pos") === "0") return i;
+      return 0;
+    }
+    function show(index) {
+      cards.forEach(function (card, i) { card.setAttribute("data-pos", String((i - index + n) % n)); });
+      dots.forEach(function (d, i) { d.setAttribute("aria-current", i === index ? "true" : "false"); });
+    }
+    function step(dir, manual) {
+      show((front() + dir + n) % n);
+      if (manual) holdUntil = Date.now() + 8000;
+    }
+    show(front());
+    stack.querySelectorAll("[data-stack-next]").forEach(function (b) { b.addEventListener("click", function () { step(1, true); }); });
+    stack.querySelectorAll("[data-stack-prev]").forEach(function (b) { b.addEventListener("click", function () { step(-1, true); }); });
+    dots.forEach(function (d, i) { d.addEventListener("click", function () { show(i); holdUntil = Date.now() + 8000; }); });
+    /* Tap/click a photo for the next one; swipe sideways to go either way. */
+    var startX = null, swiped = false;
+    cards.forEach(function (card) {
+      card.addEventListener("pointerdown", function (e) { startX = e.clientX; swiped = false; });
+      card.addEventListener("pointerup", function (e) {
+        if (startX === null) return;
+        var dx = e.clientX - startX;
+        startX = null;
+        if (Math.abs(dx) > 40) { swiped = true; step(dx < 0 ? 1 : -1, true); }
       });
+      card.addEventListener("click", function () { if (!swiped) step(1, true); });
+    });
+    if (reduce) return;
+    stack.addEventListener("mouseenter", function () { hovering = true; });
+    stack.addEventListener("mouseleave", function () { hovering = false; });
+    setInterval(function () {
+      if (hovering || document.hidden || Date.now() < holdUntil) return;
+      step(1, false);
     }, 3800);
   });
 

@@ -35,6 +35,11 @@
         <span class="stack__cup">{% icon "coffee" 20 %}<span class="steam"><i></i><i></i><i></i></span></span>
         <span><small>Today's pour-over</small>Highland Arabica · cacao, citrus</span>
       </div>
+      <div class="stack__controls">
+        <button type="button" class="stack__btn stack__btn--prev" data-stack-prev aria-label="Previous photo">{% icon "arrow" 16 %}</button>
+        <span class="stack__dots">{% for n in "123" %}<button type="button" class="stack__dot" data-stack-dot="{{ forloop.counter0 }}" aria-label="Show photo {{ n }}"></button>{% endfor %}</span>
+        <button type="button" class="stack__btn" data-stack-next aria-label="Next photo">{% icon "arrow" 16 %}</button>
+      </div>
     </div>
   </div>
 </section>
