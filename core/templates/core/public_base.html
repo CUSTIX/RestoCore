@@ -1,28 +1,55 @@
 {% extends "core/base.html" %}
-{% block body_class %}public{% endblock %}
+{% load static core %}
+{% block styles %}<link rel="stylesheet" href="{% static 'website/site.css' %}">{% endblock %}
+{% block body_class %}public{% block public_class %}{% endblock %}{% endblock %}
 {% block body %}
-<header class="site-header">
+<header class="site-header" data-header>
   <div class="container site-header__inner">
-    <a class="brand" href="{% url 'website:home' %}">{{ restaurant_name }}</a>
-    <nav class="site-nav" aria-label="Main">
-      <a href="{% url 'website:home' %}">Home</a>
-      <a href="{% url 'website:menu' %}">Menu</a>
-      <a href="{% url 'public_bookings:create' %}" class="btn btn--small">Book a table</a>
+    <a class="brand" href="{% url 'website:home' %}" aria-label="{{ restaurant_name }}, home">
+      <span class="brand__mark">{% icon "coffee" 18 %}</span>{{ restaurant_name }}
+    </a>
+    <button type="button" class="menu-toggle" data-nav-toggle aria-controls="site-nav" aria-expanded="false" aria-label="Open menu">{% icon "menu" 26 %}</button>
+    <nav class="site-nav" id="site-nav" aria-label="Main">
+      <a href="{% url 'website:home' %}"{% if request.resolver_match.url_name == 'home' %} aria-current="page"{% endif %}>Home</a>
+      <a href="{% url 'website:menu' %}"{% if request.resolver_match.url_name == 'menu' %} aria-current="page"{% endif %}>Menu</a>
+      <a href="{% url 'website:home' %}#visit">Visit</a>
       {% if user.is_authenticated %}
         <a href="{% url 'dashboard:index' %}">Staff area</a>
       {% else %}
         <a href="{% url 'accounts:login' %}">Staff login</a>
       {% endif %}
+      <a href="{% url 'public_bookings:create' %}" class="btn btn--small" data-magnetic>Reserve a table</a>
     </nav>
   </div>
 </header>
-<main>
-  <div class="container">{% include "core/partials/messages.html" %}</div>
+{% include "core/partials/messages.html" %}
+<main id="main">
   {% block content %}{% endblock %}
 </main>
-<footer class="site-footer">
+<footer class="site-footer grain">
   <div class="container">
-    <p>{{ restaurant_name }} · Powered by RestoCore, a portfolio demo. All data is fake.</p>
+    <p class="site-footer__big" data-reveal>Come <em>slow down</em>.</p>
+    <div class="site-footer__cols">
+      <div>
+        <h4>{{ restaurant_name }}</h4>
+        <p>Slow coffee, warm plates and a seat for as long as you like.</p>
+      </div>
+      <div>
+        <h4>Visit</h4>
+        <a href="{% url 'website:home' %}#visit">123 Demo Street, Sample City</a>
+        <a href="{% url 'website:home' %}#visit">Open daily · 11:00 AM – 10:00 PM</a>
+      </div>
+      <div>
+        <h4>Explore</h4>
+        <a href="{% url 'website:menu' %}">Menu</a>
+        <a href="{% url 'public_bookings:create' %}">Reserve a table</a>
+        <a href="{% url 'accounts:login' %}">Staff login</a>
+      </div>
+    </div>
+    <div class="site-footer__legal">
+      <span>© {% now "Y" %} {{ restaurant_name }}. Demo site powered by RestoCore. Menu, prices and address are sample data.</span>
+      <span>Photos: Unsplash</span>
+    </div>
   </div>
 </footer>
 {% endblock %}

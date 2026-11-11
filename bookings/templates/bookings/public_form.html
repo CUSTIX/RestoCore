@@ -1,18 +1,45 @@
 {% extends "core/public_base.html" %}
-{% block title %}Book a table{% endblock %}
+{% load static core %}
+{% block title %}Reserve a table{% endblock %}
+{% block public_class %} public--solid{% endblock %}
 {% block content %}
-<section class="section">
-  <div class="container narrow">
-    <h1>Book a table</h1>
-    <p class="muted">We seat guests from {{ opening|time:"g:i A" }} to {{ last_seating|time:"g:i A" }}, every day. Parties of up to 20. We'll confirm your booking by phone or email.</p>
-    <div class="card">
-      <form method="post" novalidate>
-        {% csrf_token %}
-        {% include "core/partials/form.html" with form=form %}
-        <button type="submit" class="btn">Request booking</button>
-      </form>
-    </div>
+<div class="container book">
+  <aside class="book__aside" data-reveal="left">
+    <div class="arch"><img src="{% static 'website/img/street.jpg' %}" alt="Tables outside a café on a quiet street"></div>
+    <ul class="book__facts">
+      <li>{% icon "clock" %} Seating from {{ opening|time:"g:i A" }} to {{ last_seating|time:"g:i A" }}, every day</li>
+      <li>{% icon "users" %} Tables for 1 to 20 guests</li>
+      <li>{% icon "phone" %} We confirm every booking by phone or email</li>
+      <li>{% icon "heart" %} Celebrating? Tell us in the notes</li>
+    </ul>
+  </aside>
+
+  <div class="book__card" data-reveal>
+    <span class="eyebrow">Reservations</span>
+    <h1>Save a seat at {{ restaurant_name }}</h1>
+    <p class="muted">It takes less than a minute. Walk-ins are always welcome too.</p>
+    <form method="post" novalidate data-booking-form>
+      {% csrf_token %}
+      {% if form.non_field_errors %}
+        <div class="alert alert--error">{% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}</div>
+      {% endif %}
+      <div class="form-grid">
+        {% for field in form.visible_fields %}
+          {% if field.name == "website" %}
+            <div class="hp-field" aria-hidden="true"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}</div>
+          {% else %}
+          <div class="field{% if field.errors %} field--error{% endif %}"{% if field.name == "time" or field.name == "notes" %} style="grid-column:1/-1"{% endif %}>
+            <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} <span aria-hidden="true">*</span>{% endif %}</label>
+            {{ field }}
+            {% if field.help_text %}<small class="help">{{ field.help_text }}</small>{% endif %}
+            {% for error in field.errors %}<small class="error">{{ error }}</small>{% endfor %}
+          </div>
+          {% endif %}
+        {% endfor %}
+      </div>
+      <button type="submit" class="btn btn--block" style="padding:1em" data-magnetic>Request my table {% icon "arrow" 18 %}<span class="btn__shine"></span></button>
+    </form>
   </div>
-</section>
-<style>#id_website, label[for=id_website] { position: absolute; left: -9999px; }</style>
+</div>
 {% endblock %}
+{% block scripts %}<script src="{% static 'bookings/book.js' %}" defer></script>{% endblock %}

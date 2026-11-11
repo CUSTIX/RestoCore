@@ -1,24 +1,65 @@
 {% extends "core/public_base.html" %}
-{% load core %}
+{% load static core %}
 {% block title %}Menu{% endblock %}
 {% block content %}
-<section class="section">
-  <div class="container narrow">
-    <h1>Menu</h1>
-    {% for cat in categories %}
-      <div class="menu-category">
+<section class="page-hero grain">
+  <img src="{% static 'website/img/tools.jpg' %}" alt="">
+  <div class="container">
+    <span class="eyebrow">The menu</span>
+    <h1><span data-split>Brewed, baked</span> <em data-split>&amp; plated.</em></h1>
+    <p class="lead">Everything is made in house, from the espresso blend to the sourdough. Tax is added at the counter.</p>
+  </div>
+</section>
+
+{% if categories %}
+<nav class="menu-nav" aria-label="Menu sections">
+  <div class="container menu-nav__inner" data-spy>
+    {% for cat in categories %}<a href="#cat-{{ cat.pk }}">{{ cat.name }}</a>{% endfor %}
+  </div>
+</nav>
+{% endif %}
+
+<div class="container">
+  {% for cat in categories %}
+    <section class="menu-category" id="cat-{{ cat.pk }}">
+      <div class="menu-category__head" data-reveal>
         <h2>{{ cat.name }}</h2>
+        <span class="menu-category__count">{{ cat.shown|length }} item{{ cat.shown|length|pluralize }}</span>
+      </div>
+      <div class="menu-list" data-stagger>
         {% for item in cat.shown %}
-          <div class="menu-item">
-            <div><strong>{{ item.name }}</strong>{% if item.description %}<br><span class="muted">{{ item.description }}</span>{% endif %}</div>
-            <div class="menu-item__price">{{ item.price|money }}</div>
-          </div>
+          <article class="menu-item" data-reveal>
+            {% if item.photo %}
+              <div class="menu-item__photo"><img src="{% static item.photo %}" alt="{{ item.name }}" loading="lazy"></div>
+            {% else %}
+              <div class="menu-item__photo menu-item__photo--empty" aria-hidden="true">{{ item.name|first }}</div>
+            {% endif %}
+            <div>
+              <div class="menu-item__top">
+                <span class="menu-item__name">{{ item.name }}</span>
+                {% if item.is_signature %}<span class="badge badge--plain">House favourite</span>{% endif %}
+                <span class="menu-item__dots" aria-hidden="true"></span>
+                <span class="menu-item__price">{{ currency }}{{ item.price|money }}</span>
+              </div>
+              {% if item.description %}<p class="menu-item__desc">{{ item.description }}</p>{% endif %}
+            </div>
+          </article>
         {% endfor %}
       </div>
-    {% empty %}
-      {% include "core/partials/empty.html" with message="Our menu is being updated. Please check back soon." %}
-    {% endfor %}
-    <p><a class="btn" href="{% url 'public_bookings:create' %}">Book a table</a></p>
+    </section>
+  {% empty %}
+    <section class="section">{% include "core/partials/empty.html" with message="Our menu is being updated. Please check back soon." %}</section>
+  {% endfor %}
+</div>
+
+<section class="section">
+  <div class="container">
+    <div class="cta-band grain" data-reveal="zoom">
+      <img src="{% static 'website/img/window-table.jpg' %}" alt="" data-parallax="0.06" loading="lazy">
+      <span class="eyebrow">Hungry yet?</span>
+      <h2>Save yourself <em>a seat</em>.</h2>
+      <a class="btn btn--light" href="{% url 'public_bookings:create' %}" data-magnetic>Reserve a table {% icon "arrow" 18 %}<span class="btn__shine"></span></a>
+    </div>
   </div>
 </section>
 {% endblock %}
