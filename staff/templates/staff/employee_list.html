@@ -16,7 +16,7 @@
     <tbody>
     {% for e in page_obj %}
       <tr>
-        <td><a href="{% url 'staff:employee_update' e.pk %}">{{ e }}</a></td>
+        <td>{% if e.can_edit %}<a href="{% url 'staff:employee_update' e.pk %}">{{ e }}</a>{% else %}{{ e }}{% endif %}</td>
         <td>{{ e.user.username }}</td>
         <td>{% for g in e.user.groups.all %}<span class="badge">{{ g.name }}</span>{% endfor %}</td>
         <td>{{ e.position }}</td>

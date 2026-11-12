@@ -178,3 +178,57 @@ def test_shift_create_via_form(client_for, make_employee, tomorrow):
     )
     assert response.status_code == 302
     assert emp.shifts.count() == 1
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("target_role", ["Owner", "Manager"])
+def test_manager_cannot_edit_an_owner_or_another_manager(client_for, make_employee, target_role):
+    """Privilege escalation guard: a manager must not demote, deactivate or rename the people
+    above or beside them, even by posting the edit form directly."""
+    target = make_employee(role=target_role)
+    client = client_for("Manager")
+    url = f"/app/staff/employees/{target.pk}/edit/"
+    assert client.get(url).status_code == 403
+    response = client.post(
+        url,
+        {
+            "first_name": "Hacked",
+            "last_name": "X",
+            "email": "",
+            "role": "Staff",
+            "position": "x",
+            "phone": "",
+            "hourly_rate": "1",
+            "hire_date": "2024-01-01",
+            "is_active": "",
+        },
+    )
+    assert response.status_code == 403
+    target.user.refresh_from_db()
+    assert target.user.is_active and target.user.first_name != "Hacked"
+    assert target.user.groups.filter(name=target_role).exists()
+
+
+@pytest.mark.django_db
+def test_manager_can_edit_a_staff_member(client_for, make_employee):
+    target = make_employee(role="Staff")
+    assert client_for("Manager").get(f"/app/staff/employees/{target.pk}/edit/").status_code == 200
+
+
+@pytest.mark.django_db
+def test_employee_list_links_only_the_people_you_may_edit(client_for, make_employee):
+    owner, staff = make_employee(role="Owner"), make_employee(role="Staff")
+    html = client_for("Manager").get("/app/staff/employees/").content.decode()
+    assert f"/app/staff/employees/{staff.pk}/edit/" in html
+    assert f"/app/staff/employees/{owner.pk}/edit/" not in html
+
+
+@pytest.mark.django_db
+def test_employee_list_query_count_does_not_grow_per_row(
+    client_for, make_employee, django_assert_max_num_queries
+):
+    client = client_for("Owner")
+    for role in ["Staff", "Cashier", "Kitchen", "Manager", "Staff", "Staff"]:
+        make_employee(role=role)
+    with django_assert_max_num_queries(12):
+        assert client.get("/app/staff/employees/").status_code == 200

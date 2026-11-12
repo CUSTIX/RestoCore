@@ -17,7 +17,11 @@ def user_roles(user) -> set[str]:
     cached = getattr(user, "_restocore_roles", None)
     if cached is not None:
         return cached
-    roles = set(user.groups.filter(name__in=ALL_ROLES).values_list("name", flat=True))
+    prefetched = getattr(user, "_prefetched_objects_cache", {}).get("groups")
+    if prefetched is not None:  # list pages prefetch groups: no extra query per row
+        roles = {g.name for g in prefetched if g.name in ALL_ROLES}
+    else:
+        roles = set(user.groups.filter(name__in=ALL_ROLES).values_list("name", flat=True))
     if user.is_superuser:
         roles.add(OWNER)
     user._restocore_roles = roles

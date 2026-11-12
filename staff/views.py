@@ -117,9 +117,12 @@ class EmployeeListView(RoleRequiredMixin, TemplateView):
         q = self.request.GET.get("q", "").strip()
         show_all = self.request.GET.get("all") == "1"
         qs = selectors.filter_employees(q=q, include_inactive=show_all)
+        page_obj = paginate(self.request, qs)
+        for e in page_obj:  # link only the rows this user may actually edit
+            e.can_edit = services.can_edit_employee(self.request.user, e.user)
         return {
             **super().get_context_data(**kwargs),
-            "page_obj": paginate(self.request, qs),
+            "page_obj": page_obj,
             "q": q,
             "show_all": show_all,
             "active_section": "employees",
@@ -154,6 +157,22 @@ class EmployeeUpdateView(RoleRequiredMixin, FormView):
     @cached_property
     def employee(self):  # loaded only after the role check in dispatch()
         return get_object_or_404(Employee.objects.select_related("user"), pk=self.kwargs["pk"])
+
+    def _check_object_access(self):
+        """Object-level check (the role check only says "is a manager"): a manager may not even
+        open the form for an owner or another manager. Same rule the service enforces on save."""
+        user = self.employee.user
+        services.assert_can_manage(
+            self.request.user, target_role=services.primary_role(user), target_user=user
+        )
+
+    def get(self, request, *args, **kwargs):
+        self._check_object_access()
+        return super().get(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        self._check_object_access()
+        return super().post(request, *args, **kwargs)
 
     def get_initial(self):
         e, u = self.employee, self.employee.user

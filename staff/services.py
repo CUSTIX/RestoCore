@@ -33,6 +33,15 @@ def assert_can_manage(actor, *, target_role: str, target_user=None) -> None:
         raise PermissionDenied("Only an owner can edit an owner or manager.")
 
 
+def can_edit_employee(actor, target_user) -> bool:
+    """For templates: should `actor` see an Edit link for this person?"""
+    try:
+        assert_can_manage(actor, target_role=primary_role(target_user), target_user=target_user)
+    except PermissionDenied:
+        return False
+    return True
+
+
 # ---- Employees ----------------------------------------------------------------------------
 
 
