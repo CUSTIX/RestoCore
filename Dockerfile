@@ -2,7 +2,7 @@
 #   dev  - test tools + Django dev server (docker-compose.yml)
 #   prod - runtime deps only, static files collected at build, gunicorn (docker-compose.prod.yml)
 
-FROM python:3.12-slim AS base
+FROM python:3.15-slim AS base
 # No .pyc files in the image; logs go straight to `docker compose logs`.
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
