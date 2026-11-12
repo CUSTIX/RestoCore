@@ -8,6 +8,10 @@ so an AI assistant can answer questions about the restaurant.
 
 *"Where we RESTOre your confidence in managing."*
 
+**Live demo: <https://restocore.onrender.com>** (staff login at `/accounts/login/`; the demo accounts
+are listed there with one-click fill). The free server sleeps when idle, so the first visit can
+take about a minute to wake up; the demo data resets each time it starts.
+
 Portfolio project. Built with Django 5.2, PostgreSQL 17, Docker Compose and GitHub Actions.
 Free to build and run. **All data is fake** (generated with Faker).
 
@@ -124,8 +128,7 @@ is roughly every visit), password changes are disabled, and nobody gets Django a
 - [x] 3. Inventory, then sales
 - [x] 4. Staff, then payroll
 - [x] 5. MCP server (read-only)
-- [ ] 6. Deploy: production image, `render.yaml` and deploy checks are ready; live link pending
-  ([docs/deploy.md](docs/deploy.md))
+- [x] 6. Deploy: live on Render + Neon (free), see [docs/deploy.md](docs/deploy.md)
 
 ## Design decisions
 
