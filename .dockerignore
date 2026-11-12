@@ -9,3 +9,6 @@ __pycache__
 .ruff_cache
 .vscode
 .idea
+# Local-only branding (real third-party logos for a local demo): never baked into an image,
+# so a locally built image matches what Render builds from the repo.
+local/
