@@ -1,6 +1,8 @@
+import datetime as dt
+
 from django.contrib import messages
 from django.core.exceptions import ValidationError
-from django.http import Http404
+from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.functional import cached_property
 from django.views.generic import FormView, TemplateView, View
@@ -59,7 +61,10 @@ class BookingListView(RoleRequiredMixin, TemplateView):
         form = BookingFilterForm(self.request.GET or None)
         filters = form.cleaned_data if form.is_valid() else {}
         qs = selectors.filter_bookings(
-            date=filters.get("date"), status=filters.get("status", ""), q=filters.get("q", "")
+            date=filters.get("date"),
+            status=filters.get("status", ""),
+            q=filters.get("q", ""),
+            when=filters.get("when") or selectors.WHEN_UPCOMING,
         )
         return {
             **super().get_context_data(**kwargs),
@@ -114,6 +119,13 @@ class BookingUpdateView(RoleRequiredMixin, FormView):
     def get_form_kwargs(self):
         return {**super().get_form_kwargs(), "instance": self.booking}
 
+    def get(self, request, *args, **kwargs):
+        # Closed bookings can't be edited: don't show a form that can never be saved.
+        if self.booking.status not in (Booking.Status.PENDING, Booking.Status.CONFIRMED):
+            messages.info(request, "This booking is closed, so it can't be edited.")
+            return redirect("bookings:detail", pk=self.booking.pk)
+        return super().get(request, *args, **kwargs)
+
     def form_valid(self, form):
         try:
             services.update_booking(self.booking, **form.cleaned_data)
@@ -136,3 +148,16 @@ class BookingStatusView(RoleRequiredMixin, View):
         else:
             messages.success(request, f"Booking marked {booking.get_status_display().lower()}.")
         return redirect("bookings:detail", pk=pk)
+
+
+class AvailabilityView(View):
+    """Public JSON for the booking form: seats left per time on one date (counts only)."""
+
+    def get(self, request):
+        try:
+            day = dt.date.fromisoformat(request.GET.get("date", ""))
+        except ValueError:
+            return JsonResponse({"error": "Use ?date=YYYY-MM-DD"}, status=400)
+        response = JsonResponse({"date": day.isoformat(), "seats": selectors.availability(day)})
+        response["Cache-Control"] = "no-store"  # changes with every booking
+        return response

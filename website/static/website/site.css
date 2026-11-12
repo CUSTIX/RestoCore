@@ -336,6 +336,11 @@ body.public {
 .slot input:hover + span { border-color: var(--brew-500); }
 .slot input:checked + span { background: var(--brew-900); color: var(--cream-50); border-color: var(--brew-900); transform: scale(1.04); box-shadow: 0 8px 16px -8px rgba(22, 16, 12, .6); }
 .slot input:focus-visible + span { outline: 2px solid var(--focus); outline-offset: 2px; }
+/* Not enough seats left for this party at that time (passed times are hidden entirely) */
+.slot.is-full span { color: var(--ink-3); background: transparent; border-style: dashed; text-decoration: line-through; cursor: not-allowed; }
+.slot input:disabled { cursor: not-allowed; }
+.slots__note { margin: .6rem 0 0; color: var(--danger); font-weight: 700; font-size: .9rem; }
+.slots__note:empty { display: none; }
 .party { display: inline-flex; align-items: center; gap: .4rem; }
 .party button { width: 42px; height: 42px; border-radius: 50%; border: 1px solid var(--cream-200); background: var(--cream-50); cursor: pointer; display: grid; place-items: center; color: var(--brew-900); font-size: 1.1rem; transition: transform .2s var(--ease-spring), background .2s; }
 .party button:hover { background: var(--cream-100); transform: scale(1.08); }

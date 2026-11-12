@@ -48,8 +48,27 @@ def time_slots() -> list[dt.time]:
     return slots
 
 
-def allowed_transitions(booking: Booking) -> tuple[str, ...]:
-    return TRANSITIONS.get(booking.status, ())
+def has_started(booking: Booking, now=None) -> bool:
+    """True once the booking's date and time have arrived (local time)."""
+    now = now or timezone.localtime()
+    return (booking.date, booking.time) <= (now.date(), now.time().replace(tzinfo=None))
+
+
+def allowed_transitions(booking: Booking, now=None) -> tuple[str, ...]:
+    """Status changes that make sense right now, not just in the abstract workflow:
+    you confirm before the time, seat guests on the day, and mark a no-show once it has passed."""
+    now = now or timezone.localtime()
+    started = has_started(booking, now)
+    allowed = []
+    for status in TRANSITIONS.get(booking.status, ()):
+        if status == Booking.Status.CONFIRMED and started:
+            continue  # too late to confirm a request: cancel it instead
+        if status == Booking.Status.SEATED and booking.date != now.date():
+            continue  # guests are seated on the day of the booking
+        if status == Booking.Status.NO_SHOW and not started:
+            continue  # nobody can be a no-show before the booking time
+        allowed.append(status)
+    return tuple(allowed)
 
 
 def seats_taken(date: dt.date, time: dt.time, exclude_id: int | None = None) -> int:
@@ -129,11 +148,23 @@ def update_booking(booking: Booking, **data) -> Booking:
     current = Booking.objects.select_for_update().get(pk=booking.pk)
     if current.status not in (Booking.Status.PENDING, Booking.Status.CONFIRMED):
         raise ValidationError("Only pending or confirmed bookings can be edited.")
-    _lock_slot(data["date"], data["time"])
     booking = current
-    validate_slot(
-        date=data["date"], time=data["time"], party_size=data["party_size"], exclude_id=booking.pk
-    )
+    moved = (data["date"], data["time"]) != (booking.date, booking.time)
+    if moved or data["party_size"] > booking.party_size:
+        # Only a new slot (or more seats) needs the slot rules. Fixing a phone number or notes on
+        # a booking whose time has already started must not fail with "time has passed".
+        _lock_slot(data["date"], data["time"])
+        if moved:
+            validate_slot(
+                date=data["date"],
+                time=data["time"],
+                party_size=data["party_size"],
+                exclude_id=booking.pk,
+            )
+        else:
+            remaining = SLOT_CAPACITY - seats_taken(booking.date, booking.time, booking.pk)
+            if data["party_size"] > MAX_PARTY_SIZE or data["party_size"] > remaining:
+                raise ValidationError(f"Only {min(remaining, MAX_PARTY_SIZE)} seats are left.")
     for field, value in data.items():
         setattr(booking, field, value)
     booking.save()
@@ -143,7 +174,16 @@ def update_booking(booking: Booking, **data) -> Booking:
 @transaction.atomic
 def change_status(booking: Booking, new_status: str) -> Booking:
     booking = Booking.objects.select_for_update().get(pk=booking.pk)
+    if new_status == booking.status:
+        return booking  # double-click / second tab: already done, not an error
     if new_status not in allowed_transitions(booking):
+        timing = {
+            Booking.Status.CONFIRMED: "This booking's time has passed, so it can't be confirmed.",
+            Booking.Status.SEATED: "Guests can only be seated on the day of the booking.",
+            Booking.Status.NO_SHOW: "It can only be a no-show once the booking time has passed.",
+        }
+        if new_status in TRANSITIONS.get(booking.status, ()) and new_status in timing:
+            raise ValidationError(timing[new_status])
         raise ValidationError(
             f"Cannot change a {booking.get_status_display().lower()} booking to "
             f"{Booking.Status(new_status).label.lower()}."

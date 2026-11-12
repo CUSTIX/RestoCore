@@ -29,7 +29,11 @@ class BookingForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["date"].widget.attrs["min"] = timezone.localdate().isoformat()
+        today = timezone.localdate()
+        # New bookings start today at the earliest. Editing a booking whose day has passed must
+        # still be possible (e.g. fixing a phone number), so its own date stays allowed.
+        if not self.instance.pk or self.instance.date >= today:
+            self.fields["date"].widget.attrs["min"] = today.isoformat()
         if self.instance.pk and self.instance.time:
             self.initial["time"] = self.instance.time.strftime("%H:%M")
 
@@ -49,6 +53,11 @@ class PublicBookingForm(BookingForm):
 
 
 class BookingFilterForm(forms.Form):
+    when = forms.ChoiceField(
+        required=False,
+        choices=[("upcoming", "Upcoming"), ("past", "Past"), ("all", "All")],
+        label="Show",
+    )
     date = forms.DateField(required=False, widget=forms.DateInput(attrs={"type": "date"}))
     status = forms.ChoiceField(
         required=False, choices=[("", "All statuses"), *Booking.Status.choices]

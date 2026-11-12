@@ -73,7 +73,10 @@ def test_cancelled_bookings_free_their_seats(tomorrow):
 @pytest.mark.django_db
 def test_valid_status_workflow(tomorrow):
     b = services.create_booking(**booking_data(tomorrow))
-    for status in ("confirmed", "seated", "completed"):
+    b = services.change_status(b, "confirmed")
+    # Guests are seated on the day itself: move the clock to the booking day.
+    Booking.objects.filter(pk=b.pk).update(date=timezone.localdate())
+    for status in ("seated", "completed"):
         b = services.change_status(b, status)
     assert b.status == "completed"
 

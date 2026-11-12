@@ -18,7 +18,7 @@
   <div class="book__card" data-reveal>
     <h2>Book a table at {{ restaurant_name }}</h2>
     <p class="muted">It takes less than a minute. Walk-ins are always welcome too.</p>
-    <form method="post" novalidate data-booking-form>
+    <form method="post" novalidate data-booking-form data-availability-url="{% url 'public_bookings:availability' %}">
       {% csrf_token %}
       {% if form.non_field_errors %}
         <div class="alert alert--error">{% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}</div>

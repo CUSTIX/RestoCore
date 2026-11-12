@@ -50,7 +50,55 @@
     wrap.appendChild(minus); wrap.appendChild(party); wrap.appendChild(plus);
     if (!party.value) party.value = 2;
     var clamp = function (v) { return Math.max(1, Math.min(20, v)); };
-    minus.addEventListener("click", function () { party.value = clamp((parseInt(party.value, 10) || 2) - 1); });
-    plus.addEventListener("click", function () { party.value = clamp((parseInt(party.value, 10) || 2) + 1); });
+    var bump = function (d) {
+      party.value = clamp((parseInt(party.value, 10) || 2) + d);
+      party.dispatchEvent(new Event("input", { bubbles: true }));  /* re-check which times fit */
+    };
+    minus.addEventListener("click", function () { bump(-1); });
+    plus.addEventListener("click", function () { bump(1); });
   }
+
+  /* Availability: hide times that have passed on the chosen day and grey out the ones without
+     enough seats for this party, so guests only pick what can actually be booked. The server
+     still checks on submit (someone else may book the last seats in between). */
+  var url = form.getAttribute("data-availability-url");
+  var dateInput = form.querySelector("input[name=date]");
+  if (!url || !dateInput || !select || !group) return;
+  var note = document.createElement("p");
+  note.className = "slots__note";
+  note.setAttribute("aria-live", "polite");
+  group.parentNode.insertBefore(note, group.nextSibling);
+  var seats = null, asked = "";
+
+  function apply() {
+    if (!seats) return;
+    var size = parseInt((party || {}).value, 10) || 1, open = 0;
+    group.querySelectorAll("input[type=radio]").forEach(function (radio) {
+      var label = radio.parentNode, left = seats[radio.value];
+      var passed = left === null || left === undefined, fits = !passed && left >= size;
+      label.hidden = passed;
+      radio.disabled = !fits;
+      label.classList.toggle("is-full", !passed && !fits);
+      label.title = passed ? "" : fits ? (left < 10 ? left + " seats left" : "") : left === 0 ? "Fully booked" : "Only " + left + " seats left";
+      if (fits) open++;
+      if (radio.checked && !fits) radio.checked = false;
+    });
+    if (!group.querySelector("input:checked")) {
+      var pick = group.querySelector('input[value="18:00"]:not(:disabled)') || group.querySelector("input:not(:disabled)");
+      if (pick) { pick.checked = true; select.value = pick.value; } else { select.value = ""; }
+    }
+    note.textContent = open ? "" : "No tables left for " + size + (size === 1 ? " guest" : " guests") + " on this day. Please try another date or call us.";
+  }
+  function load() {
+    var day = dateInput.value;
+    if (!day || day === asked) return apply();
+    asked = day;
+    fetch(url + "?date=" + encodeURIComponent(day), { headers: { Accept: "application/json" } })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (data) { if (data && data.date === dateInput.value) { seats = data.seats; apply(); } })
+      .catch(function () { /* offline: the server still validates on submit */ });
+  }
+  dateInput.addEventListener("change", load);
+  if (party) party.addEventListener("input", apply);
+  load();
 })();
