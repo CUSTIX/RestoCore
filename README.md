@@ -1,8 +1,6 @@
 # RestoCore
 
-<!-- CI badge: fill in OWNER/REPO after the GitHub repo exists, then uncomment.
-[![CI](https://github.com/OWNER/REPO/actions/workflows/ci.yml/badge.svg)](https://github.com/OWNER/REPO/actions/workflows/ci.yml)
--->
+[![CI](https://github.com/CUSTIX/RestoCore/actions/workflows/ci.yml/badge.svg)](https://github.com/CUSTIX/RestoCore/actions/workflows/ci.yml)
 
 All-in-one restaurant management system: public site and bookings, inventory, point of sale,
 kitchen board, staff scheduling, attendance, leave, and a demo payroll. Plus a read-only MCP server
@@ -19,7 +17,7 @@ Prerequisites: [Docker Desktop](https://www.docker.com/products/docker-desktop/)
 [Git](https://git-scm.com/downloads). Nothing else; Python runs inside the container.
 
 ```bash
-git clone <repo-url> restocore
+git clone https://github.com/CUSTIX/RestoCore.git restocore
 cd restocore
 cp .env.example .env                               # Windows cmd: copy .env.example .env
 docker compose up --build                          # applies migrations, starts the app
@@ -98,6 +96,17 @@ For a real deployment, serve it behind HTTPS and set `DJANGO_HTTPS=true`, a real
 `DJANGO_SECRET_KEY`, `DJANGO_ALLOWED_HOSTS` and `DJANGO_CSRF_TRUSTED_ORIGINS`. With those set,
 `python manage.py check --deploy` passes (CI verifies this).
 
+## Live demo (free hosting)
+
+The public demo runs on Render (free web service, built from the `Dockerfile`) with a free Neon
+Postgres database, configured by [`render.yaml`](render.yaml). The container's start script
+(`bin/start.sh`) migrates, resets the demo data, then starts gunicorn. Setup and every environment
+variable: [docs/deploy.md](docs/deploy.md).
+
+**Public demo safety** (`DEMO_MODE=true`): the demo accounts are listed on the login page, all
+data is fake and is wiped and reseeded on every start (the free service sleeps when idle, so that
+is roughly every visit), password changes are disabled, and nobody gets Django admin.
+
 ## Status
 
 - [x] 0. Foundation: Docker Compose, env-based settings, ruff, pytest, CI
@@ -106,7 +115,9 @@ For a real deployment, serve it behind HTTPS and set `DJANGO_HTTPS=true`, a real
 - [x] 3. Inventory, then sales
 - [x] 4. Staff, then payroll
 - [x] 5. MCP server (read-only)
-- [ ] 6. Deploy: production image, prod compose and deploy checks are ready; a free host is not chosen yet
+- [ ] 6. Deploy: production image, `render.yaml` and deploy checks are ready; live link pending
+  ([docs/deploy.md](docs/deploy.md))
+
 ## Design decisions
 
 - **Modular monolith.** One Django project, one app per module (`bookings`, `inventory`, `sales`,

@@ -2,6 +2,9 @@
 
 import os
 from pathlib import Path
+from urllib.parse import parse_qsl, unquote, urlsplit
+
+from django.core.exceptions import ImproperlyConfigured
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -20,6 +23,11 @@ _hosts = os.environ.get("DJANGO_ALLOWED_HOSTS", "")
 ALLOWED_HOSTS = [h.strip() for h in _hosts.split(",") if h.strip()]
 _origins = os.environ.get("DJANGO_CSRF_TRUSTED_ORIGINS", "")
 CSRF_TRUSTED_ORIGINS = [o.strip() for o in _origins.split(",") if o.strip()]
+# Render sets this to the service's public hostname (e.g. restocore.onrender.com).
+_render_host = os.environ.get("RENDER_EXTERNAL_HOSTNAME", "")
+if _render_host:
+    ALLOWED_HOSTS.append(_render_host)
+    CSRF_TRUSTED_ORIGINS.append(f"https://{_render_host}")
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -52,6 +60,13 @@ CURRENCY_SYMBOL = os.environ.get("CURRENCY_SYMBOL", "₱")
 
 # Read-only API for the MCP server. Empty token = API disabled.
 API_TOKEN = os.environ.get("RESTOCORE_API_TOKEN", "")
+# Public demo deployments: show the demo accounts on the login page even with DEBUG off.
+# Pair with DEMO_RESET_ON_START=true (bin/start.sh) so visitors always get fresh demo data.
+DEMO_MODE = env_bool("DEMO_MODE")
+# Header (as a request.META key) holding the real visitor IP, set by a proxy that overwrites it,
+# e.g. HTTP_CF_CONNECTING_IP behind Cloudflare/Render. Empty: use the socket address.
+# Used for sign-in throttling; never point this at X-Forwarded-For, which callers can forge.
+CLIENT_IP_HEADER = os.environ.get("CLIENT_IP_HEADER", "")
 
 # Sales tax added on top of menu prices, as a fraction (0.12 = 12%). Configurable per country.
 SALES_TAX_RATE = os.environ.get("SALES_TAX_RATE", "0.12")
@@ -90,8 +105,31 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "config.wsgi.application"
 
+
+def database_from_url(url: str) -> dict:
+    """Turn a postgres:// URL (what hosted Postgres such as Neon hands out) into Django settings.
+
+    Query parameters (e.g. sslmode=require) are passed to the driver as connection options.
+    """
+    parts = urlsplit(url)
+    if parts.scheme not in ("postgres", "postgresql"):
+        raise ImproperlyConfigured("DATABASE_URL must start with postgres:// or postgresql://")
+    return {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": unquote(parts.path.lstrip("/")),
+        "USER": unquote(parts.username or ""),
+        "PASSWORD": unquote(parts.password or ""),
+        "HOST": parts.hostname or "",
+        "PORT": str(parts.port or ""),
+        "OPTIONS": dict(parse_qsl(parts.query)),
+    }
+
+
+# Local/Compose: separate POSTGRES_* variables. Hosted: one DATABASE_URL takes precedence.
 DATABASES = {
-    "default": {
+    "default": database_from_url(os.environ["DATABASE_URL"])
+    if os.environ.get("DATABASE_URL")
+    else {
         "ENGINE": "django.db.backends.postgresql",
         "NAME": os.environ.get("POSTGRES_DB", "restocore"),
         "USER": os.environ.get("POSTGRES_USER", "restocore"),

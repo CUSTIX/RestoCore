@@ -50,11 +50,16 @@ def test_set_user_role_replaces_previous_role(make_user):
 
 
 @pytest.mark.django_db
-@pytest.mark.parametrize("debug,shown", [(True, True), (False, False)])
-def test_demo_logins_only_shown_in_debug(client, settings, debug, shown):
+@pytest.mark.parametrize(
+    "debug,demo_mode,shown",
+    [(True, False, True), (False, False, False), (False, True, True)],
+)
+def test_demo_logins_shown_in_debug_or_public_demo_mode(client, settings, debug, demo_mode, shown):
     settings.DEBUG = debug
+    settings.DEMO_MODE = demo_mode
     html = client.get("/accounts/login/").content.decode()
     assert ("Demo accounts" in html) is shown
+    assert ("restocore-demo" in html) is shown  # never leak the password otherwise
 
 
 @pytest.mark.django_db

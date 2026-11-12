@@ -34,7 +34,7 @@
       </div>
       <div class="topbar__actions">
         <button type="button" class="icon-btn theme-toggle" data-theme-toggle aria-label="Toggle dark mode" title="Toggle dark mode">{% icon "sun" 18 "icon-sun" %}{% icon "moon" 18 "icon-moon" %}</button>
-        <a class="icon-btn" href="{% url 'accounts:password_change' %}" aria-label="Change password" title="Change password">{% icon "key" 18 %}</a>
+        {% if not demo_public %}<a class="icon-btn" href="{% url 'accounts:password_change' %}" aria-label="Change password" title="Change password">{% icon "key" 18 %}</a>{% endif %}
         <div class="user-chip">
           <span class="avatar">{{ user|initials }}</span>
           <span class="user-chip__meta">

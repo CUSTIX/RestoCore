@@ -28,7 +28,7 @@
       {% if show_demo_logins %}
       <div class="card" style="margin-top:1.6rem">
         <h2>{% icon "star" 18 %} Demo accounts</h2>
-        <p class="muted" style="font-size:.85rem">Local demo only. Run <code>seed_demo</code> first. Click an account to fill the form; password is <code>{{ demo_password }}</code>.</p>
+        <p class="muted" style="font-size:.85rem">{% if demo_public %}Public demo: fake data that resets regularly.{% else %}Local demo only. Run <code>seed_demo</code> first.{% endif %} Click an account to fill the form; password is <code>{{ demo_password }}</code>.</p>
         <div class="demo-chips">
           <button type="button" class="demo-chip" data-demo-user="owner" data-demo-pass="{{ demo_password }}"><strong>owner</strong><span>Everything + payroll</span></button>
           <button type="button" class="demo-chip" data-demo-user="manager" data-demo-pass="{{ demo_password }}"><strong>manager</strong><span>Runs the floor</span></button>

@@ -26,9 +26,10 @@ def restocore(request):
         "current_roles": sorted(roles),
         "restaurant_name": settings.RESTAURANT_NAME,
         "currency": settings.CURRENCY_SYMBOL,
-        # Local demo convenience only: never shown when DEBUG is off.
-        "show_demo_logins": settings.DEBUG,
+        # Local dev, or a public demo that opts in with DEMO_MODE (data resets on each start).
+        "show_demo_logins": settings.DEBUG or settings.DEMO_MODE,
+        "demo_public": settings.DEMO_MODE and not settings.DEBUG,
         "demo_password": os.environ.get("DEMO_PASSWORD", "restocore-demo")
-        if settings.DEBUG
+        if settings.DEBUG or settings.DEMO_MODE
         else "",
     }

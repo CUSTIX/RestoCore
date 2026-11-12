@@ -9,12 +9,15 @@ import os
 import random
 from decimal import Decimal
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 from django.utils import timezone
 from faker import Faker
 
+from accounts import services as accounts_services
 from bookings import services as booking_services
 from bookings.models import Booking
 from inventory import services as inventory_services
@@ -278,12 +281,24 @@ MENU = {
 class Command(BaseCommand):
     help = "Create fake demo data for every RestoCore module."
 
+    def add_arguments(self, parser):
+        parser.add_argument(
+            "--reset",
+            action="store_true",
+            help="Delete ALL data first, then seed. For public demo deployments only.",
+        )
+
     def handle(self, *args, **options):
         User = get_user_model()
+        if options["reset"]:
+            # Wipes every table (the roles too, which came from a data migration), so put the
+            # role groups back before seeding.
+            call_command("flush", interactive=False, verbosity=0)
+            accounts_services.ensure_role_groups()
         if User.objects.filter(username="owner").exists():
             raise CommandError(
                 "Demo data already exists (user 'owner'). Reset the database "
-                "first: docker compose down -v"
+                "first: docker compose down -v (or use --reset)"
             )
         password = os.environ.get("DEMO_PASSWORD", "restocore-demo")
         self.fake = Faker()
@@ -329,9 +344,12 @@ class Command(BaseCommand):
                 hourly_rate=rate,
                 hire_date=self.today - dt.timedelta(days=random.randint(60, 900)),
             )
-        owner = employees["owner"].user
-        owner.is_staff = owner.is_superuser = True  # owner can also use /admin/
-        owner.save(update_fields=["is_staff", "is_superuser"])
+        # Locally the owner can also use /admin/. Never on the public demo, where everyone knows
+        # the password: admin would let a visitor do anything, including creating superusers.
+        if not settings.DEMO_MODE:
+            owner = employees["owner"].user
+            owner.is_staff = owner.is_superuser = True
+            owner.save(update_fields=["is_staff", "is_superuser"])
         root.delete()
         return employees
 
