@@ -9,6 +9,7 @@ from core.roles import OWNER
 from payroll import selectors, services
 from payroll.forms import DeductionRateFormSet, PeriodForm
 from payroll.models import PayPeriod, Payslip
+from staff import selectors as staff_selectors
 
 PAYROLL_ROLES = (OWNER,)
 
@@ -45,6 +46,10 @@ class PeriodDetailView(RoleRequiredMixin, TemplateView):
         return {
             **super().get_context_data(**kwargs),
             "period": period,
+            # Unclosed clock-ins aren't paid: show them so the owner fixes them before finalizing.
+            "open_entries": staff_selectors.open_entries_between(period.start_date, period.end_date)
+            if period.status == PayPeriod.Status.DRAFT
+            else [],
             "payslips": selectors.payslips_for(period),
             "totals": selectors.period_totals(period),
             "active_section": "payroll",

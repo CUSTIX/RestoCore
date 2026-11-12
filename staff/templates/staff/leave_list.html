@@ -20,12 +20,13 @@
         <td>{% include "staff/_leave_badge.html" %}{% if leave.reviewed_by %}<br><small class="muted">by {{ leave.reviewed_by }}{% if leave.review_note %}: {{ leave.review_note }}{% endif %}</small>{% endif %}</td>
         <td>
           {% if leave.status == 'pending' %}
-            {% if leave.employee.user_id == user.pk %}
-              <small class="muted">Your own request: another manager or the owner reviews it.</small>
+            {% if leave.review_blocker %}
+              <small class="muted">{{ leave.review_blocker }}</small>
             {% else %}
+            {% if leave.shift_conflicts %}<small class="leave-conflict">Approving removes {{ leave.shift_conflicts }} scheduled shift{{ leave.shift_conflicts|pluralize }} on those days.</small>{% endif %}
             <form method="post" action="{% url 'staff:leave_review' leave.pk %}" class="actions">
               {% csrf_token %}
-              <input type="text" name="note" placeholder="Note (optional)" maxlength="300">
+              <input type="text" name="note" placeholder="Note (optional)" maxlength="300" aria-label="Review note for {{ leave.employee }} (optional)">
               <button class="btn btn--small" name="decision" value="approve" type="submit">Approve</button>
               <button class="btn btn--small btn--danger" name="decision" value="reject" type="submit">Reject</button>
             </form>

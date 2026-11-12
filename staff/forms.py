@@ -55,6 +55,11 @@ class ShiftForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["employee"].queryset = active_employees()
+        # New shifts start today at the earliest (an existing past shift keeps its own date).
+        today = timezone.localdate()
+        existing = self.initial.get("date")
+        if not existing or existing >= today:
+            self.fields["date"].widget.attrs["min"] = today.isoformat()
 
     @classmethod
     def from_shift(cls, shift: Shift):
@@ -108,3 +113,13 @@ class AttendanceFilterForm(forms.Form):
 
 class LeaveFilterForm(forms.Form):
     status = forms.ChoiceField(required=False, choices=[("", "All"), *LeaveRequest.Status.choices])
+
+
+class CloseEntryForm(forms.Form):
+    """A manager sets the real clock-out time of a forgotten clock-in."""
+
+    clock_out = forms.DateTimeField(
+        label="Left at",
+        input_formats=["%Y-%m-%dT%H:%M"],
+        widget=forms.DateTimeInput(attrs={"type": "datetime-local"}, format="%Y-%m-%dT%H:%M"),
+    )

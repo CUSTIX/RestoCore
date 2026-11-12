@@ -5,7 +5,21 @@
 <div class="card">
   <h2>Clocked in now ({{ clocked_in|length }})</h2>
   {% if clocked_in %}
-    <p>{% for e in clocked_in %}<span class="badge">{{ e.employee }} · since {{ e.clock_in|date:"g:i A" }}</span> {% endfor %}</p>
+    <p class="muted">Someone left without clocking out? Set the time they left: open clock-ins are not paid until they are closed.</p>
+    <ul class="open-entries">
+    {% for row in clocked_in %}
+      <li class="open-entry{% if row.stale %} is-stale{% endif %}">
+        <span class="open-entry__who"><strong>{{ row.entry.employee }}</strong> · since {{ row.entry.clock_in|date:"M j, g:i A" }}
+          {% if row.stale %}<span class="badge badge--warn">Forgot to clock out?</span>{% endif %}</span>
+        <form method="post" action="{% url 'staff:attendance_close' row.entry.pk %}" class="inline-form open-entry__form" novalidate
+              data-confirm="Close {{ row.entry.employee }}'s clock-in at the time entered?">
+          {% csrf_token %}
+          <label for="{{ row.form.clock_out.id_for_label }}">Left at</label>{{ row.form.clock_out }}
+          <button type="submit" class="btn btn--small">Close</button>
+        </form>
+      </li>
+    {% endfor %}
+    </ul>
   {% else %}<p class="muted">Nobody is clocked in.</p>{% endif %}
 </div>
 <form method="get" class="filters">
@@ -19,13 +33,12 @@
     <thead><tr><th>Employee</th><th>Clock in</th><th>Clock out</th><th class="num">Hours</th></tr></thead>
     <tbody>
     {% for e in page_obj %}
-      <tr><td>{{ e.employee }}</td><td>{{ e.clock_in|date:"M j, g:i A" }}</td><td>{% if e.clock_out %}{{ e.clock_out|date:"M j, g:i A" }}{% else %}<span class="badge badge--info">On shift</span>{% endif %}</td><td class="num">{{ e.hours|default:"—" }}</td></tr>
+      <tr><td>{{ e.employee }}</td><td>{{ e.clock_in|date:"M j, g:i A" }}</td><td>{% if e.clock_out %}{{ e.clock_out|date:"M j, g:i A" }}{% else %}<span class="badge badge--info">Not clocked out</span>{% endif %}</td><td class="num">{{ e.hours|default:"—" }}</td></tr>
     {% endfor %}
     </tbody>
   </table>
 </div>
 {% include "core/partials/pagination.html" %}
-<p class="muted"><small>Corrections to attendance records are made by an owner in the admin.</small></p>
 {% else %}
   {% include "core/partials/empty.html" with message="No attendance records." %}
 {% endif %}

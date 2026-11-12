@@ -63,7 +63,9 @@ def generate_payslips(period: PayPeriod) -> int:
     leave = staff_selectors.approved_leave_days(period.start_date, period.end_date)
     rates = list(DeductionRate.objects.filter(is_active=True))
     count = 0
-    for employee in staff_selectors.active_employees():
+    # Everyone who worked or had paid leave in the period, including people deactivated since:
+    # leaving the café doesn't cancel wages already earned.
+    for employee in staff_selectors.employees_by_ids(set(hours) | set(leave)):
         worked, leave_days = hours.get(employee.pk, Decimal("0")), leave.get(employee.pk, 0)
         if not worked and not leave_days:
             continue
@@ -101,6 +103,15 @@ def finalize_period(period: PayPeriod) -> PayPeriod:
         raise ValidationError("This period is already finalized.")
     if not period.payslips.exists():
         raise ValidationError("Generate payslips before finalizing.")
+    open_count = staff_selectors.open_entries_between(period.start_date, period.end_date).count()
+    if open_count:
+        # Finalizing locks the period: hours from an unclosed clock-in would never be paid.
+        one = open_count == 1
+        raise ValidationError(
+            f"{open_count} clock-in{'' if one else 's'} in this period "
+            f"{'has' if one else 'have'} no clock-out yet. Close {'it' if one else 'them'} "
+            "under Attendance, recalculate, then finalize."
+        )
     period.status = PayPeriod.Status.FINALIZED
     period.finalized_at = timezone.now()
     period.save(update_fields=["status", "finalized_at", "updated_at"])

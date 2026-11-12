@@ -125,3 +125,52 @@ def test_owner_creates_period_via_form(client_for):
     )
     assert response.status_code == 302
     assert PayPeriod.objects.count() == 1
+
+
+def _worked(emp, day, hours=8):
+    tz = timezone.get_current_timezone()
+    start = dt.datetime.combine(day, dt.time(9), tzinfo=tz)
+    return TimeEntry.objects.create(
+        employee=emp, clock_in=start, clock_out=start + dt.timedelta(hours=hours)
+    )
+
+
+def test_someone_deactivated_mid_period_is_still_paid(period, make_employee):
+    """Leaving the café doesn't cancel wages already earned."""
+    emp = make_employee(rate=D("100"))
+    _worked(emp, period.start_date)
+    emp.is_active = False
+    emp.save()
+    assert services.generate_payslips(period) == 1
+    assert period.payslips.get().employee_id == emp.pk
+
+
+def test_working_on_a_leave_day_is_not_paid_twice(period, make_employee):
+    emp = make_employee(rate=D("100"))
+    first = period.start_date
+    LeaveRequest.objects.create(
+        employee=emp,
+        leave_type="vacation",
+        status="approved",
+        start_date=first,
+        end_date=first + dt.timedelta(days=1),
+    )
+    _worked(emp, first)  # came in on the first leave day
+    services.generate_payslips(period)
+    slip = period.payslips.get()
+    assert slip.hours_worked == D("8.00") and slip.paid_leave_days == 1  # not 2
+
+
+def test_finalizing_is_blocked_while_a_clock_in_is_open(period, make_employee, client_for):
+    emp = make_employee(rate=D("100"))
+    _worked(emp, period.start_date)
+    tz = timezone.get_current_timezone()
+    TimeEntry.objects.create(
+        employee=emp,
+        clock_in=dt.datetime.combine(period.start_date + dt.timedelta(days=1), dt.time(9), tz),
+    )
+    services.generate_payslips(period)
+    with pytest.raises(ValidationError, match="no clock-out yet"):
+        services.finalize_period(period)
+    html = client_for("Owner").get(f"/app/payroll/periods/{period.pk}/").content.decode()
+    assert "no clock-out yet" in html

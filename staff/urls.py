@@ -16,6 +16,9 @@ urlpatterns = [
     path("shifts/<int:pk>/edit/", views.ShiftEditView.as_view(), name="shift_update"),
     path("shifts/<int:pk>/delete/", views.ShiftDeleteView.as_view(), name="shift_delete"),
     path("attendance/", views.AttendanceListView.as_view(), name="attendance_list"),
+    path(
+        "attendance/<int:pk>/close/", views.AttendanceCloseView.as_view(), name="attendance_close"
+    ),
     path("leave/", views.LeaveListView.as_view(), name="leave_list"),
     path("leave/<int:pk>/review/", views.LeaveReviewView.as_view(), name="leave_review"),
 ]

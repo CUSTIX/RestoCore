@@ -12,6 +12,13 @@
   <a href="{% url 'payroll:period_list' %}">All periods</a>
 {% endblock %}
 {% block content %}
+{% if open_entries %}
+<div class="alert alert--warning" role="status">
+  <p><strong>{{ open_entries|length }} clock-in{{ open_entries|length|pluralize }} in this period {{ open_entries|length|pluralize:"has,have" }} no clock-out yet</strong> (still on shift, or forgotten), so {{ open_entries|length|pluralize:"it is,they are" }} not paid yet:
+  {% for e in open_entries %}{{ e.employee }} ({{ e.clock_in|date:"M j, g:i A" }}){% if not forloop.last %}, {% endif %}{% endfor %}.</p>
+  <p>Close {{ open_entries|length|pluralize:"it,them" }} under <a href="{% url 'staff:attendance_list' %}">Attendance</a>, then recalculate. Finalizing is blocked until then.</p>
+</div>
+{% endif %}
 {% include "payroll/_demo_notice.html" %}
 <div class="grid">
   <div class="card"><div class="stat">{{ totals.hours }}</div><div class="stat-label">Hours worked</div></div>

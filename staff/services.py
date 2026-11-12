@@ -12,6 +12,7 @@ from core.roles import MANAGER, OWNER, has_role, user_roles
 from staff.models import Employee, LeaveRequest, Shift, TimeEntry
 
 PRIVILEGED_ROLES = (OWNER, MANAGER)
+MAX_SHIFT_HOURS = 16  # longer than this, a clock-in was almost certainly forgotten
 
 
 def primary_role(user) -> str:
@@ -105,6 +106,7 @@ def update_employee(
         raise ValidationError("You cannot deactivate your own account.")
     if employee.user_id == actor.pk and role != primary_role(actor):
         raise ValidationError("You cannot change your own role.")
+    leaving = employee.is_active and not is_active
     user = employee.user
     user.first_name, user.last_name, user.email = first_name, last_name, email
     user.is_active = is_active  # deactivated employees can no longer log in
@@ -113,7 +115,18 @@ def update_employee(
     employee.position, employee.phone = position, phone
     employee.hourly_rate, employee.hire_date, employee.is_active = hourly_rate, hire_date, is_active
     employee.save()
+    employee.cleanup = _offboard(employee) if leaving else {}
     return employee
+
+
+def _offboard(employee: Employee) -> dict[str, int]:
+    """Someone who left shouldn't stay on the schedule or in the leave queue.
+    (Hours already worked stay and are still paid: see payroll.)"""
+    shifts = Shift.objects.filter(employee=employee, date__gte=timezone.localdate()).delete()[0]
+    leave = LeaveRequest.objects.filter(
+        employee=employee, status=LeaveRequest.Status.PENDING
+    ).update(status=LeaveRequest.Status.CANCELLED)
+    return {"shifts": shifts, "leave": leave}
 
 
 # ---- Shifts -------------------------------------------------------------------------------
@@ -145,6 +158,11 @@ def save_shift(
 ) -> Shift:
     if not employee.is_active:
         raise ValidationError("Inactive employees cannot be scheduled.")
+    today = timezone.localdate()
+    if date < today and (shift is None or shift.date != date):
+        # The schedule plans work ahead. A day that is over is recorded by attendance, not
+        # rewritten as a shift (an existing past shift can still be edited in place).
+        raise ValidationError("You can't schedule a shift on a day that has already passed.")
     _check_shift(employee, date, start_time, end_time, exclude_id=shift.pk if shift else None)
     shift = shift or Shift()
     shift.employee, shift.date = employee, date
@@ -165,9 +183,20 @@ def clock_in(employee: Employee, *, at: dt.datetime | None = None) -> TimeEntry:
     if not employee.is_active:
         raise ValidationError("Inactive employees cannot clock in.")
     Employee.objects.select_for_update().get(pk=employee.pk)  # serialise clicks per employee
-    if TimeEntry.objects.filter(employee=employee, clock_out__isnull=True).exists():
+    current = TimeEntry.objects.filter(employee=employee, clock_out__isnull=True).first()
+    if current is not None:
+        if timezone.now() - current.clock_in > dt.timedelta(hours=MAX_SHIFT_HOURS):
+            raise ValidationError(
+                f"You're still clocked in from {_since(current)}. "
+                "Ask a manager to close that entry first."
+            )
         raise ValidationError("You are already clocked in.")
     return TimeEntry.objects.create(employee=employee, clock_in=at or timezone.now())
+
+
+def _since(entry: TimeEntry) -> str:
+    local = timezone.localtime(entry.clock_in)
+    return f"{local:%b} {local.day}, {local:%I}".replace(" 0", " ") + f":{local:%M %p}"
 
 
 @transaction.atomic
@@ -182,6 +211,31 @@ def clock_out(employee: Employee, *, at: dt.datetime | None = None) -> TimeEntry
     at = at or timezone.now()
     if at <= entry.clock_in:
         raise ValidationError("Clock-out must be after clock-in.")
+    if at - entry.clock_in > dt.timedelta(hours=MAX_SHIFT_HOURS):
+        # Clocking out now would pay a 20+ hour "shift". A manager sets the real time instead.
+        raise ValidationError(
+            f"Your clock-in from {_since(entry)} was never closed. "
+            "Ask a manager to set the time you actually left; then you can clock in again."
+        )
+    entry.clock_out = at
+    entry.save(update_fields=["clock_out"])
+    return entry
+
+
+@transaction.atomic
+def close_entry(entry: TimeEntry, *, at: dt.datetime, by) -> TimeEntry:
+    """A manager closes a forgotten clock-in with the time the person actually left."""
+    if not has_role(by, *PRIVILEGED_ROLES):
+        raise PermissionDenied("Only managers and owners can correct attendance.")
+    entry = TimeEntry.objects.select_for_update().get(pk=entry.pk)
+    if entry.clock_out is not None:
+        raise ValidationError("This entry is already closed.")
+    if at <= entry.clock_in:
+        raise ValidationError("The clock-out time must be after the clock-in.")
+    if at > timezone.now():
+        raise ValidationError("The clock-out time can't be in the future.")
+    if at - entry.clock_in > dt.timedelta(hours=MAX_SHIFT_HOURS):
+        raise ValidationError(f"A shift can't be longer than {MAX_SHIFT_HOURS} hours.")
     entry.clock_out = at
     entry.save(update_fields=["clock_out"])
     return entry
@@ -217,22 +271,42 @@ def request_leave(
     )
 
 
+def review_blocker(leave: LeaveRequest, reviewer) -> str:
+    """Why `reviewer` may not approve/reject this request ("" when they may). One rule for both
+    the buttons on the page and the server, so the page never offers what the server refuses."""
+    if leave.employee.user_id == reviewer.pk:
+        return "Your own request: another manager or the owner reviews it."
+    if not has_role(reviewer, *PRIVILEGED_ROLES):
+        return "Only managers and owners can review leave."
+    if has_role(leave.employee.user, *PRIVILEGED_ROLES) and not has_role(reviewer, OWNER):
+        return "A manager's leave is reviewed by the owner."
+    return ""
+
+
+def shifts_during_leave(leave: LeaveRequest):
+    """Scheduled shifts (today onwards) that approving this leave would remove."""
+    first_day = max(leave.start_date, timezone.localdate())
+    return Shift.objects.filter(
+        employee_id=leave.employee_id, date__gte=first_day, date__lte=leave.end_date
+    )
+
+
 @transaction.atomic
 def review_leave(leave: LeaveRequest, *, reviewer, approve: bool, note="") -> LeaveRequest:
+    """Approve or reject. Approving removes the person's upcoming shifts on those days, so the
+    schedule never shows someone working while on approved leave (`leave.removed_shifts`)."""
     leave = (
         LeaveRequest.objects.select_for_update().select_related("employee__user").get(pk=leave.pk)
     )
     if leave.status != LeaveRequest.Status.PENDING:
         raise ValidationError("Only pending requests can be reviewed.")
-    if leave.employee.user_id == reviewer.pk:
-        raise PermissionDenied("You cannot review your own leave request.")
-    if not has_role(reviewer, *PRIVILEGED_ROLES):
-        raise PermissionDenied("Only managers and owners can review leave.")
-    if has_role(leave.employee.user, *PRIVILEGED_ROLES) and not has_role(reviewer, OWNER):
-        raise PermissionDenied("Only an owner can review a manager's leave.")
+    blocker = review_blocker(leave, reviewer)
+    if blocker:
+        raise PermissionDenied(blocker)
     leave.status = LeaveRequest.Status.APPROVED if approve else LeaveRequest.Status.REJECTED
     leave.reviewed_by, leave.reviewed_at, leave.review_note = reviewer, timezone.now(), note
     leave.save()
+    leave.removed_shifts = shifts_during_leave(leave).delete()[0] if approve else 0
     return leave
 
 

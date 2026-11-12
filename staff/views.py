@@ -14,6 +14,7 @@ from core.roles import ALL_ROLES, MANAGEMENT
 from staff import selectors, services
 from staff.forms import (
     AttendanceFilterForm,
+    CloseEntryForm,
     EmployeeForm,
     LeaveFilterForm,
     LeaveRequestForm,
@@ -22,11 +23,26 @@ from staff.forms import (
     ShiftForm,
     WeekForm,
 )
-from staff.models import Employee, LeaveRequest, Shift
+from staff.models import Employee, LeaveRequest, Shift, TimeEntry
 
 
 def _error_text(exc) -> str:
     return exc.messages[0] if isinstance(exc, ValidationError) else str(exc)
+
+
+def _plural(n: int, word: str) -> str:
+    return f"{n} {word}{'' if n == 1 else 's'}"
+
+
+def _updated_message(employee) -> str:
+    """Confirmation after an edit; a deactivation also says what was cleaned up."""
+    done = getattr(employee, "cleanup", None)
+    if not done:
+        return "Employee updated."
+    parts = [f"{_plural(done['shifts'], 'upcoming shift')} removed"]
+    if done["leave"]:
+        parts.append(f"{_plural(done['leave'], 'pending leave request')} cancelled")
+    return f"{employee} deactivated: {', '.join(parts)}. Hours already worked are still paid."
 
 
 # ---- Self service (every role) ------------------------------------------------------------
@@ -197,11 +213,13 @@ class EmployeeUpdateView(RoleRequiredMixin, FormView):
 
     def form_valid(self, form):
         try:
-            services.update_employee(self.employee, actor=self.request.user, **form.cleaned_data)
+            employee = services.update_employee(
+                self.employee, actor=self.request.user, **form.cleaned_data
+            )
         except (ValidationError, PermissionDenied) as exc:
             form.add_error(None, _error_text(exc))
             return self.form_invalid(form)
-        messages.success(self.request, "Employee updated.")
+        messages.success(self.request, _updated_message(employee))
         return redirect("staff:employee_list")
 
 
@@ -294,6 +312,23 @@ class AttendanceListView(RoleRequiredMixin, TemplateView):
     allowed_roles = MANAGEMENT
     template_name = "staff/attendance_list.html"
 
+    @staticmethod
+    def _open_entries():
+        """Open clock-ins, each with a close form limited to sensible times."""
+        now = timezone.localtime().replace(second=0, microsecond=0)
+        fmt = "%Y-%m-%dT%H:%M"
+        rows = []
+        for entry in selectors.clocked_in_now():
+            start = timezone.localtime(entry.clock_in)
+            latest = min(now, start + dt.timedelta(hours=services.MAX_SHIFT_HOURS))
+            stale = now - start > dt.timedelta(hours=services.MAX_SHIFT_HOURS)
+            form = CloseEntryForm(initial={"clock_out": latest}, auto_id=f"close{entry.pk}_%s")
+            form.fields["clock_out"].widget.attrs.update(
+                min=(start + dt.timedelta(minutes=1)).strftime(fmt), max=latest.strftime(fmt)
+            )
+            rows.append({"entry": entry, "stale": stale, "form": form})
+        return rows
+
     def get_context_data(self, **kwargs):
         form = AttendanceFilterForm(self.request.GET or None)
         date = form.cleaned_data.get("date") if form.is_valid() else None
@@ -301,7 +336,7 @@ class AttendanceListView(RoleRequiredMixin, TemplateView):
             **super().get_context_data(**kwargs),
             "filter_form": form,
             "page_obj": paginate(self.request, selectors.time_entries(date=date)),
-            "clocked_in": selectors.clocked_in_now(),
+            "clocked_in": self._open_entries(),
             "active_section": "attendance",
         }
 
@@ -315,10 +350,15 @@ class LeaveListView(RoleRequiredMixin, TemplateView):
         data = self.request.GET if "status" in self.request.GET else {"status": "pending"}
         form = LeaveFilterForm(data)
         status = form.cleaned_data["status"] if form.is_valid() else LeaveRequest.Status.PENDING
+        page_obj = paginate(self.request, selectors.leave_requests(status=status))
+        for leave in page_obj:  # what this reviewer can do, and what approving would change
+            if leave.status == LeaveRequest.Status.PENDING:
+                leave.review_blocker = services.review_blocker(leave, self.request.user)
+                leave.shift_conflicts = services.shifts_during_leave(leave).count()
         return {
             **super().get_context_data(**kwargs),
             "filter_form": form,
-            "page_obj": paginate(self.request, selectors.leave_requests(status=status)),
+            "page_obj": page_obj,
             "review_form": LeaveReviewForm(),
             "active_section": "leave",
         }
@@ -343,5 +383,29 @@ class LeaveReviewView(RoleRequiredMixin, View):
         except (ValidationError, PermissionDenied) as exc:
             messages.error(request, _error_text(exc))
         else:
-            messages.success(request, f"Leave {leave.get_status_display().lower()}.")
+            text = f"Leave {leave.get_status_display().lower()}."
+            if leave.removed_shifts:
+                n = leave.removed_shifts
+                text += f" {n} scheduled shift{'s' if n != 1 else ''} on those days removed."
+            messages.success(request, text)
         return redirect("staff:leave_list")
+
+
+class AttendanceCloseView(RoleRequiredMixin, View):
+    """Managers close a forgotten clock-in (otherwise those hours are never paid)."""
+
+    allowed_roles = MANAGEMENT
+
+    def post(self, request, pk):
+        entry = get_object_or_404(TimeEntry, pk=pk)
+        form = CloseEntryForm(request.POST)
+        if not form.is_valid():
+            messages.error(request, "Enter the date and time the person left.")
+        else:
+            try:
+                services.close_entry(entry, at=form.cleaned_data["clock_out"], by=request.user)
+            except (ValidationError, PermissionDenied) as exc:
+                messages.error(request, _error_text(exc))
+            else:
+                messages.success(request, f"Closed {entry.employee}'s clock-in.")
+        return redirect("staff:attendance_list")

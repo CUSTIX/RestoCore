@@ -346,3 +346,4 @@ th { white-space: nowrap; }
   .app-shell { display: block; }
   .card { box-shadow: none; border: 0; }
 }
+.leave-conflict { display: block; margin-bottom: .4rem; color: var(--warn); font-weight: 700; }
