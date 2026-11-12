@@ -251,3 +251,28 @@ def test_week_view_offers_add_only_on_days_that_are_not_over(client_for):
     assert days, "the week view lists its days"
     for d in days:
         assert (f"shifts/new/?date={d.isoformat()}" in html) is (d >= today), d
+
+
+@pytest.mark.django_db
+def test_approved_leave_that_has_not_started_can_be_cancelled(make_employee):
+    emp = make_employee()
+    future = pending_leave(emp, 5, 6)
+    future.status = LeaveRequest.Status.APPROVED
+    future.save()
+    services.cancel_leave(future, employee=emp)
+    future.refresh_from_db()
+    assert future.status == LeaveRequest.Status.CANCELLED
+
+
+@pytest.mark.django_db
+def test_leave_already_under_way_cannot_be_cancelled(make_employee):
+    emp = make_employee()
+    started = LeaveRequest.objects.create(
+        employee=emp,
+        leave_type="vacation",
+        start_date=day(-1),
+        end_date=day(2),
+        status=LeaveRequest.Status.APPROVED,
+    )
+    with pytest.raises(ValidationError, match="hasn't started"):
+        services.cancel_leave(started, employee=emp)

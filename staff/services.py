@@ -336,14 +336,24 @@ def review_leave(leave: LeaveRequest, *, reviewer, approve: bool, note="") -> Le
     return leave
 
 
+def can_cancel_leave(leave: LeaveRequest) -> bool:
+    """Plans change: pending requests, and approved leave that hasn't started yet, can be
+    withdrawn (otherwise unwanted leave stayed on the books and was paid)."""
+    if leave.status == LeaveRequest.Status.PENDING:
+        return True
+    return leave.status == LeaveRequest.Status.APPROVED and leave.start_date > timezone.localdate()
+
+
 @transaction.atomic
 def cancel_leave(leave: LeaveRequest, *, employee: Employee) -> LeaveRequest:
     # Re-read under lock: the caller's copy may be stale (e.g. approved in another tab).
     leave = LeaveRequest.objects.select_for_update().get(pk=leave.pk)
     if leave.employee_id != employee.pk:
         raise PermissionDenied("You can only cancel your own requests.")
-    if leave.status != LeaveRequest.Status.PENDING:
-        raise ValidationError("Only pending requests can be cancelled.")
+    if not can_cancel_leave(leave):
+        raise ValidationError(
+            "Only pending requests, or approved leave that hasn't started, can be cancelled."
+        )
     leave.status = LeaveRequest.Status.CANCELLED
     leave.save(update_fields=["status", "updated_at"])
     return leave

@@ -54,7 +54,7 @@
           <td>{{ leave.start_date|date:"M j" }} – {{ leave.end_date|date:"M j, Y" }} <small class="muted">({{ leave.days }} day{{ leave.days|pluralize }})</small></td>
           <td>{{ leave.get_leave_type_display }}</td>
           <td>{% include "staff/_leave_badge.html" %}{% if leave.review_note %}<br><small class="muted">{{ leave.review_note }}</small>{% endif %}</td>
-          <td>{% if leave.status == 'pending' %}<form method="post" action="{% url 'staff:leave_cancel' leave.pk %}">{% csrf_token %}<button class="link-button" type="submit">Cancel</button></form>{% endif %}</td>
+          <td>{% if leave.can_cancel %}<form method="post" action="{% url 'staff:leave_cancel' leave.pk %}"{% if leave.status == 'approved' %} data-confirm="Cancel this approved leave? Shifts removed when it was approved won't come back by themselves: ask your manager to reschedule you."{% endif %}>{% csrf_token %}<button class="link-button" type="submit" aria-label="Cancel leave {{ leave.start_date|date:'M j' }} – {{ leave.end_date|date:'M j' }}">Cancel</button></form>{% endif %}</td>
         </tr>
       {% endfor %}
       </tbody></table>

@@ -104,11 +104,15 @@ def test_reviewed_leave_cannot_be_reviewed_again_or_cancelled(make_employee, mak
     leave = services.request_leave(
         emp, leave_type="vacation", start_date=tomorrow, end_date=tomorrow
     )
-    services.review_leave(leave, reviewer=make_user("Manager"), approve=True)
+    services.review_leave(leave, reviewer=make_user("Manager"), approve=False)
     with pytest.raises(ValidationError):
-        services.review_leave(leave, reviewer=make_user("Owner"), approve=False)
-    with pytest.raises(ValidationError):
+        services.review_leave(leave, reviewer=make_user("Owner"), approve=True)
+    with pytest.raises(ValidationError):  # a rejected request is closed
         services.cancel_leave(leave, employee=emp)
+    # Approved leave that hasn't started may still be withdrawn (see test_lifecycle).
+    other = services.request_leave(emp, leave_type="sick", start_date=tomorrow, end_date=tomorrow)
+    services.review_leave(other, reviewer=make_user("Manager"), approve=True)
+    assert services.cancel_leave(other, employee=emp).status == "cancelled"
 
 
 def test_manager_cannot_create_owner_or_manager(make_user):

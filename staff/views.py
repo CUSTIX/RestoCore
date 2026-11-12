@@ -74,9 +74,15 @@ class MyWorkView(RoleRequiredMixin, FormView):
                 entry_needs_manager=services.entry_needs_manager(entry),
                 now_ymd=timezone.localdate().strftime("%Y%m%d"),
                 entries=selectors.time_entries(employee=self.employee)[:10],
-                leaves=selectors.leave_requests(employee=self.employee)[:10],
+                leaves=self._leaves(),
             )
         return ctx
+
+    def _leaves(self):
+        leaves = list(selectors.leave_requests(employee=self.employee)[:10])
+        for leave in leaves:  # show Cancel only where cancelling will work
+            leave.can_cancel = services.can_cancel_leave(leave)
+        return leaves
 
     def form_valid(self, form):
         if not self.employee:
