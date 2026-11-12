@@ -8,6 +8,7 @@ from django.db.models import Sum
 from django.utils import timezone
 
 from bookings.models import Booking
+from core import throttle
 
 OPENING_TIME = dt.time(11, 0)
 LAST_SEATING = dt.time(21, 0)
@@ -94,6 +95,32 @@ def create_booking(*, source: str = Booking.Source.WEBSITE, **data) -> Booking:
     _lock_slot(data["date"], data["time"])
     validate_slot(date=data["date"], time=data["time"], party_size=data["party_size"])
     return Booking.objects.create(source=source, **data)
+
+
+# Public form limits per visitor IP: stops a bot from filling every slot and turning real guests
+# away. Generous for people; phone bookings by staff are not limited.
+PUBLIC_BOOKINGS_PER_HOUR = 3
+PUBLIC_BOOKINGS_PER_DAY = 10
+TOO_MANY_BOOKINGS = (
+    "You've made several bookings in a short time. Please call us and we'll sort out the rest."
+)
+
+
+def create_public_booking(*, ip: str | None, **data) -> Booking:
+    """A booking from the website form, rate limited per visitor IP."""
+    if ip is not None and (
+        throttle.is_limited(
+            "booking-ip", ip, limit=PUBLIC_BOOKINGS_PER_HOUR, window=dt.timedelta(hours=1)
+        )
+        or throttle.is_limited(
+            "booking-ip", ip, limit=PUBLIC_BOOKINGS_PER_DAY, window=dt.timedelta(days=1)
+        )
+    ):
+        raise ValidationError(TOO_MANY_BOOKINGS)
+    booking = create_booking(source=Booking.Source.WEBSITE, **data)
+    if ip is not None:
+        throttle.record("booking-ip", ip)
+    return booking
 
 
 @transaction.atomic

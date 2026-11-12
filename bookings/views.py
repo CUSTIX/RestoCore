@@ -8,6 +8,7 @@ from django.views.generic import FormView, TemplateView, View
 from bookings import selectors, services
 from bookings.forms import BookingFilterForm, BookingForm, PublicBookingForm
 from bookings.models import Booking
+from core import throttle
 from core.mixins import RoleRequiredMixin
 from core.pagination import paginate
 from core.roles import MANAGEMENT, STAFF
@@ -25,7 +26,7 @@ class PublicBookingView(FormView):
     def form_valid(self, form):
         data = {k: v for k, v in form.cleaned_data.items() if k != "website"}
         try:
-            booking = services.create_booking(source=Booking.Source.WEBSITE, **data)
+            booking = services.create_public_booking(ip=throttle.client_ip(self.request), **data)
         except ValidationError as exc:
             form.add_error(None, exc)
             return self.form_invalid(form)

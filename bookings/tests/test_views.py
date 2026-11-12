@@ -96,3 +96,27 @@ def test_booking_list_filters_by_status(client_for, tomorrow):
     services.change_status(b, "confirmed")
     html = client_for("Manager").get("/app/bookings/?status=confirmed").content.decode()
     assert "Confirmed Person" in html and "Pending Person" not in html
+
+
+@pytest.mark.django_db
+def test_public_bookings_are_rate_limited_per_visitor_ip(client, tomorrow):
+    for _ in range(services.PUBLIC_BOOKINGS_PER_HOUR):
+        assert (
+            client.post("/book/", form_data(tomorrow), REMOTE_ADDR="203.0.113.50").status_code
+            == 302
+        )
+    response = client.post("/book/", form_data(tomorrow), REMOTE_ADDR="203.0.113.50")
+    assert response.status_code == 200
+    assert "Please call us" in response.content.decode()
+    assert Booking.objects.count() == services.PUBLIC_BOOKINGS_PER_HOUR
+    # Someone else (another IP) can still book.
+    assert (
+        client.post("/book/", form_data(tomorrow), REMOTE_ADDR="198.51.100.60").status_code == 302
+    )
+
+
+@pytest.mark.django_db
+def test_staff_phone_bookings_are_not_rate_limited(tomorrow):
+    for _ in range(services.PUBLIC_BOOKINGS_PER_HOUR + 2):
+        services.create_booking(source=Booking.Source.STAFF, **booking_data(tomorrow))
+    assert Booking.objects.count() == services.PUBLIC_BOOKINGS_PER_HOUR + 2

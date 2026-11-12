@@ -23,7 +23,10 @@ repository. Don't open a public issue for security problems.
 **Sign-in**
 - Failed sign-ins are throttled (stored in Postgres, so every worker sees them): 5 per username +
   IP or 30 per IP in 15 minutes. Locking is per username *and* IP, so a stranger can't lock a real
-  user out from somewhere else.
+  user out from somewhere else. Django admin's own login page uses the same throttle.
+- The public booking form allows 3 bookings per visitor IP per hour (10 per day) on top of its
+  honeypot, so a bot can't fill every slot and turn real guests away. Staff phone bookings are
+  not limited.
 - The visitor IP is read only from a header the proxy overwrites (`CLIENT_IP_HEADER`, e.g.
   Cloudflare's `CF-Connecting-IP`), never from a raw `X-Forwarded-For` that callers can forge.
 - Django's password validators; sessions end after 12 hours; session and CSRF cookies are

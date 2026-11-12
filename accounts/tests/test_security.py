@@ -2,8 +2,9 @@ import pytest
 from django.test import RequestFactory
 
 from accounts import services
-from accounts.models import LoginFailure
 from conftest import PASSWORD
+from core import throttle
+from core.models import ThrottleEvent
 
 LOGIN = "/accounts/login/"
 
@@ -16,9 +17,13 @@ def _try(client, username, password, ip="203.0.113.7"):
 def test_wrong_password_is_recorded_and_right_one_clears_it(client, make_user):
     user = make_user("Staff")
     _try(client, user.username, "wrong")
-    assert LoginFailure.objects.filter(username=user.username).count() == 1
+    assert (
+        throttle.count("login-user-ip", f"{user.username}|203.0.113.7", services.LOGIN_WINDOW) == 1
+    )
     assert _try(client, user.username, PASSWORD).status_code == 302
-    assert not LoginFailure.objects.filter(username=user.username).exists()
+    assert (
+        throttle.count("login-user-ip", f"{user.username}|203.0.113.7", services.LOGIN_WINDOW) == 0
+    )
 
 
 @pytest.mark.django_db
@@ -57,7 +62,7 @@ def test_failures_outside_the_window_do_not_count(client, make_user):
     user = make_user("Staff")
     for _ in range(services.MAX_FAILURES_PER_USER_IP):
         _try(client, user.username, "wrong")
-    LoginFailure.objects.update(created_at=timezone.now() - dt.timedelta(minutes=16))
+    ThrottleEvent.objects.update(created_at=timezone.now() - dt.timedelta(minutes=16))
     assert _try(client, user.username, PASSWORD).status_code == 302
 
 
@@ -65,17 +70,17 @@ def test_client_ip_ignores_forwarded_headers_unless_configured(settings):
     rf = RequestFactory()
     request = rf.get("/", REMOTE_ADDR="10.0.0.1", HTTP_X_FORWARDED_FOR="1.2.3.4")
     settings.CLIENT_IP_HEADER = ""
-    assert services.client_ip(request) == "10.0.0.1"  # forged X-Forwarded-For is ignored
+    assert throttle.client_ip(request) == "10.0.0.1"  # forged X-Forwarded-For is ignored
 
     request = rf.get("/", REMOTE_ADDR="10.0.0.1", HTTP_CF_CONNECTING_IP="198.51.100.5")
     settings.CLIENT_IP_HEADER = "HTTP_CF_CONNECTING_IP"
-    assert services.client_ip(request) == "198.51.100.5"
+    assert throttle.client_ip(request) == "198.51.100.5"
 
 
 def test_client_ip_rejects_garbage(settings):
     settings.CLIENT_IP_HEADER = "HTTP_CF_CONNECTING_IP"
     request = RequestFactory().get("/", REMOTE_ADDR="", HTTP_CF_CONNECTING_IP="<script>")
-    assert services.client_ip(request) is None
+    assert throttle.client_ip(request) is None
 
 
 @pytest.mark.django_db
@@ -106,3 +111,29 @@ def test_password_change_still_requires_login_in_demo_mode(client, settings):
     settings.DEMO_MODE = True
     response = client.get("/accounts/password/")
     assert response.status_code == 302 and "/accounts/login/" in response["Location"]
+
+
+@pytest.mark.django_db
+def test_django_admin_login_is_throttled_too(client, django_user_model):
+    django_user_model.objects.create_superuser("root", password=PASSWORD)
+    for _ in range(services.MAX_FAILURES_PER_USER_IP):
+        client.post(
+            "/admin/login/", {"username": "root", "password": "wrong"}, REMOTE_ADDR="203.0.113.9"
+        )
+    response = client.post(
+        "/admin/login/?next=/admin/",
+        {"username": "root", "password": PASSWORD},
+        REMOTE_ADDR="203.0.113.9",
+    )
+    assert response.status_code == 200
+    assert "Too many failed sign-in attempts" in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_failed_logins_without_an_ip_do_not_share_one_lockout(client, make_user, settings):
+    """Unknown IPs must not pool into one bucket that a single attacker could fill for everyone."""
+    settings.CLIENT_IP_HEADER = "HTTP_CF_CONNECTING_IP"  # header missing below -> REMOTE_ADDR ""
+    victim = make_user("Staff")
+    for i in range(services.MAX_FAILURES_PER_IP):
+        _try(client, f"spray{i}", "wrong", ip="")
+    assert _try(client, victim.username, PASSWORD, ip="").status_code == 302
