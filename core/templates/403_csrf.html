@@ -1,0 +1,15 @@
+{% extends "core/base.html" %}
+{% load core %}
+{# Shown when a form's security token is stale: a page left open for hours, a sign-in in another #}
+{# tab, or cookies blocked. Rendered without request context, so it stays self-contained.      #}
+{% block title %}Please try again{% endblock %}
+{% block body %}
+<main class="error-page">
+  <div>
+    <p class="error-page__code">403</p>
+    <h1>This page was open a little too long</h1>
+    <p class="muted">For your security, the form's session had expired, so nothing was saved. Go back, refresh the page, and send it again. If it keeps happening, check that cookies are allowed for this site.</p>
+    <p class="actions" style="justify-content:center"><a class="btn" href="/">{% icon "coffee" 18 %} Go to the home page</a></p>
+  </div>
+</main>
+{% endblock %}

@@ -76,3 +76,14 @@ def test_server_errors_show_a_friendly_page_without_details(settings):
     assert response.status_code == 500
     assert "We spilled something" in html
     assert "boom" not in html and "Traceback" not in html and "SECRET_KEY" not in html
+
+
+@pytest.mark.django_db
+def test_stale_form_token_shows_a_friendly_page_and_saves_nothing(make_user):
+    from django.test import Client
+
+    client = Client(enforce_csrf_checks=True)
+    response = client.post("/accounts/login/", {"username": "x", "password": "y"})
+    html = response.content.decode()
+    assert response.status_code == 403
+    assert "open a little too long" in html and "CSRF" not in html
