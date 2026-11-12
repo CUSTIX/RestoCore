@@ -64,7 +64,7 @@ accounts: `restocore-demo` (set by `DEMO_PASSWORD` in `.env`). To start over:
 ## Tests, lint, and checks
 
 ```bash
-docker compose run --rm web pytest                    # 250+ tests
+docker compose run --rm web pytest                    # 450+ tests
 docker compose run --rm web ruff check .
 docker compose run --rm web ruff format --check .
 docker compose run --rm web python manage.py check
@@ -75,7 +75,8 @@ Tests cover the business rules (services), every view, **one access test per rol
 staff page, and a real two-thread race test for booking capacity. CI runs lint, formatting, the
 Django checks, the migration drift check, the tests against a real Postgres, and
 `manage.py check --deploy` in HTTPS mode on every push to `main` and every pull request. It also
-builds both Docker images (`dev` and `prod`).
+builds both Docker images (`dev` and `prod`), audits dependencies for known vulnerabilities
+(`pip-audit`), and CodeQL scans the Python and JavaScript.
 
 Frontend quality was checked in a real browser (Playwright): every page at 11 screen widths from
 320 px to 1920 px with no horizontal scrolling, and an axe-core accessibility audit of every page in

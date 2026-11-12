@@ -69,6 +69,17 @@ The login page lists the demo accounts (local DEBUG only) and fills them in with
 - [ ] POS on a phone: dishes two per row; a bottom bar shows item count + total with Checkout.
 - [ ] Tapping a form field does not zoom the page on iPhone.
 
+## Security
+- [ ] Five wrong passwords for one account → "Too many failed sign-in attempts", even with the
+      right password afterwards; works again after 15 minutes. Same on `/admin/login/`.
+- [ ] Book four tables quickly from one browser → the fourth says "Please call us".
+- [ ] Manager → Employees: owner and other managers are not linked; opening their edit URL → 403.
+- [ ] Browser dev tools → Network → any page: `Content-Security-Policy` with `script-src 'self'`;
+      Console shows no CSP violations.
+- [ ] Log out, press Back → staff pages are not shown from cache.
+- [ ] With `DEMO_MODE=true`: demo accounts listed on login; change-password key icon hidden and
+      `/accounts/password/` → 403; owner has no `/admin/`.
+
 ## Production-style stack
 - [ ] `docker compose -f docker-compose.prod.yml -p restocore-prod up --build -d`, seed, open
       <http://127.0.0.1:8080/>: same app under gunicorn, static files load, DEBUG off (real 404 page).
