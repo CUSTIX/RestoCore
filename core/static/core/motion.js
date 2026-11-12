@@ -372,6 +372,103 @@
     if (seconds > 0) setTimeout(function () { window.location.reload(); }, seconds * 1000);
   });
 
+  /* ---- Forms: check before sending, explain inline, never send twice ---------------------
+     Forms use `novalidate` (no browser bubbles), so this layer does the checking instead:
+     the browser's own constraint rules (required, min, max, step, maxlength) plus cross-field
+     rules declared in HTML, then shows messages under the fields. The server re-checks all.
+       data-not-before="start_date"   this value may not be earlier than that field (dates)
+       data-after="start_time"        this value must be later than that field (times)
+       data-rule-message="..."        message for either rule
+       data-max-message="..."         friendlier text when a max is exceeded               */
+  function fieldWrap(el) { return el.closest(".field") || el.parentElement; }
+  function crossFieldCheck(el) {
+    var form = el.form;
+    if (!form) return;
+    var msg = "";
+    var other, name = el.getAttribute("data-not-before") || el.getAttribute("data-after");
+    if (name && el.value && (other = form.elements[name]) && other.value) {
+      var strict = el.hasAttribute("data-after");
+      if (strict ? el.value <= other.value : el.value < other.value) {
+        msg = el.getAttribute("data-rule-message") || (strict ? "Must be later than the start." : "Can't be before the start.");
+      }
+    }
+    if (!msg && el.validity && el.validity.rangeOverflow && el.getAttribute("data-max-message")) {
+      msg = el.getAttribute("data-max-message");
+    }
+    el.setCustomValidity(msg);
+  }
+  function showError(el) {
+    var wrap = fieldWrap(el);
+    if (!wrap) return;
+    var box = wrap.querySelector("[data-client-error]");
+    if (el.validity.valid) {
+      if (box) box.remove();
+      if (!wrap.querySelector(".error:not([data-client-error])")) wrap.classList.remove("field--error");
+      el.removeAttribute("aria-invalid");
+      return;
+    }
+    if (!box) {
+      box = document.createElement("small");
+      box.className = "error";
+      box.setAttribute("data-client-error", "");
+      box.id = (el.id || el.name) + "-client-error";
+      wrap.appendChild(box);
+    }
+    box.textContent = el.validationMessage;
+    wrap.classList.add("field--error");
+    el.setAttribute("aria-invalid", "true");
+    el.setAttribute("aria-describedby", box.id);
+  }
+  function checkable(form) { return form.method.toLowerCase() === "post" && form.hasAttribute("novalidate"); }
+  function fieldsOf(form) {
+    return Array.prototype.filter.call(form.elements, function (el) {
+      return el.willValidate && el.type !== "hidden" && el.type !== "submit" && el.type !== "button";
+    });
+  }
+  document.querySelectorAll("form").forEach(function (form) {
+    if (!checkable(form)) return;
+    var touched = false;
+    form.addEventListener("input", function (e) {
+      fieldsOf(form).forEach(crossFieldCheck);
+      if (e.target.validity && (touched || e.target.hasAttribute("aria-invalid"))) showError(e.target);
+    });
+    form.addEventListener("change", function (e) {
+      fieldsOf(form).forEach(crossFieldCheck);
+      /* a change to one field can fix (or break) the field that depends on it */
+      fieldsOf(form).forEach(function (el) { if (el === e.target || el.hasAttribute("aria-invalid")) showError(el); });
+    });
+    form.addEventListener("submit", function (e) {
+      var fields = fieldsOf(form);
+      fields.forEach(crossFieldCheck);
+      var bad = fields.filter(function (el) { return !el.validity.valid; });
+      if (bad.length) {
+        e.preventDefault();
+        touched = true;
+        fields.forEach(showError);
+        bad[0].focus();
+      }
+    });
+  });
+
+  /* One click, one submission, for every POST form: a double-click on "Receive stock" must not
+     add the stock twice. Runs after the checks above (and confirm dialogs): if those cancelled
+     the submit, nothing is locked. The buttons are disabled a tick later, once the browser has
+     already captured the clicked button's name/value. */
+  document.addEventListener("submit", function (e) {
+    var form = e.target;
+    if (e.defaultPrevented || form.method.toLowerCase() !== "post") return;
+    if (form.getAttribute("data-submitting")) { e.preventDefault(); return; }
+    form.setAttribute("data-submitting", "1");
+    setTimeout(function () {
+      form.querySelectorAll("button[type=submit], button:not([type])").forEach(function (b) { b.disabled = true; });
+    }, 0);
+    /* Back/forward cache: a page restored after navigating away must be usable again. */
+    window.addEventListener("pageshow", function () {
+      form.removeAttribute("data-submitting");
+      form.querySelectorAll("button[type=submit], button:not([type])").forEach(function (b) { b.disabled = false; });
+    }, { once: true });
+  });
+
   /* Demo login chips fill the form (local DEBUG only) */
   document.querySelectorAll("[data-demo-user]").forEach(function (chip) {
     chip.addEventListener("click", function () {

@@ -34,16 +34,21 @@ The login page lists the demo accounts (local DEBUG only) and fills them in with
 - [ ] No Payroll link; `/app/payroll/` → 403 page.
 - [ ] Bookings: filter by date/status/search; confirm → seat → complete; cancelled is final.
 - [ ] Menu: add a category; add a dish with a photo and recipe; price 0 is rejected.
-- [ ] Inventory: new item, receive, waste more than on hand (error), stock count.
+- [ ] Inventory: new item, receive (hint shows the new total), waste more than on hand → message
+      under the field before sending, stock count. Double-clicking Save records one movement.
 - [ ] Orders: void a paid order with a reason → ingredients go back (not if already served).
 - [ ] Employees: creating an Owner or Manager is refused ("Only an owner…").
-- [ ] Schedules: add a shift, overlapping shift is refused, shift on approved leave is refused.
+- [ ] Schedules: add a shift; end before start → "The shift must end after it starts." under the
+      field; overlapping shift is refused, shift on approved leave is refused.
 - [ ] Leave: approve / reject others; your own request says another manager or the owner reviews it.
 
 ## cashier
 - [ ] Sidebar: Dashboard, Point of sale, Orders, My work only.
-- [ ] POS: tap a dish card or use +/− ; cart and totals update live; dine-in without table → error;
-      cash below total → error; Takeaway hides the table field, Card hides cash received.
+- [ ] POS: tap a dish card or use +/− ; cart and totals update live. **Charge stays disabled** and says
+      why: no dishes, dine-in without a table, no cash entered, or "Cash received is ₱X short".
+      Quick-cash buttons (Exact, next round amounts) fill the cash; + stops at the stock available.
+      Takeaway hides the table field, Card hides cash received.
+- [ ] Double-click Charge (or refresh after charging) → still exactly one order.
 - [ ] Order too large for stock → "Not enough stock…", no order created, stock unchanged.
 - [ ] Successful checkout → receipt with change; Print receipt hides the sidebar.
 - [ ] No void form on orders; `/app/inventory/` → 403.

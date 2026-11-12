@@ -41,7 +41,15 @@ class ShiftForm(forms.Form):
     employee = forms.ModelChoiceField(queryset=active_employees())
     date = forms.DateField(widget=forms.DateInput(attrs={"type": "date"}))
     start_time = forms.TimeField(widget=forms.TimeInput(attrs={"type": "time"}))
-    end_time = forms.TimeField(widget=forms.TimeInput(attrs={"type": "time"}))
+    end_time = forms.TimeField(
+        widget=forms.TimeInput(
+            attrs={
+                "type": "time",
+                "data-after": "start_time",
+                "data-rule-message": "The shift must end after it starts.",
+            }
+        )
+    )
     note = forms.CharField(max_length=120, required=False)
 
     def __init__(self, *args, **kwargs):
@@ -67,7 +75,13 @@ class LeaveRequestForm(forms.ModelForm):
         fields = ("leave_type", "start_date", "end_date", "reason")
         widgets = {
             "start_date": forms.DateInput(attrs={"type": "date"}),
-            "end_date": forms.DateInput(attrs={"type": "date"}),
+            "end_date": forms.DateInput(
+                attrs={
+                    "type": "date",
+                    "data-not-before": "start_date",
+                    "data-rule-message": "The leave can't end before it starts.",
+                }
+            ),
         }
 
     def __init__(self, *args, **kwargs):

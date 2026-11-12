@@ -1,5 +1,5 @@
 {% extends "core/app_base.html" %}
-{% load core %}
+{% load static core %}
 {% block title %}{{ item.name }}{% endblock %}
 {% block page_title %}{{ item.name }}{% endblock %}
 {% block page_actions %}
@@ -17,9 +17,10 @@
   </div>
   <div class="card">
     <h2>Update stock</h2>
-    <form method="post" novalidate>
+    <form method="post" novalidate data-stock-form data-on-hand="{{ item.quantity }}" data-unit="{{ item.unit }}">
       {% csrf_token %}
       {% include "core/partials/form.html" with form=form %}
+      <p class="muted" data-stock-hint aria-live="polite"></p>
       <button class="btn" type="submit">Save</button>
     </form>
   </div>
@@ -49,3 +50,4 @@
   {% include "core/partials/empty.html" with message="No stock movements yet." %}
 {% endif %}
 {% endblock %}
+{% block scripts %}<script src="{% static 'inventory/stock.js' %}" defer></script>{% endblock %}
