@@ -96,6 +96,10 @@ def generate_payslips(period: PayPeriod) -> int:
     return count
 
 
+def period_has_ended(period: PayPeriod) -> bool:
+    return period.end_date < timezone.localdate()
+
+
 @transaction.atomic
 def finalize_period(period: PayPeriod) -> PayPeriod:
     period = PayPeriod.objects.select_for_update().get(pk=period.pk)
@@ -103,6 +107,12 @@ def finalize_period(period: PayPeriod) -> PayPeriod:
         raise ValidationError("This period is already finalized.")
     if not period.payslips.exists():
         raise ValidationError("Generate payslips before finalizing.")
+    if not period_has_ended(period):
+        # Finalizing locks the period: hours still to be worked in it could never be added.
+        raise ValidationError(
+            f"This period runs until {period.end_date:%b} {period.end_date.day}. "
+            "Finalize it after that day, once all its hours are in."
+        )
     open_count = staff_selectors.open_entries_between(period.start_date, period.end_date).count()
     if open_count:
         # Finalizing locks the period: hours from an unclosed clock-in would never be paid.

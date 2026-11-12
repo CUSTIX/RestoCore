@@ -174,3 +174,19 @@ def test_finalizing_is_blocked_while_a_clock_in_is_open(period, make_employee, c
         services.finalize_period(period)
     html = client_for("Owner").get(f"/app/payroll/periods/{period.pk}/").content.decode()
     assert "no clock-out yet" in html
+
+
+def test_a_period_still_running_cannot_be_finalized(make_user, make_employee, client_for):
+    """Finalizing locks the period: the rest of its hours could never be added."""
+    today = timezone.localdate()
+    running = services.create_period(
+        start_date=today - dt.timedelta(days=3),
+        end_date=today + dt.timedelta(days=3),
+        user=make_user("Owner"),
+    )
+    _worked(make_employee(rate=D("100")), running.start_date)
+    services.generate_payslips(running)
+    with pytest.raises(ValidationError, match="runs until"):
+        services.finalize_period(running)
+    html = client_for("Owner").get(f"/app/payroll/periods/{running.pk}/").content.decode()
+    assert 'value="finalize"' not in html and "Finalize after" in html

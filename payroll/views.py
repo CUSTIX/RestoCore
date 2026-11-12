@@ -47,6 +47,7 @@ class PeriodDetailView(RoleRequiredMixin, TemplateView):
             **super().get_context_data(**kwargs),
             "period": period,
             # Unclosed clock-ins aren't paid: show them so the owner fixes them before finalizing.
+            "can_finalize": services.period_has_ended(period),
             "open_entries": staff_selectors.open_entries_between(period.start_date, period.end_date)
             if period.status == PayPeriod.Status.DRAFT
             else [],
