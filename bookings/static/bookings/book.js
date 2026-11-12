@@ -87,7 +87,8 @@
       var pick = group.querySelector('input[value="18:00"]:not(:disabled)') || group.querySelector("input:not(:disabled)");
       if (pick) { pick.checked = true; select.value = pick.value; } else { select.value = ""; }
     }
-    note.textContent = open ? "" : "No tables left for " + size + (size === 1 ? " guest" : " guests") + " on this day. Please try another date or call us.";
+    var anyAhead = Object.keys(seats).some(function (k) { return seats[k] !== null; });
+    note.textContent = open ? "" : anyAhead ? "No tables left for " + size + (size === 1 ? " guest" : " guests") + " on this day. Please try another date or call us." : "Seating for today has finished. Please pick another date.";
   }
   function load() {
     var day = dateInput.value;

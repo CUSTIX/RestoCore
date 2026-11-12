@@ -168,3 +168,21 @@ def test_a_seated_booking_left_open_from_yesterday_is_not_upcoming():
     assert stale not in selectors.filter_bookings()
     assert stale in selectors.filter_bookings(when="past")
     assert stale not in selectors.upcoming()
+
+
+@pytest.mark.django_db
+def test_editing_staff_can_leave_a_booking_out_of_the_count_but_the_public_cannot(
+    client, client_for
+):
+    day = timezone.localdate() + dt.timedelta(days=2)
+    booking = make(2, dt.time(19, 0), party=6)
+    url = f"/book/availability/?date={day.isoformat()}&exclude={booking.pk}"
+    full = services.SLOT_CAPACITY
+    assert client.get(url).json()["seats"]["19:00"] == full - 6  # public: param ignored
+    assert client_for("Staff").get(url).json()["seats"]["19:00"] == full  # editing staff
+
+
+@pytest.mark.django_db
+def test_staff_booking_form_loads_the_slot_helper(client_for):
+    html = client_for("Manager").get("/app/bookings/new/").content.decode()
+    assert "bookings/slots" in html and "data-availability-url" in html

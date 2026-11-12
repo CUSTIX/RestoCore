@@ -82,7 +82,7 @@ def upcoming(limit: int = 50) -> QuerySet[Booking]:
     ).order_by("date", "time")[:limit]
 
 
-def availability(date: dt.date) -> dict[str, int | None]:
+def availability(date: dt.date, exclude_id: int | None = None) -> dict[str, int | None]:
     """Seats still bookable per slot on `date`: "HH:MM" -> seats left (0 = full), or None when
     that time has already passed (or the date is outside the booking window).
     Public: shares only counts, never who booked."""
@@ -91,6 +91,7 @@ def availability(date: dt.date) -> dict[str, int | None]:
         return {t.strftime("%H:%M"): None for t in time_slots()}
     taken = dict(
         Booking.objects.filter(date=date, status__in=ACTIVE_STATUSES)
+        .exclude(pk=exclude_id or 0)  # editing: a booking doesn't compete with itself
         .values("time")
         .annotate(seats=Sum("party_size"))
         .values_list("time", "seats")

@@ -13,7 +13,7 @@ from bookings.models import Booking
 from core import throttle
 from core.mixins import RoleRequiredMixin
 from core.pagination import paginate
-from core.roles import MANAGEMENT, STAFF
+from core.roles import MANAGEMENT, STAFF, has_role
 
 BOOKING_ROLES = (*MANAGEMENT, STAFF)
 
@@ -158,6 +158,14 @@ class AvailabilityView(View):
             day = dt.date.fromisoformat(request.GET.get("date", ""))
         except ValueError:
             return JsonResponse({"error": "Use ?date=YYYY-MM-DD"}, status=400)
-        response = JsonResponse({"date": day.isoformat(), "seats": selectors.availability(day)})
+        # Staff editing a booking may leave that booking out of the count. Only staff: for
+        # anyone else, comparing counts with and without it would reveal its party size.
+        exclude = None
+        if has_role(request.user, *BOOKING_ROLES):
+            exclude = (
+                int(request.GET["exclude"]) if request.GET.get("exclude", "").isdigit() else None
+            )
+        seats = selectors.availability(day, exclude_id=exclude)
+        response = JsonResponse({"date": day.isoformat(), "seats": seats})
         response["Cache-Control"] = "no-store"  # changes with every booking
         return response
