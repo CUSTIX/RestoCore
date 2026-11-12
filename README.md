@@ -96,6 +96,14 @@ For a real deployment, serve it behind HTTPS and set `DJANGO_HTTPS=true`, a real
 `DJANGO_SECRET_KEY`, `DJANGO_ALLOWED_HOSTS` and `DJANGO_CSRF_TRUSTED_ORIGINS`. With those set,
 `python manage.py check --deploy` passes (CI verifies this).
 
+## Security
+
+Role checks on every view plus object-level rules in the services, sign-in throttling, a strict
+Content Security Policy (no inline JavaScript at all), security headers, no caching of signed-in
+pages, and CI that runs a dependency vulnerability audit, security linting and CodeQL. Tests walk
+the whole URLconf to prove no staff or API URL is reachable without the right access. Details and
+how to report a problem: [SECURITY.md](SECURITY.md).
+
 ## Live demo (free hosting)
 
 The public demo runs on Render (free web service, built from the `Dockerfile`) with a free Neon

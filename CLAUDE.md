@@ -60,7 +60,12 @@ docker compose run --rm web ruff check .
 docker compose run --rm web python manage.py makemigrations
 docker compose run --rm web python manage.py migrate
 docker compose -f docker-compose.prod.yml -p restocore-prod up --build -d   # production-style stack on :8080
+docker compose run --rm web python manage.py seed_demo --reset   # wipe ALL data and reseed (demo only)
 ```
+
+Live demo: Render + Neon, configured by `render.yaml`; the container runs `bin/start.sh`. See `docs/deploy.md`.
+Security controls and how they are tested: `SECURITY.md`. Templates must not contain inline JavaScript
+(the CSP blocks it; a test enforces it): use `data-*` attributes handled in the static JS.
 
 Dependencies: runtime packages go in `requirements.txt`; test/lint tools in `requirements-dev.txt`.
 
