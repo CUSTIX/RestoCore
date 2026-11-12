@@ -21,6 +21,9 @@ class RestoCoreClient:
     def __init__(self, base_url: str | None = None, token: str | None = None, timeout: float = 10):
         self.base_url = base_url or os.environ.get("RESTOCORE_API_URL", "http://127.0.0.1:8000")
         self.base_url = self.base_url.rstrip("/")
+        # Only web URLs: urllib would also happily open file:// or ftp:// URLs.
+        if urllib.parse.urlsplit(self.base_url).scheme not in ("http", "https"):
+            raise RestoCoreError("RESTOCORE_API_URL must be an http:// or https:// URL.")
         self.token = token if token is not None else os.environ.get("RESTOCORE_API_TOKEN", "")
         self.timeout = timeout
 
@@ -28,12 +31,12 @@ class RestoCoreClient:
         if not self.token:
             raise RestoCoreError("RESTOCORE_API_TOKEN is not set.")
         query = f"?{urllib.parse.urlencode(params)}" if params else ""
-        request = urllib.request.Request(
+        request = urllib.request.Request(  # noqa: S310 - scheme checked in __init__
             f"{self.base_url}{path}{query}",
             headers={"Authorization": f"Bearer {self.token}", "Accept": "application/json"},
         )
         try:
-            with urllib.request.urlopen(request, timeout=self.timeout) as response:  # noqa: S310
+            with urllib.request.urlopen(request, timeout=self.timeout) as response:  # noqa: S310 - same
                 return json.loads(response.read().decode())
         except urllib.error.HTTPError as exc:
             try:

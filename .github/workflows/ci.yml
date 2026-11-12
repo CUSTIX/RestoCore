@@ -69,6 +69,20 @@ jobs:
           export DJANGO_SECRET_KEY
           python manage.py check --deploy --fail-level WARNING
 
+  audit:
+    # Fails CI when a pinned dependency has a published vulnerability (PyPI advisory database).
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pip-audit==2.9.0
+      - name: Audit runtime and dev dependencies
+        run: |
+          pip-audit -r requirements.txt --progress-spinner off
+          pip-audit -r requirements-dev.txt --progress-spinner off
+
   docker:
     # Fails CI if either image no longer builds. Builds only; nothing is pushed anywhere.
     runs-on: ubuntu-latest

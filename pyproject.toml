@@ -9,8 +9,16 @@ target-version = "py312"
 extend-exclude = ["**/migrations/*"]
 
 [tool.ruff.lint]
-# E/F: pycodestyle + pyflakes, I: import order, B: bugbear, UP: modern syntax, DJ: Django checks
-select = ["E", "F", "I", "B", "UP", "DJ"]
+# E/F: pycodestyle + pyflakes, I: import order, B: bugbear, UP: modern syntax, DJ: Django checks,
+# S: security (flake8-bandit: eval, shell=True, unsafe deserialization, weak crypto, mark_safe, ...)
+select = ["E", "F", "I", "B", "UP", "DJ", "S"]
+
+[tool.ruff.lint.per-file-ignores]
+# Tests: plain `assert` is the point; fixture passwords are fake.
+"**/tests/*" = ["S101", "S105", "S106"]
+"conftest.py" = ["S101", "S105", "S106"]
+# Fake demo data: `random` is fine for picking fake quantities and dates (not security).
+"dashboard/management/commands/seed_demo.py" = ["S311"]
 
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "config.settings"

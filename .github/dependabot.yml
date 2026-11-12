@@ -1,0 +1,22 @@
+# Dependabot opens pull requests when pinned versions have updates or security fixes.
+# Each PR runs the full CI (tests, lint, audit, Docker builds) before anything is merged.
+version: 2
+updates:
+  - package-ecosystem: pip
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      dev-tools:
+        patterns: ["pytest*", "ruff"]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly

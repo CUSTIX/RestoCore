@@ -80,3 +80,9 @@ def test_response_is_parsed_as_json():
     payload = json.dumps({"items": []}).encode()
     with mock.patch("urllib.request.urlopen", return_value=FakeResponse(payload)):
         assert RestoCoreClient(token="x").low_stock() == {"items": []}
+
+
+@pytest.mark.parametrize("url", ["file:///etc/passwd", "ftp://example.com", "gopher://x"])
+def test_non_web_api_urls_are_refused(url):
+    with pytest.raises(RestoCoreError, match="http"):
+        RestoCoreClient(base_url=url, token="t")
