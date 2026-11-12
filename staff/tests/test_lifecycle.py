@@ -227,3 +227,27 @@ def test_dashboard_counts_only_reviewable_leave_and_real_shifts(client_for, make
     ctx = client.get("/app/").context
     assert ctx["pending_leave"] == 1
     assert list(ctx["clocked_in"]) == [] and ctx["forgotten_clock_ins"] == 1
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("value", [None, "future", "past", "not-a-date"])
+def test_new_shift_form_opens_for_any_date_link(client_for, value):
+    """The week view's "Add" links pass ?date=YYYY-MM-DD; that crashed the form (500)."""
+    query = {
+        None: "",
+        "future": f"?date={day(3).isoformat()}",
+        "past": f"?date={day(-3).isoformat()}",
+        "not-a-date": "?date=not-a-date",
+    }[value]
+    assert client_for("Manager").get(f"/app/staff/shifts/new/{query}").status_code == 200
+
+
+@pytest.mark.django_db
+def test_week_view_offers_add_only_on_days_that_are_not_over(client_for):
+    # Whatever weekday today is: every day of this week links "Add" exactly when it isn't over.
+    response = client_for("Manager").get("/app/staff/shifts/")
+    html, today = response.content.decode(), timezone.localdate()
+    days = [d["date"] for d in response.context["days"]]
+    assert days, "the week view lists its days"
+    for d in days:
+        assert (f"shifts/new/?date={d.isoformat()}" in html) is (d >= today), d

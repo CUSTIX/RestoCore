@@ -17,7 +17,7 @@
     {% empty %}
       <p class="muted">No shifts.</p>
     {% endfor %}
-    <a class="btn btn--ghost btn--small" href="{% url 'staff:shift_create' %}?date={{ day.date|date:'Y-m-d' }}">Add</a>
+    {% if not day.is_past %}<a class="btn btn--ghost btn--small" href="{% url 'staff:shift_create' %}?date={{ day.date|date:'Y-m-d' }}">Add</a>{% endif %}
   </div>
   {% endfor %}
 </div>

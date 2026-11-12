@@ -245,6 +245,7 @@ class ShiftListView(RoleRequiredMixin, TemplateView):
         days = [
             {
                 "date": start + dt.timedelta(days=i),
+                "is_past": start + dt.timedelta(days=i) < today,
                 "shifts": [s for s in shifts if s.date == start + dt.timedelta(days=i)],
             }
             for i in range(7)

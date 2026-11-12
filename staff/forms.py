@@ -1,3 +1,4 @@
+import datetime as dt
 from decimal import Decimal
 
 from django import forms
@@ -58,6 +59,11 @@ class ShiftForm(forms.Form):
         # New shifts start today at the earliest (an existing past shift keeps its own date).
         today = timezone.localdate()
         existing = self.initial.get("date")
+        if isinstance(existing, str):  # e.g. ?date=2026-11-12 from the week view's "Add" link
+            try:
+                existing = dt.date.fromisoformat(existing)
+            except ValueError:
+                existing = None
         if not existing or existing >= today:
             self.fields["date"].widget.attrs["min"] = today.isoformat()
 
