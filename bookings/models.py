@@ -42,7 +42,9 @@ class Booking(TimeStampedModel):
         indexes = [models.Index(fields=["date", "time"])]
         constraints = [
             models.CheckConstraint(
-                condition=models.Q(party_size__gte=1), name="booking_party_size_positive"
+                condition=models.Q(party_size__gte=1),
+                name="booking_party_size_positive",
+                violation_error_message="Party size must be at least 1.",
             ),
         ]
 

@@ -20,7 +20,9 @@ class Employee(TimeStampedModel):
         ordering = ("user__first_name", "user__last_name", "id")
         constraints = [
             models.CheckConstraint(
-                condition=models.Q(hourly_rate__gte=0), name="employee_rate_not_negative"
+                condition=models.Q(hourly_rate__gte=0),
+                name="employee_rate_not_negative",
+                violation_error_message="The hourly rate can't be negative.",
             ),
         ]
 
@@ -41,6 +43,7 @@ class Shift(TimeStampedModel):
             models.CheckConstraint(
                 condition=models.Q(end_time__gt=models.F("start_time")),
                 name="shift_ends_after_start",
+                violation_error_message="The shift must end after it starts.",
             ),
         ]
 
@@ -75,6 +78,7 @@ class TimeEntry(models.Model):
                 condition=models.Q(clock_out__isnull=True)
                 | models.Q(clock_out__gt=models.F("clock_in")),
                 name="clock_out_after_clock_in",
+                violation_error_message="The clock-out must be after the clock-in.",
             ),
         ]
 
@@ -126,6 +130,7 @@ class LeaveRequest(TimeStampedModel):
             models.CheckConstraint(
                 condition=models.Q(end_date__gte=models.F("start_date")),
                 name="leave_end_not_before_start",
+                violation_error_message="The leave can't end before it starts.",
             ),
         ]
 

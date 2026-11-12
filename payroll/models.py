@@ -21,6 +21,8 @@ class DeductionRate(models.Model):
             models.CheckConstraint(
                 condition=models.Q(rate__gte=0) & models.Q(rate__lt=1),
                 name="deduction_rate_between_0_and_1",
+                # %% because Django %-formats constraint messages.
+                violation_error_message="Enter the rate as a fraction below 1: 0.08 means 8%%.",
             ),
         ]
 
@@ -47,6 +49,7 @@ class PayPeriod(TimeStampedModel):
             models.CheckConstraint(
                 condition=models.Q(end_date__gte=models.F("start_date")),
                 name="pay_period_end_not_before_start",
+                violation_error_message="The period can't end before it starts.",
             ),
         ]
 

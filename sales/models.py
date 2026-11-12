@@ -36,7 +36,11 @@ class MenuItem(TimeStampedModel):
     class Meta:
         ordering = ("category__sort_order", "name")
         constraints = [
-            models.CheckConstraint(condition=models.Q(price__gt=0), name="menu_price_positive"),
+            models.CheckConstraint(
+                condition=models.Q(price__gt=0),
+                name="menu_price_positive",
+                violation_error_message="The price must be more than zero.",
+            ),
         ]
 
     def __str__(self) -> str:
@@ -58,7 +62,9 @@ class RecipeLine(models.Model):
                 fields=["menu_item", "inventory_item"], name="recipe_line_unique_ingredient"
             ),
             models.CheckConstraint(
-                condition=models.Q(quantity__gt=0), name="recipe_quantity_positive"
+                condition=models.Q(quantity__gt=0),
+                name="recipe_quantity_positive",
+                violation_error_message="Each ingredient needs a quantity above zero.",
             ),
         ]
 

@@ -1,6 +1,7 @@
 from decimal import Decimal
 
 from django.conf import settings
+from django.core.validators import MinValueValidator
 from django.db import models
 
 from core.models import TimeStampedModel
@@ -21,16 +22,24 @@ class InventoryItem(TimeStampedModel):
         max_digits=12,
         decimal_places=3,
         default=Decimal("0"),
+        validators=[MinValueValidator(Decimal("0"))],
         help_text="Show a low-stock warning at or below this quantity.",
     )
-    cost_per_unit = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0"))
+    cost_per_unit = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=Decimal("0"),
+        validators=[MinValueValidator(Decimal("0"))],
+    )
     is_active = models.BooleanField(default=True)
 
     class Meta:
         ordering = ("name",)
         constraints = [
             models.CheckConstraint(
-                condition=models.Q(quantity__gte=0), name="inventory_quantity_not_negative"
+                condition=models.Q(quantity__gte=0),
+                name="inventory_quantity_not_negative",
+                violation_error_message="Stock on hand can't go below zero.",
             ),
         ]
 
