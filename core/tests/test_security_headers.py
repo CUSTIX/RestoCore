@@ -59,3 +59,20 @@ def test_templates_have_no_inline_javascript(template):
     html = template.read_text(encoding="utf-8")
     assert not INLINE_SCRIPT.search(html), "inline <script>: move it to a static .js file"
     assert not INLINE_HANDLER.search(html), "inline on*= handler: use a data-* attribute + JS"
+
+
+@pytest.mark.django_db
+def test_server_errors_show_a_friendly_page_without_details(settings):
+    """DEBUG off: a crash returns our 500 page, never a traceback or settings."""
+    from unittest import mock
+
+    from django.test import Client
+
+    settings.DEBUG = False
+    client = Client(raise_request_exception=False)
+    with mock.patch("website.views.HomeView.get_context_data", side_effect=RuntimeError("boom")):
+        response = client.get("/")
+    html = response.content.decode()
+    assert response.status_code == 500
+    assert "We spilled something" in html
+    assert "boom" not in html and "Traceback" not in html and "SECRET_KEY" not in html
