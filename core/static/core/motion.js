@@ -357,6 +357,21 @@
     table.classList.add("is-stackable");
   });
 
+  /* Small behaviours declared in HTML, so templates need no inline JavaScript (strict CSP):
+     <button data-print>, <form data-confirm="Are you sure?">, <span data-auto-reload="30"> */
+  document.querySelectorAll("[data-print]").forEach(function (btn) {
+    btn.addEventListener("click", function () { window.print(); });
+  });
+  document.querySelectorAll("form[data-confirm]").forEach(function (form) {
+    form.addEventListener("submit", function (e) {
+      if (!window.confirm(form.getAttribute("data-confirm"))) e.preventDefault();
+    });
+  });
+  document.querySelectorAll("[data-auto-reload]").forEach(function (el) {
+    var seconds = parseInt(el.getAttribute("data-auto-reload"), 10);
+    if (seconds > 0) setTimeout(function () { window.location.reload(); }, seconds * 1000);
+  });
+
   /* Demo login chips fill the form (local DEBUG only) */
   document.querySelectorAll("[data-demo-user]").forEach(function (chip) {
     chip.addEventListener("click", function () {

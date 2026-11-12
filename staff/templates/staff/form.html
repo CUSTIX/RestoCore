@@ -12,7 +12,7 @@
     </div>
   </form>
   {% if shift %}
-  <form method="post" action="{% url 'staff:shift_delete' shift.pk %}" style="margin-top:1rem" onsubmit="return confirm('Delete this shift?');">
+  <form method="post" action="{% url 'staff:shift_delete' shift.pk %}" style="margin-top:1rem" data-confirm="Delete this shift?">
     {% csrf_token %}<button type="submit" class="btn btn--danger btn--small">Delete shift</button>
   </form>
   {% endif %}

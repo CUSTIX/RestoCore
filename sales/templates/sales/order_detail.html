@@ -3,7 +3,7 @@
 {% block title %}Order {{ order.number }}{% endblock %}
 {% block page_title %}Order {{ order.number }}{% endblock %}
 {% block page_actions %}
-  <button class="btn btn--ghost" onclick="window.print()">Print receipt</button>
+  <button class="btn btn--ghost" data-print>Print receipt</button>
   {% if user|has_role:"Owner,Manager,Cashier" %}<a href="{% url 'sales:order_list' %}">All orders</a>{% endif %}
 {% endblock %}
 {% block content %}

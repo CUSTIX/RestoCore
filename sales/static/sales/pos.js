@@ -45,7 +45,16 @@
       if (q > 0) {
         sub += q * price;
         var li = document.createElement("li");
-        li.innerHTML = "<span><strong>" + q + "×</strong> " + card.dataset.name.replace(/</g, "&lt;") + "</span><span>" + fmt(q * price) + "</span>";
+        /* Dish names are typed by managers: insert them as text, never as markup. */
+        var label = document.createElement("span");
+        var qtyEl = document.createElement("strong");
+        qtyEl.textContent = q + "×";
+        label.appendChild(qtyEl);
+        label.appendChild(document.createTextNode(" " + card.dataset.name));
+        var amount = document.createElement("span");
+        amount.textContent = fmt(q * price);
+        li.appendChild(label);
+        li.appendChild(amount);
         cart.appendChild(li);
       }
     });

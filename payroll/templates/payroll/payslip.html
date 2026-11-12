@@ -3,7 +3,7 @@
 {% block title %}Payslip · {{ slip.employee_name }}{% endblock %}
 {% block page_title %}Payslip: {{ slip.employee_name }}{% endblock %}
 {% block page_actions %}
-  <button class="btn btn--ghost" onclick="window.print()">Print</button>
+  <button class="btn btn--ghost" data-print>Print</button>
   <a href="{% url 'payroll:period_detail' slip.period_id %}">Back to period</a>
 {% endblock %}
 {% block content %}

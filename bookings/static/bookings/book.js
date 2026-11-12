@@ -15,8 +15,15 @@
       if (!opt.value) return;
       var label = document.createElement("label");
       label.className = "slot";
-      label.innerHTML = '<input type="radio" name="__slot" value="' + opt.value + '"><span>' + opt.textContent + "</span>";
-      var radio = label.querySelector("input");
+      /* Built with DOM calls, not innerHTML, so option text can never become markup. */
+      var radio = document.createElement("input");
+      radio.type = "radio";
+      radio.name = "__slot";
+      radio.value = opt.value;
+      var text = document.createElement("span");
+      text.textContent = opt.textContent;
+      label.appendChild(radio);
+      label.appendChild(text);
       radio.checked = opt.selected && select.value === opt.value;
       radio.addEventListener("change", function () { select.value = opt.value; });
       group.appendChild(label);

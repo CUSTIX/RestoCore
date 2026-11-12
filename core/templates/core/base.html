@@ -7,17 +7,7 @@
   <meta name="description" content="{% block description %}{{ restaurant_name }}: specialty coffee and all-day brunch.{% endblock %}">
   <meta name="theme-color" content="#1f1712">
   <link rel="icon" type="image/svg+xml" href="{% url 'website:favicon' %}">
-  <script>
-    /* Apply saved preferences before paint to avoid a flash. */
-    (function () {
-      try {
-        var t = localStorage.getItem("rc-theme");
-        if (!t && window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches) t = "dark";
-        if (t) document.documentElement.setAttribute("data-theme", t);
-        if (localStorage.getItem("rc-sidebar") === "collapsed") document.documentElement.classList.add("sidebar-collapsed");
-      } catch (e) {}
-    })();
-  </script>
+  <script src="{% static 'core/theme-init.js' %}"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..600&family=Manrope:wght@400..800&display=swap">

@@ -5,7 +5,7 @@
 {% block page_actions %}
   {% if period.status == 'draft' %}
     <form method="post" action="{% url 'payroll:period_action' period.pk %}" class="inline-form">{% csrf_token %}<button class="btn btn--ghost" name="action" value="generate" type="submit">{% if payslips %}Recalculate{% else %}Generate payslips{% endif %}</button></form>
-    {% if payslips %}<form method="post" action="{% url 'payroll:period_action' period.pk %}" class="inline-form" onsubmit="return confirm('Finalize? Payslips will be locked.');">{% csrf_token %}<button class="btn" name="action" value="finalize" type="submit">Finalize</button></form>{% endif %}
+    {% if payslips %}<form method="post" action="{% url 'payroll:period_action' period.pk %}" class="inline-form" data-confirm="Finalize? Payslips will be locked.">{% csrf_token %}<button class="btn" name="action" value="finalize" type="submit">Finalize</button></form>{% endif %}
   {% else %}
     <span class="badge badge--ok">Finalized {{ period.finalized_at|date:"M j, Y" }}</span>
   {% endif %}

@@ -81,7 +81,41 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    # CSP, Permissions-Policy, no caching of signed-in pages. After auth: it reads request.user.
+    "core.middleware.SecurityHeadersMiddleware",
 ]
+
+# Content Security Policy. No inline JavaScript anywhere (templates use data-* attributes that the
+# static scripts pick up), so script-src is 'self' only. Inline style *attributes* are allowed
+# (dynamic widths, animation delays) but <style> elements are not. Google Fonts is the only
+# third party.
+_FONT_CSS = "https://fonts.googleapis.com"
+_FONT_FILES = "https://fonts.gstatic.com"
+CONTENT_SECURITY_POLICY = "; ".join(
+    [
+        "default-src 'self'",
+        "script-src 'self'",
+        f"style-src 'self' 'unsafe-inline' {_FONT_CSS}",  # fallback for pre-CSP3 browsers
+        f"style-src-elem 'self' {_FONT_CSS}",
+        "style-src-attr 'unsafe-inline'",
+        f"font-src 'self' {_FONT_FILES}",
+        "img-src 'self' data:",
+        "connect-src 'self'",
+        "object-src 'none'",
+        "base-uri 'none'",
+        "form-action 'self'",
+        "frame-ancestors 'none'",
+    ]
+)
+# Sessions: at most one long shift, then sign in again. Our JS never reads the CSRF cookie.
+SESSION_COOKIE_AGE = 60 * 60 * 12
+SESSION_COOKIE_HTTPONLY = True
+CSRF_COOKIE_HTTPONLY = True
+
+PERMISSIONS_POLICY = (
+    "camera=(), microphone=(), geolocation=(), payment=(), usb=(), magnetometer=(), "
+    "gyroscope=(), accelerometer=(), browsing-topics=()"
+)
 
 ROOT_URLCONF = "config.urls"
 

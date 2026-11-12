@@ -32,5 +32,5 @@
 {% else %}
   {% include "core/partials/empty.html" with message="No orders in the kitchen. Nice work!" %}
 {% endif %}
-<script>setTimeout(function () { window.location.reload(); }, 30000);</script>
+<span hidden data-auto-reload="30"></span>
 {% endblock %}
