@@ -110,7 +110,10 @@ class RecipeLineForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["inventory_item"].queryset = inventory_selectors.active_items()
+        # Retired ingredients can't be added to recipes, but a line that already uses one stays
+        # editable (otherwise saving the dish would fail on its own existing recipe).
+        keep = self.instance.inventory_item_id if self.instance.pk else None
+        self.fields["inventory_item"].queryset = inventory_selectors.recipe_choices(keep_id=keep)
         self.fields["inventory_item"].label = "Ingredient"
         self.fields["quantity"].label = "Quantity per portion"
 

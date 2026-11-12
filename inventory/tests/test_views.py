@@ -72,3 +72,45 @@ def test_low_stock_filter(client_for, item):
     services.record_count(item_id=item.pk, counted=Decimal("1"))
     html = client_for("Manager").get("/app/inventory/?low=on").content.decode()
     assert "Milk" in html and "Plenty" not in html
+
+
+@pytest.mark.django_db
+def test_unit_is_locked_once_stock_history_exists(client_for, stocked_menu):
+    """kg -> g would silently turn 0.2 kg of rice per dish into 0.2 g."""
+    from django.core.exceptions import ValidationError
+
+    from inventory import services
+
+    rice = stocked_menu["rice"]  # has an opening-stock movement
+    client = client_for("Manager")
+    form_html = client.get(f"/app/inventory/{rice.pk}/edit/").content.decode()
+    assert "Fixed once stock has been recorded" in form_html
+    client.post(
+        f"/app/inventory/{rice.pk}/edit/",
+        {
+            "name": "Rice",
+            "unit": "g",
+            "reorder_level": "2",
+            "cost_per_unit": "50",
+            "is_active": "on",
+        },
+    )
+    rice.refresh_from_db()
+    assert rice.unit == "kg"
+    rice.unit = "g"  # what a ModelForm does to the instance before the service runs
+    with pytest.raises(ValidationError, match="unit can't change"):
+        services.update_item(rice, unit="g", name="Rice")
+
+
+@pytest.mark.django_db
+def test_unit_can_change_while_an_item_has_no_history(client_for):
+    from decimal import Decimal
+
+    from inventory import services
+
+    item = services.create_item(
+        name="Tea", unit="kg", quantity=Decimal("0"), reorder_level=0, cost_per_unit=1
+    )
+    services.update_item(item, unit="g", name="Tea")
+    item.refresh_from_db()
+    assert item.unit == "g"

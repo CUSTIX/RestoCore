@@ -1,4 +1,4 @@
-from django.db.models import F, QuerySet
+from django.db.models import F, Q, QuerySet
 
 from inventory.models import InventoryItem, StockMovement
 
@@ -22,6 +22,11 @@ def low_stock_items() -> QuerySet[InventoryItem]:
 
 def active_items() -> QuerySet[InventoryItem]:
     return InventoryItem.objects.filter(is_active=True).order_by("name")
+
+
+def recipe_choices(*, keep_id: int | None = None) -> QuerySet[InventoryItem]:
+    """Ingredients a recipe line may use: active ones, plus the one it already uses (if any)."""
+    return InventoryItem.objects.filter(Q(is_active=True) | Q(pk=keep_id)).order_by("name")
 
 
 def movements_for(item: InventoryItem) -> QuerySet[StockMovement]:

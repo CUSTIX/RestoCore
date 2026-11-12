@@ -97,6 +97,10 @@ class ItemUpdateView(RoleRequiredMixin, FormView):
         return {**super().get_form_kwargs(), "instance": self.item}
 
     def form_valid(self, form):
-        services.update_item(self.item, **form.cleaned_data)
+        try:
+            services.update_item(self.item, **form.cleaned_data)
+        except ValidationError as exc:
+            form.add_error(None, exc)
+            return self.form_invalid(form)
         messages.success(self.request, "Item updated.")
         return redirect("inventory:detail", pk=self.item.pk)

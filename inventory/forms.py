@@ -10,6 +10,15 @@ class ItemForm(forms.ModelForm):
         model = InventoryItem
         fields = ("name", "unit", "reorder_level", "cost_per_unit", "is_active")
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        from inventory.services import unit_is_locked
+
+        if self.instance.pk and unit_is_locked(self.instance):
+            # Shown but not editable; a disabled field also ignores any posted value.
+            self.fields["unit"].disabled = True
+            self.fields["unit"].help_text = "Fixed once stock has been recorded."
+
 
 class NewItemForm(ItemForm):
     quantity = forms.DecimalField(

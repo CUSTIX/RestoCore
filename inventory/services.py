@@ -29,8 +29,22 @@ def create_item(*, user=None, **data) -> InventoryItem:
     return item
 
 
+UNIT_LOCKED = (
+    "The unit can't change once stock has been recorded: every quantity in the history and in "
+    "recipes would silently change meaning (0.2 kg would become 0.2 g). Create a new item instead."
+)
+
+
+def unit_is_locked(item: InventoryItem) -> bool:
+    return bool(item.pk) and item.movements.exists()
+
+
 def update_item(item: InventoryItem, **data) -> InventoryItem:
     data.pop("quantity", None)  # quantity only changes through movements
+    # Compare with the stored unit: a ModelForm has already copied the new value onto `item`.
+    stored_unit = InventoryItem.objects.values_list("unit", flat=True).get(pk=item.pk)
+    if "unit" in data and data["unit"] != stored_unit and unit_is_locked(item):
+        raise ValidationError(UNIT_LOCKED)
     for field, value in data.items():
         setattr(item, field, value)
     item.save()

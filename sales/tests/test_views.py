@@ -190,3 +190,48 @@ def test_stale_kitchen_button_changes_nothing_and_says_so(client_for, make_user,
     o.refresh_from_db()
     assert o.kitchen_status == "preparing"
     assert "already Preparing" in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_retired_ingredients_are_not_offered_for_new_recipe_lines(stocked_menu):
+    from inventory import services as inv
+    from sales.forms import RecipeLineForm
+
+    old = inv.create_item(
+        name="Old syrup", unit="l", quantity=Decimal("1"), reorder_level=0, cost_per_unit=1
+    )
+    old.is_active = False
+    old.save()
+    choices = RecipeLineForm().fields["inventory_item"].queryset
+    assert old not in choices and stocked_menu["rice"] in choices
+
+
+@pytest.mark.django_db
+def test_a_dish_whose_ingredient_was_retired_can_still_be_saved(client_for, stocked_menu):
+    """Before: the retired ingredient vanished from its own recipe line, so saving failed."""
+    from sales.models import RecipeLine
+
+    rice, dish = stocked_menu["rice"], stocked_menu["dish"]
+    rice.is_active = False
+    rice.save()
+    line = RecipeLine.objects.get(menu_item=dish)
+    data = {
+        "category": stocked_menu["category"].pk,
+        "name": dish.name,
+        "description": "",
+        "price": "120",
+        "photo": "",
+        "is_available": "on",
+        "recipe-TOTAL_FORMS": "1",
+        "recipe-INITIAL_FORMS": "1",
+        "recipe-MIN_NUM_FORMS": "0",
+        "recipe-MAX_NUM_FORMS": "1000",
+        "recipe-0-id": line.pk,
+        "recipe-0-menu_item": dish.pk,
+        "recipe-0-inventory_item": rice.pk,
+        "recipe-0-quantity": "0.2",
+    }
+    response = client_for("Manager").post(f"/app/sales/menu/{dish.pk}/edit/", data)
+    assert response.status_code == 302
+    dish.refresh_from_db()
+    assert dish.price == Decimal("120.00")
