@@ -113,6 +113,9 @@ class Order(models.Model):
     )
     voided_at = models.DateTimeField(null=True, blank=True)
     void_reason = models.CharField(max_length=200, blank=True)
+    # One-time token from the POS screen that created this order. A double-click, refresh or
+    # retry sends the same token again and gets this order back instead of a second charge.
+    checkout_token = models.UUIDField(null=True, blank=True, unique=True, editable=False)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True)
 

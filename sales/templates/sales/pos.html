@@ -6,7 +6,7 @@
 {% block page_actions %}<a class="btn btn--ghost" href="{% url 'sales:order_list' %}">{% icon "receipt" 18 %} Orders</a>{% endblock %}
 {% block content %}
 <form method="post" novalidate id="pos-form" data-tax-rate="{{ tax_rate }}" data-currency="{{ currency }}">
-  {% csrf_token %}
+  {% csrf_token %}{{ form.checkout_token }}
   {% if form.non_field_errors %}
     <div class="alert alert--error" style="margin-bottom:1rem">{% for e in form.non_field_errors %}<p>{{ e }}</p>{% endfor %}</div>
   {% endif %}
@@ -22,7 +22,7 @@
             <h2 class="pos-section-title" id="pos-cat-{{ row.item.category_id }}">{{ row.item.category.name }}</h2>
             <div class="pos-items">
           {% endifchanged %}
-          <div class="pos-item{% if row.portions == 0 %} is-out{% endif %}" data-pos-item data-name="{{ row.item.name }}" data-price="{{ row.item.price }}">
+          <div class="pos-item{% if row.portions == 0 %} is-out{% endif %}" data-pos-item data-name="{{ row.item.name }}" data-price="{{ row.item.price }}"{% if row.portions is not None %} data-available="{{ row.portions }}"{% endif %}>
             <div class="pos-item__media">
               {% if row.item.photo %}<img src="{% static row.item.photo %}" alt="" loading="lazy">{% endif %}
               <span class="pos-item__qty" data-qty-badge>0</span>
@@ -82,6 +82,7 @@
       <div class="field{% if form.amount_tendered.errors %} field--error{% endif %}" data-cash-field>
         <label for="{{ form.amount_tendered.id_for_label }}">Cash received</label>{{ form.amount_tendered }}
         {% for e in form.amount_tendered.errors %}<small class="error">{{ e }}</small>{% endfor %}
+        <div class="quick-cash" data-quick-cash aria-label="Quick cash amounts"></div>
       </div>
       <dl class="totals">
         <dt>Subtotal</dt><dd id="pos-subtotal">0.00</dd>
@@ -89,7 +90,8 @@
         <dt class="totals__grand">Total</dt><dd class="totals__grand" id="pos-total">0.00</dd>
         <dt data-cash-field>Change</dt><dd id="pos-change" data-cash-field>—</dd>
       </dl>
-      <button type="submit" class="btn btn--block" style="padding:.95em">Charge &amp; send to kitchen<span class="btn__shine"></span></button>
+      <button type="submit" class="btn btn--block" style="padding:.95em" id="pos-charge" aria-describedby="pos-charge-hint">Charge &amp; send to kitchen<span class="btn__shine"></span></button>
+      <p class="pos-hint" id="pos-charge-hint" aria-live="polite"></p>
       <p class="muted" style="font-size:.78rem;margin-top:.7rem">Totals here are a preview. The server recalculates prices, tax and stock when you charge.</p>
     </aside>
   </div>

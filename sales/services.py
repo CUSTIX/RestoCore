@@ -1,11 +1,12 @@
 """Sales rules: pricing, checkout (order + stock in one transaction), kitchen flow and voids."""
 
+import uuid
 from collections import defaultdict
 from decimal import ROUND_HALF_UP, Decimal
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from django.utils import timezone
 
 from inventory import services as inventory_services
@@ -58,6 +59,15 @@ def ingredients_needed(lines: list[dict]) -> dict[int, Decimal]:
     return dict(needed)
 
 
+def order_for_checkout_token(token) -> Order | None:
+    """The order already created from this POS screen, if any (bad/missing token: None)."""
+    try:
+        token = uuid.UUID(str(token))
+    except (TypeError, ValueError):
+        return None
+    return Order.objects.filter(checkout_token=token).first()
+
+
 @transaction.atomic
 def place_order(
     *,
@@ -67,8 +77,17 @@ def place_order(
     payment_method: str,
     amount_tendered: Decimal | None = None,
     table_label: str = "",
+    checkout_token=None,
 ) -> Order:
-    """Create a paid order and deduct its ingredients. All or nothing."""
+    """Create a paid order and deduct its ingredients. All or nothing.
+
+    Idempotent per `checkout_token`: sending the same token again (double-click, refresh,
+    network retry) returns the order already created instead of charging twice.
+    """
+    if checkout_token is not None:
+        existing = Order.objects.filter(checkout_token=checkout_token).first()
+        if existing is not None:
+            return existing
     lines, subtotal, tax, total = price_lines(quantities)
 
     if payment_method == Order.PaymentMethod.CASH:
@@ -78,18 +97,27 @@ def place_order(
     else:
         tendered = total  # card: exact amount, recorded only (no real payment processing)
 
-    order = Order.objects.create(
-        order_type=order_type,
-        table_label=table_label.strip(),
-        payment_method=payment_method,
-        subtotal=subtotal,
-        tax_rate=tax_rate(),
-        tax=tax,
-        total=total,
-        amount_tendered=tendered,
-        change_due=tendered - total,
-        cashier=cashier,
-    )
+    try:
+        # Savepoint: if a simultaneous request with the same token committed first, the unique
+        # constraint fires here and we hand back that order (no lines, no stock moved twice).
+        with transaction.atomic():
+            order = Order.objects.create(
+                order_type=order_type,
+                table_label=table_label.strip(),
+                payment_method=payment_method,
+                subtotal=subtotal,
+                tax_rate=tax_rate(),
+                tax=tax,
+                total=total,
+                amount_tendered=tendered,
+                change_due=tendered - total,
+                cashier=cashier,
+                checkout_token=checkout_token,
+            )
+    except IntegrityError:
+        if checkout_token is None:
+            raise
+        return Order.objects.get(checkout_token=checkout_token)
     OrderLine.objects.bulk_create(
         [
             OrderLine(

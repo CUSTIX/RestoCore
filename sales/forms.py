@@ -20,6 +20,8 @@ class PosForm(forms.Form):
         decimal_places=2,
         label="Cash received",
     )
+    # One-time token rendered with the screen: makes "Charge" safe to click twice (see services).
+    checkout_token = forms.UUIDField(required=False, widget=forms.HiddenInput)
 
     def __init__(self, *args, menu_items=(), **kwargs):
         super().__init__(*args, **kwargs)

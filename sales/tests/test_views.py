@@ -1,3 +1,5 @@
+import re
+import uuid
 from decimal import Decimal
 
 import pytest
@@ -150,3 +152,24 @@ def test_menu_price_must_be_positive(client_for, stocked_menu):
     response = client_for("Manager").post("/app/sales/menu/new/", data)
     assert response.status_code == 200
     assert not MenuItem.objects.filter(name="Free").exists()
+
+
+@pytest.mark.django_db
+def test_pos_screen_carries_a_fresh_checkout_token(client_for, stocked_menu):
+    client = client_for("Cashier")
+    first = client.get("/app/sales/pos/").content.decode()
+    second = client.get("/app/sales/pos/").content.decode()
+    token = re.search(r'name="checkout_token" value="([0-9a-f-]{36})"', first)
+    assert token and token.group(1) not in second
+
+
+@pytest.mark.django_db
+def test_double_submitting_the_pos_form_creates_one_order(client_for, stocked_menu):
+    client = client_for("Cashier")
+    data = pos_data(stocked_menu["dish"], checkout_token=str(uuid.uuid4()))
+    first = client.post("/app/sales/pos/", data)
+    second = client.post("/app/sales/pos/", data)
+    assert Order.objects.count() == 1
+    order = Order.objects.get()
+    assert first["Location"] == second["Location"] == f"/app/sales/orders/{order.pk}/"
+    assert "already charged" in client.get(second["Location"]).content.decode()

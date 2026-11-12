@@ -116,3 +116,27 @@ def test_price_snapshot_survives_menu_price_change(stocked_menu, cashier):
     stocked_menu["dish"].price = D("999")
     stocked_menu["dish"].save()
     assert o.lines.get().unit_price == D("100.00")
+
+
+def test_same_checkout_token_charges_once(stocked_menu, cashier):
+    """Double-click / refresh / retry: one order, one stock deduction."""
+    import uuid
+
+    token = uuid.uuid4()
+    first = order(stocked_menu, cashier, qty=2, checkout_token=token)
+    again = order(stocked_menu, cashier, qty=2, checkout_token=token)
+    assert again.pk == first.pk
+    assert Order.objects.count() == 1
+    stocked_menu["rice"].refresh_from_db()
+    assert stocked_menu["rice"].quantity == D("9.6")  # 10 - 2 x 0.2, deducted once
+
+
+def test_orders_without_a_token_are_independent(stocked_menu, cashier):
+    order(stocked_menu, cashier)
+    order(stocked_menu, cashier)
+    assert Order.objects.count() == 2
+
+
+@pytest.mark.parametrize("bad", [None, "", "not-a-uuid", "12345"])
+def test_unknown_or_malformed_tokens_find_nothing(db, bad):
+    assert services.order_for_checkout_token(bad) is None

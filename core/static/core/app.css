@@ -185,6 +185,14 @@ td a:hover { text-decoration: underline; }
 .totals dt { color: var(--ink-3); font-weight: 600; }
 .totals dd { margin: 0; text-align: right; font-weight: 700; }
 .totals .totals__grand { font-size: 1.35rem; font-weight: 800; color: var(--ink); }
+.totals dd.is-short { color: var(--danger); }
+/* POS checkout: quick cash amounts and the line that explains why Charge is (not) available */
+.quick-cash { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .5rem; }
+.quick-cash:empty { display: none; }
+.quick-cash .chip { padding: .3rem .7rem; font-size: .8rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.pos-hint { margin: .6rem 0 0; min-height: 1.3em; font-size: .85rem; font-weight: 700; color: var(--danger); text-align: center; }
+.pos-hint.is-ready { color: var(--ok); }
+.stepper button[disabled] { opacity: .35; cursor: not-allowed; }
 .seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; background: var(--bg-sunken); border-radius: 12px; padding: 4px; gap: 4px; }
 .seg label { text-align: center; padding: .45rem; border-radius: 9px; cursor: pointer; font-weight: 700; font-size: .86rem; color: var(--ink-2); transition: all .2s; }
 .seg input { position: absolute; opacity: 0; pointer-events: none; }

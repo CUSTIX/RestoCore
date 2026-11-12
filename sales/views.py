@@ -1,3 +1,5 @@
+import uuid
+
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.http import Http404
@@ -28,7 +30,10 @@ class PosView(RoleRequiredMixin, TemplateView):
 
     def get_context_data(self, form=None, **kwargs):
         menu = selectors.pos_menu()
-        form = form or PosForm(menu_items=[m["item"] for m in menu])
+        # A fresh token per new order screen; a re-rendered form (after an error) keeps its own.
+        form = form or PosForm(
+            menu_items=[m["item"] for m in menu], initial={"checkout_token": uuid.uuid4()}
+        )
         rows = [{**m, "field": form[f"qty_{m['item'].pk}"]} for m in menu]
         return {
             **super().get_context_data(**kwargs),
@@ -41,9 +46,15 @@ class PosView(RoleRequiredMixin, TemplateView):
     def post(self, request, *args, **kwargs):
         menu_items = [m["item"] for m in selectors.pos_menu()]
         form = PosForm(request.POST, menu_items=menu_items)
+        token = form.data.get("checkout_token")
+        already = services.order_for_checkout_token(token)
+        if already is not None:  # double-click / refresh: never charge twice
+            messages.info(request, f"Order {already.number} was already charged.")
+            return redirect("sales:order_detail", pk=already.pk)
         if form.is_valid():
             try:
                 order = services.place_order(
+                    checkout_token=form.cleaned_data["checkout_token"],
                     quantities=form.quantities(),
                     cashier=request.user,
                     order_type=form.cleaned_data["order_type"],
