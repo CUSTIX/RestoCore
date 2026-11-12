@@ -37,8 +37,9 @@
     </dl>
     {% if order.status == 'paid' and user|has_role:"Owner,Manager" %}
       <h2 style="margin-top:1.5rem">Void order</h2>
-      <p class="muted">{% if order.kitchen_status == 'served' %}Food was served, so ingredients will <strong>not</strong> return to stock.{% else %}Ingredients will be returned to stock.{% endif %}</p>
-      <form method="post" action="{% url 'sales:order_void' order.pk %}">
+      <p class="muted">{% if void_returns_stock %}The kitchen hasn't started it, so the ingredients will be returned to stock.{% else %}The kitchen has already {% if order.kitchen_status == 'served' %}served{% else %}started{% endif %} this order, so the ingredients will <strong>not</strong> return to stock.{% endif %}</p>
+      <form method="post" action="{% url 'sales:order_void' order.pk %}" novalidate data-confirm="Void order {{ order.number }}? This can't be undone.">
+        <label class="sr-only" for="{{ void_form.reason.id_for_label }}">Reason for voiding</label>
         {% csrf_token %}
         <div class="field">{{ void_form.reason }}</div>
         <button type="submit" class="btn btn--danger" style="margin-top:.5rem">Void order</button>

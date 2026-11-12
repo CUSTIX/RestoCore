@@ -173,3 +173,20 @@ def test_double_submitting_the_pos_form_creates_one_order(client_for, stocked_me
     order = Order.objects.get()
     assert first["Location"] == second["Location"] == f"/app/sales/orders/{order.pk}/"
     assert "already charged" in client.get(second["Location"]).content.decode()
+
+
+@pytest.mark.django_db
+def test_stale_kitchen_button_changes_nothing_and_says_so(client_for, make_user, stocked_menu):
+    o = services.place_order(
+        quantities={stocked_menu["dish"].pk: 1},
+        cashier=make_user("Cashier"),
+        order_type="takeaway",
+        payment_method="card",
+    )
+    client = client_for("Kitchen")
+    url = f"/app/sales/kitchen/{o.pk}/advance/"
+    client.post(url, {"from": "queued"})
+    response = client.post(url, {"from": "queued"}, follow=True)
+    o.refresh_from_db()
+    assert o.kitchen_status == "preparing"
+    assert "already Preparing" in response.content.decode()

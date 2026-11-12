@@ -102,6 +102,7 @@ class OrderDetailView(RoleRequiredMixin, TemplateView):
             **super().get_context_data(**kwargs),
             "order": order,
             "void_form": VoidForm(),
+            "void_returns_stock": services.voiding_returns_stock(order),
             "active_section": "orders",
         }
 
@@ -152,7 +153,9 @@ class KitchenAdvanceView(RoleRequiredMixin, View):
     def post(self, request, pk):
         order = get_object_or_404(Order, pk=pk)
         try:
-            order = services.advance_kitchen_status(order)
+            order = services.advance_kitchen_status(order, expected=request.POST.get("from"))
+        except services.KitchenTicketMoved as moved:
+            messages.info(request, f"{moved} Nothing changed.")
         except ValidationError as exc:
             messages.error(request, exc.messages[0])
         else:

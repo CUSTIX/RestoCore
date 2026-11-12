@@ -138,9 +138,25 @@ def place_order(
     return order
 
 
+class KitchenTicketMoved(Exception):
+    """The ticket is no longer at the status the cook saw (double tap, or another screen)."""
+
+    def __init__(self, order: Order):
+        self.order = order
+        super().__init__(f"Order {order.number} is already {order.get_kitchen_status_display()}.")
+
+
 @transaction.atomic
-def advance_kitchen_status(order: Order) -> Order:
+def advance_kitchen_status(order: Order, *, expected: str | None = None) -> Order:
+    """Move a ticket one step along the kitchen flow.
+
+    `expected` is the status shown on the cook's screen. If the ticket has moved on since
+    (a double tap, or another kitchen screen), nothing changes and KitchenTicketMoved is
+    raised, instead of silently skipping a step, e.g. queued straight to ready.
+    """
     order = Order.objects.select_for_update().get(pk=order.pk)
+    if expected and order.kitchen_status != expected:
+        raise KitchenTicketMoved(order)
     if order.status != Order.Status.PAID or order.kitchen_status not in KITCHEN_FLOW:
         raise ValidationError("This order is not active in the kitchen.")
     order.kitchen_status = KITCHEN_FLOW[order.kitchen_status]
@@ -148,17 +164,24 @@ def advance_kitchen_status(order: Order) -> Order:
     return order
 
 
+def voiding_returns_stock(order: Order) -> bool:
+    """Once the kitchen starts preparing, the ingredients are used even if the order is voided:
+    putting them back would make the stock count wrong."""
+    return order.kitchen_status == Order.KitchenStatus.QUEUED
+
+
 @transaction.atomic
 def void_order(order: Order, *, user, reason: str) -> Order:
-    """Void a paid order and return its ingredients to stock (unless already served)."""
+    """Void a paid order. Ingredients go back to stock only if the kitchen hadn't started it."""
     order = Order.objects.select_for_update().get(pk=order.pk)
     if order.status == Order.Status.VOIDED:
         raise ValidationError("This order is already voided.")
     if not reason.strip():
         raise ValidationError("A reason is required to void an order.")
-    if order.kitchen_status != Order.KitchenStatus.SERVED:
-        # Food not yet served: ingredients go back to stock. Served food is a real loss.
+    if voiding_returns_stock(order):
+        # Still queued: nothing was cooked, so the ingredients are back on the shelf.
         inventory_services.reverse_sale(reference=order.stock_reference, user=user)
+    if order.kitchen_status in KITCHEN_FLOW:  # queued / preparing / ready: off the board
         order.kitchen_status = Order.KitchenStatus.CANCELLED
     order.status = Order.Status.VOIDED
     order.voided_by = user

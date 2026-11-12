@@ -83,7 +83,7 @@ def test_kitchen_flow_and_end(stocked_menu, cashier):
         services.advance_kitchen_status(o)
 
 
-def test_void_returns_stock_when_not_served(stocked_menu, cashier, make_user):
+def test_void_returns_stock_while_still_queued(stocked_menu, cashier, make_user):
     o = order(stocked_menu, cashier, qty=5, amount_tendered=D("1000"))
     services.void_order(o, user=make_user("Manager"), reason="Wrong order")
     o.refresh_from_db()
@@ -140,3 +140,25 @@ def test_orders_without_a_token_are_independent(stocked_menu, cashier):
 @pytest.mark.parametrize("bad", [None, "", "not-a-uuid", "12345"])
 def test_unknown_or_malformed_tokens_find_nothing(db, bad):
     assert services.order_for_checkout_token(bad) is None
+
+
+@pytest.mark.parametrize("steps", [1, 2])  # preparing, ready
+def test_void_after_the_kitchen_started_keeps_stock_used(stocked_menu, cashier, make_user, steps):
+    """Cooked but not served: the ingredients are gone, so stock must not come back."""
+    o = order(stocked_menu, cashier, qty=5, amount_tendered=D("1000"))
+    for _ in range(steps):
+        o = services.advance_kitchen_status(o)
+    services.void_order(o, user=make_user("Manager"), reason="Customer left")
+    o.refresh_from_db()
+    stocked_menu["rice"].refresh_from_db()
+    assert stocked_menu["rice"].quantity == D("9")
+    assert o.kitchen_status == "cancelled"  # off the kitchen board
+
+
+def test_kitchen_double_tap_does_not_skip_a_step(stocked_menu, cashier):
+    o = order(stocked_menu, cashier)
+    services.advance_kitchen_status(o, expected="queued")
+    with pytest.raises(services.KitchenTicketMoved):
+        services.advance_kitchen_status(o, expected="queued")  # second tap, same screen
+    o.refresh_from_db()
+    assert o.kitchen_status == "preparing"

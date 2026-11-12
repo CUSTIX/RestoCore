@@ -36,7 +36,8 @@ The login page lists the demo accounts (local DEBUG only) and fills them in with
 - [ ] Menu: add a category; add a dish with a photo and recipe; price 0 is rejected.
 - [ ] Inventory: new item, receive (hint shows the new total), waste more than on hand → message
       under the field before sending, stock count. Double-clicking Save records one movement.
-- [ ] Orders: void a paid order with a reason → ingredients go back (not if already served).
+- [ ] Orders: void a paid order with a reason (asks to confirm) → ingredients go back only if the
+      kitchen had not started it; the page says which before you void.
 - [ ] Employees: creating an Owner or Manager is refused ("Only an owner…").
 - [ ] Schedules: add a shift; end before start → "The shift must end after it starts." under the
       field; overlapping shift is refused, shift on approved leave is refused.
@@ -54,7 +55,8 @@ The login page lists the demo accounts (local DEBUG only) and fills them in with
 - [ ] No void form on orders; `/app/inventory/` → 403.
 
 ## kitchen
-- [ ] Kitchen board: Queued → Preparing → Ready columns; timers turn red after 15 minutes;
+- [ ] Kitchen board: Queued → Preparing → Ready columns; timers turn red after 15 minutes; a
+      button pressed on a stale screen (ticket already moved) changes nothing and says so;
       Start preparing → Mark ready → Mark served moves the ticket.
 - [ ] Inventory visible, can receive/waste/count, but no New item / Edit item.
 

@@ -364,6 +364,9 @@
   });
   document.querySelectorAll("form[data-confirm]").forEach(function (form) {
     form.addEventListener("submit", function (e) {
+      /* Ask only about a form that can actually be sent: if fields are missing, the form
+         checks below show what to fix first instead of a pointless "Are you sure?". */
+      if (form.hasAttribute("novalidate") && !form.checkValidity()) return;
       if (!window.confirm(form.getAttribute("data-confirm"))) e.preventDefault();
     });
   });

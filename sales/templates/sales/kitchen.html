@@ -18,7 +18,7 @@
           <p class="ticket__meta">{{ o.get_order_type_display }}{% if o.table_label %} · Table {{ o.table_label }}{% endif %}</p>
           <ul>{% for line in o.lines.all %}<li><strong>{{ line.quantity }}×</strong> {{ line.name }}</li>{% endfor %}</ul>
           <form method="post" action="{% url 'sales:kitchen_advance' o.pk %}">
-            {% csrf_token %}
+            {% csrf_token %}<input type="hidden" name="from" value="{{ o.kitchen_status }}">
             <button class="btn btn--block{% if o.kitchen_status == 'ready' %} btn--accent{% endif %}" type="submit">
               {% if o.kitchen_status == 'queued' %}{% icon "flame" 16 %} Start preparing{% elif o.kitchen_status == 'preparing' %}{% icon "check" 16 %} Mark ready{% else %}{% icon "arrow" 16 %} Mark served{% endif %}
             </button>
