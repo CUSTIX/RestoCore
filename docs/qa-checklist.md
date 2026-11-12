@@ -20,6 +20,8 @@ The login page lists the demo accounts (local DEBUG only) and fills them in with
 - [ ] `/menu/`: only available items; category bar is centred under the navbar and highlights the
       section you are reading; tapping a category jumps to it.
 - [ ] `/book/`: time chips and +/− guest stepper work; valid booking → thanks page with reference.
+- [ ] `/book/` for today hides times that have passed (and pre-selects the next free one); with a
+      large party, slots without enough seats are crossed out; after the last seating it says so.
 - [ ] Booking in the past, outside hours, or party size 0 / 21 → error, nothing saved.
 - [ ] Fill one slot with 40 guests → next booking at that time says "fully booked".
 - [ ] `/app/` redirects to login. Unknown URL shows the 404 page.
@@ -27,12 +29,20 @@ The login page lists the demo accounts (local DEBUG only) and fills them in with
 ## owner
 - [ ] Sidebar shows every section including **Payroll (demo)**; `/admin/` works; sidebar collapses to icons.
 - [ ] Payroll: create a period, Generate, open a payslip, Finalize → Generate is no longer offered.
+- [ ] A period that hasn't ended shows "Finalize after <date>" instead of the button; an open
+      clock-in in the period shows a warning and blocks finalizing; people deactivated mid-period
+      still get a payslip; working on a paid-leave day is not paid twice.
+- [ ] Deduction rates: typing 8 for 8% says "0.08 means 8%".
 - [ ] Payroll → Deduction rates: change a rate, regenerate a draft period, totals change.
 - [ ] Employees: create a Manager; edit a Manager; cannot deactivate or demote yourself.
 
 ## manager
 - [ ] No Payroll link; `/app/payroll/` → 403 page.
-- [ ] Bookings: filter by date/status/search; confirm → seat → complete; cancelled is final.
+- [ ] Bookings: list opens on upcoming bookings (Show: Past for history); filter by date/status/
+      search; confirm → seat → complete; cancelled is final. A booking next week offers only Cancel
+      (seat on the day, no-show only after the time); "to confirm" on the dashboard matches the list.
+- [ ] New/Edit booking: passed and full times are marked in the dropdown; editing a booking whose
+      time has passed still lets you fix the phone number.
 - [ ] Menu: add a category; add a dish with a photo and recipe; price 0 is rejected.
 - [ ] Inventory: new item, receive (hint shows the new total), waste more than on hand → message
       under the field before sending, stock count. Double-clicking Save records one movement.
@@ -41,7 +51,11 @@ The login page lists the demo accounts (local DEBUG only) and fills them in with
 - [ ] Employees: creating an Owner or Manager is refused ("Only an owner…").
 - [ ] Schedules: add a shift; end before start → "The shift must end after it starts." under the
       field; overlapping shift is refused, shift on approved leave is refused.
-- [ ] Leave: approve / reject others; your own request says another manager or the owner reviews it.
+- [ ] Leave: approve / reject others; your own request (and a fellow manager's) shows who reviews it
+      instead of buttons; a request over scheduled shifts warns "Approving removes N shifts".
+- [ ] Attendance: a forgotten clock-in is flagged; set "Left at" (pre-filled with the planned shift
+      end, never the maximum) and Close. Deactivating someone removes their upcoming shifts.
+- [ ] Schedules: "Add" appears only on days that aren't over.
 
 ## cashier
 - [ ] Sidebar: Dashboard, Point of sale, Orders, My work only.
@@ -50,7 +64,8 @@ The login page lists the demo accounts (local DEBUG only) and fills them in with
       Quick-cash buttons (Exact, next round amounts) fill the cash; + stops at the stock available.
       Takeaway hides the table field, Card hides cash received.
 - [ ] Double-click Charge (or refresh after charging) → still exactly one order.
-- [ ] Order too large for stock → "Not enough stock…", no order created, stock unchanged.
+- [ ] Two dishes that share an ingredient (e.g. avocado toast + egg sourdough) in amounts that fit
+      alone but not together → Charge disabled: "Not enough Sourdough bread for this order…".
 - [ ] Successful checkout → receipt with change; Print receipt hides the sidebar.
 - [ ] No void form on orders; `/app/inventory/` → 403.
 
@@ -63,6 +78,7 @@ The login page lists the demo accounts (local DEBUG only) and fills them in with
 ## staff
 - [ ] Bookings visible and editable; POS, inventory, employees → 403.
 - [ ] My work: clock in, clock in again (error), clock out; request leave; cancel a pending request.
+      A clock-in older than 16 hours shows "ask a manager" instead of a Clock out button.
 
 ## Every role
 - [ ] Change password works; log out returns to the home page.
