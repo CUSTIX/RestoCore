@@ -188,6 +188,11 @@ textarea { min-height: 96px; resize: vertical; }
 .error { color: var(--danger); font-weight: 700; font-size: .82rem; }
 .filters { display: flex; flex-wrap: wrap; gap: .75rem; align-items: flex-end; margin-bottom: 1.1rem; }
 .filters .field { min-width: 170px; }
+/* One control height for the whole bar, so labels, inputs, the button and the Clear link line up
+   (date inputs are otherwise a few pixels taller than text inputs and selects). */
+.filters input:not([type="checkbox"]), .filters select, .filters .btn { height: 2.75rem; }
+.filters .field--checkbox { height: 2.75rem; min-width: 0; padding-right: .5rem; }
+.filters > a:not(.btn) { display: inline-flex; align-items: center; height: 2.75rem; }
 
 /* ---------- Motion primitives ---------- */
 [data-reveal] { opacity: 0; transform: translateY(26px); transition: opacity .9s var(--ease-out), transform .9s var(--ease-out);
@@ -249,6 +254,7 @@ img, svg, video { max-width: 100%; }
   .filters { flex-direction: column; align-items: stretch; }
   .filters .field { min-width: 0; width: 100%; }
   .filters .btn { width: 100%; }
+  .filters > a:not(.btn) { justify-content: center; }
   .toasts { left: 12px; right: 12px; width: auto; top: max(12px, env(safe-area-inset-top)); }
   dl.details { gap: .4rem .9rem; }
 }
