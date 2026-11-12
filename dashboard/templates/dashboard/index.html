@@ -109,6 +109,7 @@
         {% for e in clocked_in %}<li><span class="live-dot"></span><span class="list__main"><span class="list__title">{{ e.employee }}</span><span class="list__sub">{{ e.employee.position }}</span></span><span class="muted">since {{ e.clock_in|date:"g:i A" }}</span></li>{% endfor %}
       </ul>
     {% else %}<p class="muted">Nobody is clocked in.</p>{% endif %}
+    {% if forgotten_clock_ins %}<p class="leave-conflict" style="margin-top:.8rem"><a href="{% url 'staff:attendance_list' %}">{{ forgotten_clock_ins }} forgotten clock-in{{ forgotten_clock_ins|pluralize }} to close</a> (not paid until closed)</p>{% endif %}
   </div>
   {% endif %}
 

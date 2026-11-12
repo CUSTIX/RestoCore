@@ -205,3 +205,25 @@ def test_close_form_suggests_the_planned_shift_end_never_the_maximum(client_for,
     expected = clock_in.replace(hour=23, minute=30).strftime("%Y-%m-%dT%H:%M")
     if clock_in.replace(hour=23, minute=30) > clock_in:
         assert f'value="{expected}"' in html
+
+
+@pytest.mark.django_db
+def test_my_work_does_not_offer_clock_out_on_a_forgotten_clock_in(client_for, make_employee):
+    client = client_for("Staff")
+    emp = make_employee(user=client.user)
+    open_entry(emp, 30)
+    html = client.get("/app/staff/me/").content.decode()
+    assert "was never closed" in html and 'value="out"' not in html
+
+
+@pytest.mark.django_db
+def test_dashboard_counts_only_reviewable_leave_and_real_shifts(client_for, make_employee):
+    client = client_for("Manager")
+    me = make_employee(user=client.user)
+    pending_leave(me, 3, 4)  # own request: not mine to review
+    pending_leave(make_employee(role="Manager"), 3, 4)  # a fellow manager's: owner reviews
+    pending_leave(make_employee(role="Staff"), 3, 4)  # this one counts
+    open_entry(make_employee(), 30)  # forgotten, not "on shift"
+    ctx = client.get("/app/").context
+    assert ctx["pending_leave"] == 1
+    assert list(ctx["clocked_in"]) == [] and ctx["forgotten_clock_ins"] == 1

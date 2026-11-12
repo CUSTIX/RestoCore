@@ -66,9 +66,13 @@ class MyWorkView(RoleRequiredMixin, FormView):
             "active_section": "me",
         }
         if self.employee:
+            entry = selectors.open_entry(self.employee)
             ctx.update(
                 shifts=selectors.upcoming_shifts(self.employee),
-                open_entry=selectors.open_entry(self.employee),
+                open_entry=entry,
+                # A forgotten clock-in can't be clocked out here: don't offer the button.
+                entry_needs_manager=services.entry_needs_manager(entry),
+                now_ymd=timezone.localdate().strftime("%Y%m%d"),
                 entries=selectors.time_entries(employee=self.employee)[:10],
                 leaves=selectors.leave_requests(employee=self.employee)[:10],
             )

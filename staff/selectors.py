@@ -81,10 +81,6 @@ def leave_requests(*, status: str = "", employee=None) -> QuerySet[LeaveRequest]
     return qs.order_by("-created_at", "-id")
 
 
-def pending_leave_count() -> int:
-    return LeaveRequest.objects.filter(status=LeaveRequest.Status.PENDING).count()
-
-
 def hours_worked(start: dt.date, end: dt.date) -> dict[int, Decimal]:
     """Closed attendance hours per employee id, for clock-ins between start and end (local)."""
     totals: dict[int, Decimal] = {}

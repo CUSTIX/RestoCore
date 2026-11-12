@@ -8,8 +8,13 @@
 <div class="grid grid--2">
   <div class="card">
     <h2>Time clock</h2>
-    {% if open_entry %}
-      <p>Clocked in since <strong>{{ open_entry.clock_in|date:"g:i A" }}</strong> ({{ open_entry.clock_in|timesince }}).</p>
+    {% if open_entry and entry_needs_manager %}
+      <div class="alert alert--warning" role="status">
+        <p>Your clock-in from <strong>{{ open_entry.clock_in|date:"D, M j, g:i A" }}</strong> was never closed.</p>
+        <p>Ask a manager to set the time you left (under Attendance). Then you can clock in again.</p>
+      </div>
+    {% elif open_entry %}
+      <p>Clocked in since <strong>{{ open_entry.clock_in|date:"g:i A" }}</strong>{% if open_entry.clock_in|date:"Ymd" != now_ymd %} on {{ open_entry.clock_in|date:"D, M j" }}{% endif %} ({{ open_entry.clock_in|timesince }}).</p>
       <form method="post" action="{% url 'staff:clock' %}">{% csrf_token %}<input type="hidden" name="action" value="out"><button class="btn btn--accent" type="submit">Clock out</button></form>
     {% else %}
       <p class="muted">You are not clocked in.</p>

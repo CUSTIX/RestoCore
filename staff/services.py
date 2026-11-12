@@ -222,6 +222,32 @@ def clock_out(employee: Employee, *, at: dt.datetime | None = None) -> TimeEntry
     return entry
 
 
+def on_shift_now():
+    """Open clock-ins that are plausibly still a shift in progress (dashboard "On shift now")."""
+    cutoff = timezone.now() - dt.timedelta(hours=MAX_SHIFT_HOURS)
+    return TimeEntry.objects.filter(clock_out__isnull=True, clock_in__gte=cutoff).select_related(
+        "employee__user"
+    )
+
+
+def forgotten_clock_in_count() -> int:
+    cutoff = timezone.now() - dt.timedelta(hours=MAX_SHIFT_HOURS)
+    return TimeEntry.objects.filter(clock_out__isnull=True, clock_in__lt=cutoff).count()
+
+
+def entry_needs_manager(entry: TimeEntry | None) -> bool:
+    """Open longer than a plausible shift: only a manager can close it (see clock_out)."""
+    return bool(entry) and timezone.now() - entry.clock_in > dt.timedelta(hours=MAX_SHIFT_HOURS)
+
+
+def reviewable_leave_count(reviewer) -> int:
+    """Pending requests this person can actually approve or reject (dashboard tile)."""
+    from staff import selectors
+
+    pending = selectors.leave_requests(status=LeaveRequest.Status.PENDING)
+    return sum(1 for leave in pending if not review_blocker(leave, reviewer))
+
+
 @transaction.atomic
 def close_entry(entry: TimeEntry, *, at: dt.datetime, by) -> TimeEntry:
     """A manager closes a forgotten clock-in with the time the person actually left."""

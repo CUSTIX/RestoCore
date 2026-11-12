@@ -16,7 +16,7 @@ from django.views.decorators.http import require_GET
 from bookings import selectors as bookings
 from inventory import selectors as inventory
 from sales import selectors as sales
-from staff import selectors as staff
+from staff import services as staff_services
 
 
 def _error(message: str, status: int) -> JsonResponse:
@@ -141,7 +141,7 @@ def on_shift_view(request):
                     "position": e.employee.position,
                     "since": timezone.localtime(e.clock_in).isoformat(),
                 }
-                for e in staff.clocked_in_now()
+                for e in staff_services.on_shift_now()  # not forgotten clock-ins
             ],
         }
     )
