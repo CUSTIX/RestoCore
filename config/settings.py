@@ -63,6 +63,9 @@ API_TOKEN = os.environ.get("RESTOCORE_API_TOKEN", "")
 # Public demo deployments: show the demo accounts on the login page even with DEBUG off.
 # Pair with DEMO_RESET_ON_START=true (bin/start.sh) so visitors always get fresh demo data.
 DEMO_MODE = env_bool("DEMO_MODE")
+# The demo logins listed on the login page. With DEMO_MODE on they can't be edited, demoted or
+# deactivated through staff management, so one visitor can't lock the next one out.
+DEMO_ACCOUNTS = ("owner", "manager", "cashier", "kitchen", "staff")
 # Header (as a request.META key) holding the real visitor IP, set by a proxy that overwrites it,
 # e.g. HTTP_CF_CONNECTING_IP behind Cloudflare/Render. Empty: use the socket address.
 # Used for sign-in throttling; never point this at X-Forwarded-For, which callers can forge.

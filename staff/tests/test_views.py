@@ -232,3 +232,26 @@ def test_employee_list_query_count_does_not_grow_per_row(
         make_employee(role=role)
     with django_assert_max_num_queries(12):
         assert client.get("/app/staff/employees/").status_code == 200
+
+
+@pytest.mark.django_db
+def test_shared_demo_accounts_are_read_only_in_demo_mode(
+    client_for, make_employee, make_user, settings
+):
+    """Public demo: the owner can't demote or deactivate the advertised logins (visitor lockout)."""
+    settings.DEMO_MODE = True
+    demo_cashier = make_employee(role="Cashier", user=make_user("Cashier", username="cashier"))
+    visitor_made = make_employee(role="Cashier")
+    client = client_for("Owner")
+    assert client.get(f"/app/staff/employees/{demo_cashier.pk}/edit/").status_code == 403
+    assert client.get(f"/app/staff/employees/{visitor_made.pk}/edit/").status_code == 200
+    html = client.get("/app/staff/employees/").content.decode()
+    assert f"/app/staff/employees/{demo_cashier.pk}/edit/" not in html
+
+
+@pytest.mark.django_db
+def test_demo_accounts_are_editable_outside_demo_mode(client_for, make_employee, make_user):
+    demo_cashier = make_employee(role="Cashier", user=make_user("Cashier", username="cashier"))
+    assert (
+        client_for("Owner").get(f"/app/staff/employees/{demo_cashier.pk}/edit/").status_code == 200
+    )

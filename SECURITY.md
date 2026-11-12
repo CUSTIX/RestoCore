@@ -52,7 +52,8 @@ repository. Don't open a public issue for security problems.
 
 **Public demo** (`DEMO_MODE=true`)
 - Demo accounts are listed on the login page and all data is wiped and reseeded on every start.
-- Password changes are disabled and no account gets Django admin, so one visitor can't lock
+- Password changes are disabled, no account gets Django admin, and the five advertised demo
+  logins can't be edited, demoted or deactivated in staff management, so one visitor can't lock
   out or take over the demo for the next.
 
 **Supply chain and CI**

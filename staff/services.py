@@ -2,6 +2,7 @@
 
 import datetime as dt
 
+from django.conf import settings
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import IntegrityError, transaction
 from django.utils import timezone
@@ -23,6 +24,12 @@ def primary_role(user) -> str:
 
 def assert_can_manage(actor, *, target_role: str, target_user=None) -> None:
     """Only an Owner may create, edit or assign Owner and Manager accounts."""
+    if (
+        settings.DEMO_MODE
+        and target_user is not None
+        and target_user.username in settings.DEMO_ACCOUNTS
+    ):
+        raise PermissionDenied("The shared demo accounts can't be changed in the public demo.")
     if has_role(actor, OWNER):
         return
     if not has_role(actor, MANAGER):
