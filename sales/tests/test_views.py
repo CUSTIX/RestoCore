@@ -235,3 +235,15 @@ def test_a_dish_whose_ingredient_was_retired_can_still_be_saved(client_for, stoc
     assert response.status_code == 302
     dish.refresh_from_db()
     assert dish.price == Decimal("120.00")
+
+
+@pytest.mark.django_db
+def test_pos_page_carries_recipes_and_stock_for_whole_order_checks(client_for, stocked_menu):
+    import json
+
+    html = client_for("Cashier").get("/app/sales/pos/").content.decode()
+    raw = re.search(r'<script id="pos-data" type="application/json">(.*?)</script>', html, re.S)
+    data = json.loads(raw.group(1))
+    dish, rice = stocked_menu["dish"], stocked_menu["rice"]
+    assert data["recipes"][str(dish.pk)] == {str(rice.pk): "0.200"}
+    assert data["stock"][str(rice.pk)]["name"] == "Rice"

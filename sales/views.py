@@ -39,6 +39,11 @@ class PosView(RoleRequiredMixin, TemplateView):
             **super().get_context_data(**kwargs),
             "form": form,
             "rows": rows,
+            # Recipes + stock let the POS check the whole order, not just one dish at a time.
+            "pos_data": {
+                "recipes": {str(m["item"].pk): m["recipe"] for m in menu if m["recipe"]},
+                "stock": selectors.pos_ingredient_stock(menu),
+            },
             "tax_rate": services.tax_rate(),
             "active_section": "pos",
         }

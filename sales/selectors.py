@@ -52,8 +52,19 @@ def pos_menu() -> list[dict]:
             on_hand = stock.get(r.inventory_item_id, ("", Decimal("0"), ""))[1]
             can_make = int(on_hand // r.quantity)
             portions = can_make if portions is None else min(portions, can_make)
-        result.append({"item": item, "portions": portions})
+        # Per-portion recipe, so the POS can add up a whole order (dishes share ingredients).
+        recipe = {str(r.inventory_item_id): str(r.quantity) for r in item.recipe.all()}
+        result.append({"item": item, "portions": portions, "recipe": recipe})
     return result
+
+
+def pos_ingredient_stock(menu: list[dict]) -> dict[str, dict]:
+    """On-hand stock of every ingredient the POS menu uses: {id: {name, qty, unit}}."""
+    ids = {int(i) for row in menu for i in row["recipe"]}
+    return {
+        str(pk): {"name": name, "qty": str(qty), "unit": unit}
+        for pk, (name, qty, unit) in inventory_selectors.quantities(ids).items()
+    }
 
 
 def filter_orders(*, date=None, status: str = "") -> QuerySet[Order]:

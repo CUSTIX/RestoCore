@@ -22,7 +22,7 @@
             <h2 class="pos-section-title" id="pos-cat-{{ row.item.category_id }}">{{ row.item.category.name }}</h2>
             <div class="pos-items">
           {% endifchanged %}
-          <div class="pos-item{% if row.portions == 0 %} is-out{% endif %}" data-pos-item data-name="{{ row.item.name }}" data-price="{{ row.item.price }}"{% if row.portions is not None %} data-available="{{ row.portions }}"{% endif %}>
+          <div class="pos-item{% if row.portions == 0 %} is-out{% endif %}" data-pos-item data-name="{{ row.item.name }}" data-price="{{ row.item.price }}"{% if row.portions is not None %} data-available="{{ row.portions }}" data-item-id="{{ row.item.pk }}"{% endif %}>
             <div class="pos-item__media">
               {% if row.item.photo %}<img src="{% static row.item.photo %}" alt="" loading="lazy">{% endif %}
               <span class="pos-item__qty" data-qty-badge>0</span>
@@ -101,4 +101,4 @@
   </div>
 </form>
 {% endblock %}
-{% block scripts %}<script src="{% static 'sales/pos.js' %}" defer></script>{% endblock %}
+{% block scripts %}{{ pos_data|json_script:"pos-data" }}<script src="{% static 'sales/pos.js' %}" defer></script>{% endblock %}

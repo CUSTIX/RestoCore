@@ -16,6 +16,27 @@
   var cashInput = form.querySelector("[name=amount_tendered]");
   var tableInput = form.querySelector("[name=table_label]");
   var quick = form.querySelector("[data-quick-cash]");
+  /* Recipes and ingredient stock (server-rendered JSON): dishes share ingredients, so each
+     dish's own "N available" isn't enough: the whole order has to fit in the stock. */
+  var posData = { recipes: {}, stock: {} };
+  try { posData = JSON.parse(document.getElementById("pos-data").textContent); } catch (e) { /* no check */ }
+  var milli = function (v) { return Math.round(parseFloat(v) * 1000); };  /* thousandths, no float drift */
+  function ingredientShortage() {
+    var need = {};
+    items.forEach(function (card) {
+      var q = qtyOf(card), recipe = posData.recipes[card.dataset.itemId];
+      if (!q || !recipe) return;
+      Object.keys(recipe).forEach(function (id) { need[id] = (need[id] || 0) + q * milli(recipe[id]); });
+    });
+    for (var id in need) {
+      var s = posData.stock[id];
+      if (s && need[id] > milli(s.qty)) {
+        var fmtQty = function (m) { return (m / 1000).toLocaleString(undefined, { maximumFractionDigits: 3 }) + " " + s.unit; };
+        return "Not enough " + s.name + " for this order: needs " + fmtQty(need[id]) + ", " + fmtQty(milli(s.qty)) + " left.";
+      }
+    }
+    return "";
+  }
 
   /* Money in whole cents: no floating-point surprises when comparing cash and total. */
   function toCents(value) {
@@ -93,6 +114,8 @@
   function blocker(count, totalCents, type, pay, cashCents, overStock) {
     if (count === 0) return "Add a dish to start an order.";
     if (overStock) return "Only " + overStock.max + " × " + overStock.name + " left in stock.";
+    var short = ingredientShortage();
+    if (short) return short;
     if (type === "dine_in" && tableInput && !tableInput.value.trim()) return "Enter the table for a dine-in order.";
     if (pay === "cash") {
       if (cashCents === null) return "Enter the cash received.";
