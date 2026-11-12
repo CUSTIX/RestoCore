@@ -322,7 +322,15 @@ class AttendanceListView(RoleRequiredMixin, TemplateView):
             start = timezone.localtime(entry.clock_in)
             latest = min(now, start + dt.timedelta(hours=services.MAX_SHIFT_HOURS))
             stale = now - start > dt.timedelta(hours=services.MAX_SHIFT_HOURS)
-            form = CloseEntryForm(initial={"clock_out": latest}, auto_id=f"close{entry.pk}_%s")
+            # Suggest the planned shift end (the likely real answer), never the latest allowed
+            # time: one careless click on "Close" must not pay a 16-hour shift.
+            planned = selectors.scheduled_end(entry.employee_id, start.date())
+            suggestion = None
+            if planned:
+                guess = start.replace(hour=planned.hour, minute=planned.minute)
+                if start < guess <= latest:
+                    suggestion = guess
+            form = CloseEntryForm(initial={"clock_out": suggestion}, auto_id=f"close{entry.pk}_%s")
             form.fields["clock_out"].widget.attrs.update(
                 min=(start + dt.timedelta(minutes=1)).strftime(fmt), max=latest.strftime(fmt)
             )

@@ -188,3 +188,20 @@ def test_attendance_page_offers_closing_open_entries(client_for, make_employee):
     html = client_for("Manager").get("/app/staff/attendance/").content.decode()
     assert f"/app/staff/attendance/{entry.pk}/close/" in html
     assert "Forgot to clock out?" in html
+
+
+@pytest.mark.django_db
+def test_close_form_suggests_the_planned_shift_end_never_the_maximum(client_for, make_employee):
+    """Pre-filling the latest allowed time paid ~16h to anyone closed with one careless click."""
+    emp = make_employee()
+    clock_in = timezone.localtime() - dt.timedelta(hours=30)
+    TimeEntry.objects.create(employee=emp, clock_in=clock_in)
+    html = client_for("Manager").get("/app/staff/attendance/").content.decode()
+    assert 'name="clock_out" value=' not in html  # unscheduled: manager must enter the time
+    Shift.objects.create(
+        employee=emp, date=clock_in.date(), start_time=T9, end_time=dt.time(23, 30)
+    )
+    html = client_for("Manager").get("/app/staff/attendance/").content.decode()
+    expected = clock_in.replace(hour=23, minute=30).strftime("%Y-%m-%dT%H:%M")
+    if clock_in.replace(hour=23, minute=30) > clock_in:
+        assert f'value="{expected}"' in html

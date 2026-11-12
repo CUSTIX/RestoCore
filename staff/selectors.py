@@ -38,6 +38,16 @@ def shifts_between(start: dt.date, end: dt.date, employee=None) -> QuerySet[Shif
     return qs.order_by("date", "start_time", "id")
 
 
+def scheduled_end(employee_id: int, date: dt.date) -> dt.time | None:
+    """When the person's last shift on `date` was planned to end (None if not scheduled)."""
+    return (
+        Shift.objects.filter(employee_id=employee_id, date=date)
+        .order_by("-end_time")
+        .values_list("end_time", flat=True)
+        .first()
+    )
+
+
 def upcoming_shifts(employee: Employee, days: int = 14) -> QuerySet[Shift]:
     today = timezone.localdate()
     return shifts_between(today, today + dt.timedelta(days=days), employee=employee)
