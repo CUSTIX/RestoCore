@@ -46,7 +46,7 @@ jobs:
       POSTGRES_PORT: "5432"
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: actions/setup-python@v7
         with:
@@ -73,7 +73,7 @@ jobs:
     # Fails CI when a pinned dependency has a published vulnerability (PyPI advisory database).
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
@@ -87,6 +87,6 @@ jobs:
     # Fails CI if either image no longer builds. Builds only; nothing is pushed anywhere.
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - run: docker build --target dev -t restocore:dev .
       - run: docker build --target prod -t restocore:prod .
