@@ -24,7 +24,7 @@ select = ["E", "F", "I", "B", "UP", "DJ", "S"]
 DJANGO_SETTINGS_MODULE = "config.settings"
 testpaths = [
     "tests", "core", "accounts", "dashboard", "website", "bookings", "inventory", "sales",
-    "staff", "payroll", "api", "mcp_server",
+    "staff", "payroll", "api", "mcp_server", "assistant",
 ]
 python_files = ["test_*.py"]
 # STATIC_ROOT only exists in the prod image (collectstatic at build); that is expected in tests.

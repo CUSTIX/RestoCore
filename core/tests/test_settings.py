@@ -54,3 +54,16 @@ def test_database_url_takes_precedence_over_postgres_vars(reload_settings):
     s = reload_settings(DATABASE_URL="postgres://u:p@hosted:5432/live", POSTGRES_HOST="db")
     assert s.DATABASES["default"]["HOST"] == "hosted"
     assert s.DATABASES["default"]["NAME"] == "live"
+
+
+def test_every_app_with_tests_is_collected():
+    """pytest only looks in `testpaths`: an app missing there has its tests silently skipped
+    (in CI too). Ask RestoCore's tests were missed exactly like this once."""
+    import tomllib
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[2]
+    config = tomllib.loads((root / "pyproject.toml").read_text())
+    testpaths = set(config["tool"]["pytest"]["ini_options"]["testpaths"])
+    apps_with_tests = {p.parent.name for p in root.glob("*/tests") if p.is_dir()}
+    assert apps_with_tests <= testpaths, apps_with_tests - testpaths
