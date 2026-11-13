@@ -86,7 +86,7 @@ body.app { background: var(--bg); }
 .grid--2 { grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); }
 .grid--3 { grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); }
 
-.stat-card { overflow: hidden; transition: transform .35s var(--ease-out), box-shadow .35s var(--ease-out); }
+.stat-card { overflow: hidden; container-type: inline-size; transition: transform .35s var(--ease-out), box-shadow .35s var(--ease-out); }
 .stat-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
 .stat-card::after { content: ""; position: absolute; right: -40px; top: -40px; width: 140px; height: 140px; border-radius: 50%;
   background: radial-gradient(circle, var(--tint, var(--accent-soft)), transparent 70%); opacity: .9; pointer-events: none; }
@@ -95,6 +95,8 @@ body.app { background: var(--bg); }
 .stat-card--latte { --tint: color-mix(in srgb, var(--latte) 20%, transparent); --tint-ink: var(--warn); }
 .stat-card--info { --tint: var(--info-soft); --tint-ink: var(--info); }
 .stat { font-size: 2rem; font-weight: 800; letter-spacing: -.03em; line-height: 1.1; font-variant-numeric: tabular-nums; }
+/* Money can be long ("₱999,999.99"): scale with the tile instead of wrapping onto two lines. */
+.stat--money { font-size: min(2rem, 14cqi); white-space: nowrap; }
 .stat-label { color: var(--ink-3); font-size: .86rem; font-weight: 600; margin-top: .2rem; }
 .stat-label a { color: inherit; }
 .stat-link { position: absolute; inset: 0; z-index: 1; }
@@ -289,6 +291,7 @@ th { white-space: nowrap; }
   .page-header__actions .btn { flex: 1 1 auto; }
   .card { padding: 1.05rem; }
   .stat { font-size: 1.7rem; }
+  .stat--money { font-size: min(1.7rem, 14cqi); }
 }
 @media (max-width: 640px) {
   /* Tables become stacked cards: one row per card, each cell labelled with its column name. */

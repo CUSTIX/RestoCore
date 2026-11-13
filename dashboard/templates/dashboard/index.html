@@ -12,7 +12,7 @@
   {% if sales %}
     <div class="card stat-card">
       <div class="stat-card__icon">{% icon "trend" %}</div>
-      <div class="stat">{{ currency }}<span data-count="{{ sales.revenue }}" data-decimals="2">{{ sales.revenue|money }}</span></div>
+      <div class="stat stat--money">{{ currency }}<span data-count="{{ sales.revenue }}" data-decimals="2">{{ sales.revenue|money }}</span></div>
       <div class="stat-label">Sales today · {{ sales.orders }} order{{ sales.orders|pluralize }}</div>
     </div>
   {% endif %}
