@@ -193,18 +193,30 @@ def test_attendance_page_offers_closing_open_entries(client_for, make_employee):
 @pytest.mark.django_db
 def test_close_form_suggests_the_planned_shift_end_never_the_maximum(client_for, make_employee):
     """Pre-filling the latest allowed time paid ~16h to anyone closed with one careless click."""
+    # Fixed times two days ago, so the result doesn't depend on when the suite runs.
     emp = make_employee()
-    clock_in = timezone.localtime() - dt.timedelta(hours=30)
+    clock_in = timezone.localtime().replace(hour=10, minute=0, second=0, microsecond=0)
+    clock_in -= dt.timedelta(days=2)
     TimeEntry.objects.create(employee=emp, clock_in=clock_in)
     html = client_for("Manager").get("/app/staff/attendance/").content.decode()
     assert 'name="clock_out" value=' not in html  # unscheduled: manager must enter the time
+    Shift.objects.create(employee=emp, date=clock_in.date(), start_time=T9, end_time=dt.time(18, 0))
+    html = client_for("Manager").get("/app/staff/attendance/").content.decode()
+    assert f'value="{clock_in.replace(hour=18).strftime("%Y-%m-%dT%H:%M")}"' in html
+
+
+@pytest.mark.django_db
+def test_close_form_never_suggests_a_planned_end_past_the_maximum(client_for, make_employee):
+    emp = make_employee()
+    clock_in = timezone.localtime().replace(hour=4, minute=0, second=0, microsecond=0)
+    clock_in -= dt.timedelta(days=2)
+    TimeEntry.objects.create(employee=emp, clock_in=clock_in)
+    # 04:00 -> 23:30 is 19.5 hours: longer than any allowed shift, so nothing is pre-filled.
     Shift.objects.create(
         employee=emp, date=clock_in.date(), start_time=T9, end_time=dt.time(23, 30)
     )
     html = client_for("Manager").get("/app/staff/attendance/").content.decode()
-    expected = clock_in.replace(hour=23, minute=30).strftime("%Y-%m-%dT%H:%M")
-    if clock_in.replace(hour=23, minute=30) > clock_in:
-        assert f'value="{expected}"' in html
+    assert 'name="clock_out" value=' not in html
 
 
 @pytest.mark.django_db
