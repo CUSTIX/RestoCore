@@ -8,6 +8,10 @@ so an AI assistant can answer questions about the restaurant.
 
 *"Where we RESTOre your confidence in managing."*
 
+![RestoCore tour: public site with a scroll-driven coffee pour, booking form, cashier POS that
+blocks Charge until the cash covers the total, owner dashboard, kitchen board, inventory, schedules
+and payroll](docs/demo.gif)
+
 **Live demo: <https://restocore.onrender.com>** (staff login at `/accounts/login/`; the demo accounts
 are listed there with one-click fill). The free server sleeps when idle, so the first visit can
 take about a minute to wake up; the demo data resets each time it starts.
