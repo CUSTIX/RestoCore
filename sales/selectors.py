@@ -133,3 +133,78 @@ def daily_revenue(days: int = 7) -> list[dict]:
         }
         for i in range(days)
     ]
+
+
+def sales_between(start: dt.date, end: dt.date) -> dict:
+    """Sales report for a date range (inclusive, local dates): totals, per day, per payment
+    method, order type, hour and cashier, and the best-selling dishes."""
+    in_range = Order.objects.filter(created_at__date__gte=start, created_at__date__lte=end)
+    paid = in_range.filter(status=Order.Status.PAID)
+    agg = paid.aggregate(revenue=Sum("total"), tax=Sum("tax"), orders=Count("id"))
+    revenue, orders = agg["revenue"] or Decimal("0"), agg["orders"]
+    voided = in_range.filter(status=Order.Status.VOIDED).aggregate(
+        n=Count("id"), value=Sum("total")
+    )
+
+    def grouped(field):
+        return [
+            {field: r[field], "revenue": r["revenue"], "orders": r["orders"]}
+            for r in paid.values(field)
+            .annotate(revenue=Sum("total"), orders=Count("id"))
+            .order_by("-revenue")
+        ]
+
+    by_day = (
+        paid.annotate(day=TruncDate("created_at"))
+        .values("day")
+        .annotate(revenue=Sum("total"), orders=Count("id"))
+        .order_by("day")
+    )
+    by_hour: dict[int, dict] = {}
+    for created_at, total in paid.values_list("created_at", "total"):
+        hour = timezone.localtime(created_at).hour
+        row = by_hour.setdefault(
+            hour, {"hour": f"{hour:02d}:00", "revenue": Decimal("0"), "orders": 0}
+        )
+        row["revenue"] += total
+        row["orders"] += 1
+    by_cashier = (
+        paid.values("cashier__first_name", "cashier__last_name", "cashier__username")
+        .annotate(revenue=Sum("total"), orders=Count("id"))
+        .order_by("-revenue")
+    )
+    top = (
+        OrderLine.objects.filter(order__in=paid)
+        .values("name")
+        .annotate(qty=Sum("quantity"), revenue=Sum("line_total"))
+        .order_by("-revenue", "name")
+    )
+    return {
+        "start": start,
+        "end": end,
+        "revenue": revenue,
+        "tax_collected": agg["tax"] or Decimal("0"),
+        "orders": orders,
+        "average_order": (revenue / orders).quantize(Decimal("0.01")) if orders else Decimal("0"),
+        "voided_orders": voided["n"],
+        "voided_value": voided["value"] or Decimal("0"),
+        "by_day": list(by_day),
+        "by_payment_method": grouped("payment_method"),
+        "by_order_type": grouped("order_type"),
+        "by_hour": [by_hour[h] for h in sorted(by_hour)],
+        "by_cashier": [
+            {
+                "cashier": f"{r['cashier__first_name']} {r['cashier__last_name']}".strip()
+                or r["cashier__username"],
+                "revenue": r["revenue"],
+                "orders": r["orders"],
+            }
+            for r in by_cashier
+        ],
+        "items": list(top),
+    }
+
+
+def recent_orders(*, date=None, status: str = "", limit: int = 30) -> list[Order]:
+    """Orders with their lines, newest first (for summaries and the assistant)."""
+    return list(filter_orders(date=date, status=status).prefetch_related("lines")[:limit])

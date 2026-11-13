@@ -16,6 +16,7 @@ def _item(label, url, roles, section, icon, group):
 
 NAV_ITEMS = [
     _item("Dashboard", "dashboard:index", ALL_ROLES, "dashboard", "dashboard", "Overview"),
+    _item("Ask RestoCore", "assistant:chat", (OWNER,), "assistant", "sparkle", "Overview"),
     _item("Bookings", "bookings:list", (*MANAGEMENT, STAFF), "bookings", "calendar", "Service"),
     _item("Point of sale", "sales:pos", (*MANAGEMENT, CASHIER), "pos", "pos", "Service"),
     _item("Orders", "sales:order_list", (*MANAGEMENT, CASHIER), "orders", "receipt", "Service"),

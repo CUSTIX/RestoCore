@@ -359,3 +359,38 @@ th { white-space: nowrap; }
 .open-entry__form label { font-weight: 700; font-size: .84rem; color: var(--ink-2); }
 .open-entry__form input { width: auto; }
 .open-entry__form .error { flex-basis: 100%; }
+
+/* ---- Ask RestoCore (assistant) ---------------------------------------------------------- */
+.ask { max-width: 860px; display: grid; gap: 1rem; }
+.ask__log { display: grid; gap: .85rem; min-height: 8rem; }
+.ask__hello { text-align: center; padding: 2.2rem 1rem 1rem; display: grid; justify-items: center; gap: .55rem; }
+.ask__hello h2 { margin: 0; font-family: var(--font-display); font-size: 1.6rem; }
+.ask__hello p { max-width: 34rem; margin: 0; }
+.ask__orb { width: 60px; height: 60px; border-radius: 50%; display: grid; place-items: center; color: var(--accent-ink);
+  background: radial-gradient(circle at 30% 30%, var(--latte), var(--accent)); box-shadow: var(--shadow-lg); animation: ask-float 4s ease-in-out infinite; }
+@keyframes ask-float { 50% { transform: translateY(-5px) rotate(8deg); } }
+.ask__msg { max-width: min(46rem, 92%); padding: .8rem 1rem; border-radius: var(--radius); line-height: 1.55; animation: ask-in .35s var(--ease-out) both; }
+.ask__msg p { margin: 0; }
+.ask__msg--you { justify-self: end; background: var(--ink); color: var(--bg); border-bottom-right-radius: 6px; white-space: pre-wrap; }
+.ask__msg--ai { justify-self: start; background: var(--bg-elevated); border: 1px solid var(--line); box-shadow: var(--shadow-sm); border-bottom-left-radius: 6px; }
+.ask__msg--error { background: var(--danger-soft); color: var(--danger); border-color: transparent; }
+.ask__body { display: grid; gap: .55rem; }
+.ask__body ul { margin: 0; padding-left: 1.2rem; display: grid; gap: .3rem; }
+.ask__sources { margin-top: .6rem !important; padding-top: .5rem; border-top: 1px dashed var(--line); font-size: .78rem; color: var(--ink-3); }
+@keyframes ask-in { from { opacity: 0; transform: translateY(6px); } }
+.ask__thinking { display: flex; gap: .3rem; padding: .25rem 0; }
+.ask__thinking span { width: 7px; height: 7px; border-radius: 50%; background: var(--ink-3); animation: ask-dot 1s ease-in-out infinite; }
+.ask__thinking span:nth-child(2) { animation-delay: .15s; }
+.ask__thinking span:nth-child(3) { animation-delay: .3s; }
+@keyframes ask-dot { 50% { transform: translateY(-4px); opacity: .4; } }
+.ask__suggest { display: flex; flex-wrap: wrap; gap: .45rem; }
+.ask__suggest .chip { white-space: normal; text-align: left; font-size: .84rem; }
+.ask__form { position: sticky; bottom: .75rem; display: grid; grid-template-columns: 1fr auto; gap: .5rem .6rem; align-items: end; padding: .7rem; }
+.ask__form textarea { resize: none; min-height: 2.9rem; max-height: 9rem; border: 0; background: transparent; box-shadow: none; padding: .55rem .4rem; font: inherit; color: inherit; }
+.ask__form textarea:focus { outline: none; }
+.ask__form:focus-within { border-color: var(--accent); }
+.ask__form.is-busy .btn { opacity: .6; }
+.ask__hint { grid-column: 1 / -1; margin: 0; font-size: .76rem; color: var(--ink-3); }
+.ask__privacy { font-size: .76rem; margin: 0; }
+.ask__off code, .ask__privacy code { font-size: .85em; }
+@media (prefers-reduced-motion: reduce) { .ask__orb, .ask__msg, .ask__thinking span { animation: none; } }

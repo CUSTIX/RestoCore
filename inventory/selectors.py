@@ -1,4 +1,6 @@
-from django.db.models import F, Q, QuerySet
+from decimal import Decimal
+
+from django.db.models import Count, F, Q, QuerySet, Sum
 
 from inventory.models import InventoryItem, StockMovement
 
@@ -44,3 +46,25 @@ def quantities(item_ids) -> dict[int, tuple]:
     return {
         i.pk: (i.name, i.quantity, i.unit) for i in InventoryItem.objects.filter(pk__in=item_ids)
     }
+
+
+def movement_totals(start, end) -> list[dict]:
+    """Stock change per item and reason between two local dates, with its cost at today's
+    cost per unit (e.g. how much waste cost this month)."""
+    rows = (
+        StockMovement.objects.filter(created_at__date__gte=start, created_at__date__lte=end)
+        .values("item__name", "item__unit", "item__cost_per_unit", "reason")
+        .annotate(change=Sum("change"), movements=Count("id"))
+        .order_by("item__name", "reason")
+    )
+    return [
+        {
+            "item": r["item__name"],
+            "unit": r["item__unit"],
+            "reason": r["reason"],
+            "change": r["change"],
+            "movements": r["movements"],
+            "cost": (abs(r["change"]) * r["item__cost_per_unit"]).quantize(Decimal("0.01")),
+        }
+        for r in rows
+    ]

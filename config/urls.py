@@ -13,6 +13,7 @@ urlpatterns = [
     path("app/sales/", include("sales.urls")),
     path("app/staff/", include("staff.urls")),
     path("app/payroll/", include("payroll.urls")),
+    path("app/assistant/", include("assistant.urls")),
     path("api/", include("api.urls")),
     path("admin/", admin.site.urls),
     path("healthz/", healthz, name="healthz"),

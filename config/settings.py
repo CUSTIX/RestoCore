@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     "staff",
     "payroll",
     "api",
+    "assistant",
 ]
 
 AUTH_USER_MODEL = "accounts.User"
@@ -57,6 +58,15 @@ LOGOUT_REDIRECT_URL = "website:home"
 
 RESTAURANT_NAME = os.environ.get("RESTAURANT_NAME", "Little Roast Café")
 CURRENCY_SYMBOL = os.environ.get("CURRENCY_SYMBOL", "₱")
+
+# "Ask RestoCore": the owner's AI assistant (Google Gemini, free tier). Empty key = assistant off.
+# The key is free from https://aistudio.google.com/apikey. Questions and the data needed to answer
+# them are sent to Google; the demo only holds fake data.
+ASSISTANT_API_KEY = os.environ.get("GEMINI_API_KEY", "")
+ASSISTANT_MODEL = os.environ.get("ASSISTANT_MODEL", "gemini-flash-latest")
+# Free-tier quota guard: questions per owner per hour, and for the whole site per day.
+ASSISTANT_HOURLY_LIMIT = int(os.environ.get("ASSISTANT_HOURLY_LIMIT", "20"))
+ASSISTANT_DAILY_LIMIT = int(os.environ.get("ASSISTANT_DAILY_LIMIT", "200"))
 
 # Read-only API for the MCP server. Empty token = API disabled.
 API_TOKEN = os.environ.get("RESTOCORE_API_TOKEN", "")

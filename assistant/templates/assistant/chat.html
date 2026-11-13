@@ -1,0 +1,51 @@
+{% extends "core/app_base.html" %}
+{% load static core %}
+{% block title %}Ask RestoCore{% endblock %}
+{% block eyebrow %}<div class="page-header__eyebrow">AI assistant · owner only · read-only</div>{% endblock %}
+{% block page_title %}Ask RestoCore{% endblock %}
+{% block page_actions %}
+  {% if turns %}
+    <form method="post" data-ask-clear>{% csrf_token %}<input type="hidden" name="action" value="clear"><button class="btn btn--ghost" type="submit">New conversation</button></form>
+  {% endif %}
+{% endblock %}
+{% block content %}
+<div class="ask" data-ask>
+  {% if not enabled %}
+    <div class="card ask__off">
+      <h2>{% icon "sparkle" %} The assistant is switched off</h2>
+      <p>Set <code>GEMINI_API_KEY</code> to turn it on. A key is free from Google AI Studio; see <code>docs/assistant.md</code>.</p>
+    </div>
+  {% else %}
+    <section class="ask__log" data-ask-log aria-live="polite" aria-label="Conversation">
+      {% if not turns %}
+        <div class="ask__hello" data-ask-hello>
+          <span class="ask__orb" aria-hidden="true">{% icon "sparkle" 28 %}</span>
+          <h2>What would you like to know?</h2>
+          <p class="muted">I can look up sales, orders, the menu, bookings, stock, the schedule, attendance, leave and payroll. I can only read, never change anything.</p>
+        </div>
+      {% endif %}
+      {% for turn in turns %}
+        <div class="ask__msg ask__msg--you"><p>{{ turn.q }}</p></div>
+        <div class="ask__msg ask__msg--ai">
+          <div class="ask__body">{% include "assistant/_answer.html" with blocks=turn.blocks %}</div>
+          {% if turn.sources %}<p class="ask__sources">Looked at: {{ turn.sources|join:" · " }}</p>{% endif %}
+        </div>
+      {% endfor %}
+    </section>
+
+    <div class="ask__suggest" aria-label="Example questions">
+      {% for s in suggestions %}<button type="button" class="chip" data-ask-suggest="{{ s }}">{{ s }}</button>{% endfor %}
+    </div>
+
+    <form method="post" class="ask__form card" data-ask-form novalidate>
+      {% csrf_token %}
+      <label for="{{ form.question.id_for_label }}" class="sr-only">Your question</label>
+      {{ form.question }}
+      <button class="btn" type="submit" data-ask-send{% if limit_message %} disabled{% endif %}>{% icon "arrow" 18 %}<span>Ask</span></button>
+      <p class="ask__hint" data-ask-hint role="status">{% if limit_message %}{{ limit_message }}{% else %}{% for e in form.question.errors %}{{ e }}{% empty %}Enter to send · Shift+Enter for a new line{% endfor %}{% endif %}</p>
+    </form>
+    <p class="ask__privacy muted">Questions and the data needed to answer them are sent to Google Gemini. This demo only contains fake data.</p>
+  {% endif %}
+</div>
+{% endblock %}
+{% block scripts %}<script src="{% static 'assistant/assistant.js' %}" defer></script>{% endblock %}

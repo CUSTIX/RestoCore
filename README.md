@@ -57,6 +57,7 @@ accounts: `restocore-demo` (set by `DEMO_PASSWORD` in `.env`). To start over:
 | **Staff** | Employees linked to logins and roles, weekly schedule with overlap and leave checks, clock in/out, leave requests with approval rules. |
 | **Payroll (demo)** | Pay periods from attendance hours + approved paid leave, configurable deduction rates, draft → finalized (locked). |
 | **Dashboard** | Role-aware: sales today and last 7 days, bookings, kitchen queue, low stock, pending leave, who is on shift. |
+| **Ask RestoCore (AI)** | Owner-only assistant: ask in plain words ("compare this week with last week", "what would restocking cost?") and Google Gemini answers using 14 read-only tools over every module. Free tier, rate-limited, can never change data. See [docs/assistant.md](docs/assistant.md). |
 | **API + MCP** | Token-protected read-only JSON API and an MCP server with 5 read-only tools. See [docs/mcp.md](docs/mcp.md). |
 
 ## Branding and themes
@@ -179,4 +180,5 @@ inventory/    items and stock ledger  sales/      menu, POS, orders, kitchen
 staff/        employees, shifts, attendance, leave
 payroll/      demo payroll            dashboard/  dashboard + seed_demo command
 api/          read-only JSON API      mcp_server/ MCP server (separate requirements)
+assistant/    Ask RestoCore: the owner's AI assistant (Gemini + read-only tools)
 ```

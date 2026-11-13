@@ -30,5 +30,7 @@ services:
         value: "true"
       - key: CLIENT_IP_HEADER
         value: HTTP_CF_CONNECTING_IP # Cloudflare (in front of Render) overwrites this header
+      - key: GEMINI_API_KEY
+        sync: false # optional: turns on Ask RestoCore; free key from Google AI Studio
       - key: WEB_CONCURRENCY
         value: "2" # free instance has 512 MB of RAM

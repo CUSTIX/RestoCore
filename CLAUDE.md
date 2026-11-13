@@ -33,7 +33,7 @@ One domain, one Django project, one app per module (a "modular monolith"):
 /api/...          later, for the MCP server
 ```
 
-Planned apps: `accounts`, `website`, `bookings`, `inventory`, `sales`, `staff`, `payroll`.
+Apps: `accounts`, `website`, `bookings`, `inventory`, `sales`, `staff`, `payroll`, `dashboard`, `api`, `assistant` (owner AI assistant, see `docs/assistant.md`).
 
 Roles: Owner, Manager, Cashier, Kitchen, Staff. Use Django Groups and permissions. Every staff view must check the role.
 

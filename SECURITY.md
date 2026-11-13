@@ -20,6 +20,18 @@ repository. Don't open a public issue for security problems.
 - The read-only API needs `Authorization: Bearer <token>`, compared in constant time; it is off
   unless a token is configured.
 
+**AI assistant (Ask RestoCore)**
+- Owner only (a test per role). The model only gets **read-only tools** that call each module's
+  selectors: no SQL and no writes, so a confused or prompt-injected model can at worst answer
+  wrongly. The system prompt marks guest names, notes and leave reasons as untrusted data.
+- Tool arguments are validated (dates, ranges of at most a year, row caps); unknown tools and
+  arguments are refused. Customer phone numbers and emails, and staff phone numbers, are never
+  sent to the model.
+- Answers come back as plain data (paragraphs, bullets, bold) and are rendered with escaping and
+  `textContent`, so model output can never become HTML or script.
+- Rate-limited per owner per hour and site-wide per day (Postgres throttle) to protect the free
+  quota. The API key is read only from `GEMINI_API_KEY` and sent in a header, never in a URL.
+
 **Sign-in**
 - Failed sign-ins are throttled (stored in Postgres, so every worker sees them): 5 per username +
   IP or 30 per IP in 15 minutes. Locking is per username *and* IP, so a stranger can't lock a real

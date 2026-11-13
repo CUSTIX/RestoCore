@@ -102,3 +102,22 @@ def availability(date: dt.date, exclude_id: int | None = None) -> dict[str, int 
         left = max(0, SLOT_CAPACITY - (taken.get(t) or 0))
         result[t.strftime("%H:%M")] = None if passed else left
     return result
+
+
+def stats_between(start: dt.date, end: dt.date) -> dict:
+    """Booking counts per status and source, guests, and the no-show rate for a date range."""
+    qs = Booking.objects.filter(date__gte=start, date__lte=end)
+    by_status = dict(qs.values("status").annotate(n=Count("id")).values_list("status", "n"))
+    by_source = dict(qs.values("source").annotate(n=Count("id")).values_list("source", "n"))
+    happened = by_status.get(Booking.Status.COMPLETED, 0) + by_status.get(Booking.Status.SEATED, 0)
+    no_shows = by_status.get(Booking.Status.NO_SHOW, 0)
+    guests = qs.filter(status__in=ACTIVE_STATUSES).aggregate(g=Sum("party_size"))["g"] or 0
+    return {
+        "start": start,
+        "end": end,
+        "bookings": sum(by_status.values()),
+        "by_status": by_status,
+        "by_source": by_source,
+        "expected_or_served_guests": guests,
+        "no_show_rate": round(no_shows / (happened + no_shows), 3) if happened + no_shows else None,
+    }
