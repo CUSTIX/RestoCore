@@ -10,7 +10,8 @@ name: Keep awake
 
 on:
   schedule:
-    - cron: "*/10 * * * *"
+    # Every 10 minutes, off the busy :00 minute (GitHub delays or drops runs at the top of the hour).
+    - cron: "7,17,27,37,47,57 * * * *"
   workflow_dispatch:
 
 # Least privilege: the job only makes an HTTP request.
