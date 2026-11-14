@@ -1,4 +1,5 @@
 import datetime as dt
+import uuid
 from decimal import Decimal
 
 from django.db.models import Count, Prefetch, QuerySet, Sum
@@ -6,7 +7,7 @@ from django.db.models.functions import TruncDate
 from django.utils import timezone
 
 from inventory import selectors as inventory_selectors
-from sales.models import MenuCategory, MenuItem, Order, OrderLine
+from sales.models import MenuCategory, MenuItem, Order, OrderLine, SelfOrder
 
 
 def public_menu() -> list[MenuCategory]:
@@ -208,3 +209,50 @@ def sales_between(start: dt.date, end: dt.date) -> dict:
 def recent_orders(*, date=None, status: str = "", limit: int = 30) -> list[Order]:
     """Orders with their lines, newest first (for summaries and the assistant)."""
     return list(filter_orders(date=date, status=status).prefetch_related("lines")[:limit])
+
+
+# ---- Customer self-ordering ---------------------------------------------------------------
+
+
+def _open_self_orders() -> QuerySet[SelfOrder]:
+    from sales.services import SELF_ORDER_TTL
+
+    return SelfOrder.objects.filter(
+        status=SelfOrder.Status.PENDING, created_at__gte=timezone.now() - SELF_ORDER_TTL
+    )
+
+
+def open_self_orders() -> QuerySet[SelfOrder]:
+    """Unpaid customer orders waiting at the counter, oldest first (first come, first served)."""
+    return (
+        _open_self_orders().annotate(item_count=Sum("lines__quantity")).order_by("created_at", "id")
+    )
+
+
+def open_self_order_by_code(code: str) -> SelfOrder | None:
+    return _open_self_orders().filter(code=code).first() if code else None
+
+
+def self_order_by_token(token) -> SelfOrder | None:
+    return (
+        SelfOrder.objects.select_related("order")
+        .prefetch_related("lines")
+        .filter(token=token)
+        .first()
+    )
+
+
+def self_orders_by_tokens(tokens: list[str]) -> list[SelfOrder]:
+    """This visitor's recent orders (tokens kept in their session), newest first."""
+    valid = []
+    for t in tokens:
+        try:
+            valid.append(uuid.UUID(str(t)))
+        except ValueError:
+            continue
+    since = timezone.now() - dt.timedelta(hours=12)
+    return list(
+        SelfOrder.objects.filter(token__in=valid, created_at__gte=since)
+        .select_related("order")
+        .order_by("-created_at")
+    )

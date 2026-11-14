@@ -1,0 +1,26 @@
+{% extends "core/app_base.html" %}
+{% load static core %}
+{% block title %}Table QR codes{% endblock %}
+{% block styles %}{{ block.super }}<link rel="stylesheet" href="{% static 'sales/order.css' %}">{% endblock %}
+{% block page_title %}Table QR codes{% endblock %}
+{% block page_actions %}<button class="btn" data-print>{% icon "receipt" 18 %} Print</button>{% endblock %}
+{% block content %}
+<form method="get" class="filters no-print" novalidate>
+  <div class="field{% if form.tables.errors %} field--error{% endif %}">
+    <label for="{{ form.tables.id_for_label }}">{{ form.tables.label }}</label>{{ form.tables }}
+    {% for e in form.tables.errors %}<small class="error">{{ e }}</small>{% endfor %}
+  </div>
+  <button class="btn" type="submit">Make codes</button>
+</form>
+<p class="muted no-print" style="margin-top:-.4rem">{{ form.tables.help_text }} Customers scan, order on their phone, then pay at the counter with the code they get. Each sheet below prints on its own card.</p>
+<div class="qr-sheet">
+  {% for card in cards %}
+    <figure class="qr-card">
+      <figcaption class="qr-card__title">{{ card.label }}</figcaption>
+      <div class="qr-card__code">{{ card.svg }}</div>
+      <p class="qr-card__hint">{{ card.hint }} · {{ restaurant_name }}</p>
+      <a class="qr-card__url no-print" href="{{ card.url }}" target="_blank" rel="noopener">Open link</a>
+    </figure>
+  {% endfor %}
+</div>
+{% endblock %}

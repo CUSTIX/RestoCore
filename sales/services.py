@@ -1,16 +1,23 @@
 """Sales rules: pricing, checkout (order + stock in one transaction), kitchen flow and voids."""
 
+import datetime as dt
+import secrets
 import uuid
 from collections import defaultdict
 from decimal import ROUND_HALF_UP, Decimal
 
+import qrcode
+import qrcode.constants
+import qrcode.image.svg
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
 from django.utils import timezone
 
+from core import throttle
+from inventory import selectors as inventory_selectors
 from inventory import services as inventory_services
-from sales.models import MenuItem, Order, OrderLine
+from sales.models import MenuItem, Order, OrderLine, SelfOrder, SelfOrderLine
 
 CENT = Decimal("0.01")
 MAX_QTY_PER_LINE = 99
@@ -200,3 +207,154 @@ def save_menu_item(form, recipe_formset) -> MenuItem:
         recipe_formset.instance = item
         recipe_formset.save()
     return item
+
+
+# ---- Customer self-ordering (table QR codes) ----------------------------------------------
+
+SELF_ORDER_TTL = dt.timedelta(minutes=60)  # unpaid longer than this: expired
+SELF_ORDERS_PER_IP_PER_HOUR = 30  # a whole restaurant may share one Wi-Fi IP
+CODE_ALPHABET = "ACDEFHJKMNPRTVWXY34679"  # no 0/O, 1/I/L, 2/Z, 5/S, 8/B, U/V look-alikes
+CODE_LENGTH = 5
+TOO_MANY_SELF_ORDERS = "Too many orders from this network. Please order at the counter."
+
+
+def normalize_code(raw: str) -> str:
+    """What the customer read out, as typed by the cashier: '#k7m-4p ' -> 'K7M4P'."""
+    return "".join(ch for ch in str(raw).upper() if ch.isalnum())[:8]
+
+
+def new_code() -> str:
+    return "".join(secrets.choice(CODE_ALPHABET) for _ in range(CODE_LENGTH))
+
+
+def expire_stale_self_orders() -> int:
+    """Mark unpaid orders older than the TTL as expired (frees their codes)."""
+    cutoff = timezone.now() - SELF_ORDER_TTL
+    return SelfOrder.objects.filter(status=SelfOrder.Status.PENDING, created_at__lt=cutoff).update(
+        status=SelfOrder.Status.EXPIRED, updated_at=timezone.now()
+    )
+
+
+def check_stock(lines: list[dict]) -> None:
+    """Refuse an order the kitchen can't make right now (dishes share ingredients, so the whole
+    order is checked, not one dish at a time)."""
+    needed = ingredients_needed(lines)
+    stock = inventory_selectors.quantities(needed)
+    short = {pk for pk, qty in needed.items() if pk in stock and stock[pk][1] < qty}
+    if short:
+        dishes = [
+            line["item"].name
+            for line in lines
+            if any(r.inventory_item_id in short for r in line["item"].recipe.all())
+        ]
+        raise ValidationError(
+            f"Sorry, we can't make that many {', '.join(dishes)} right now. "
+            "Please lower the quantity or pick something else."
+        )
+
+
+def create_self_order(
+    *, quantities: dict[int, int], order_type: str, table_label: str = "", ip: str | None
+) -> SelfOrder:
+    """A customer's order from their phone: priced and stock-checked, but not paid."""
+    if ip is not None and throttle.is_limited(
+        "self-order-ip", ip, limit=SELF_ORDERS_PER_IP_PER_HOUR, window=dt.timedelta(hours=1)
+    ):
+        raise ValidationError(TOO_MANY_SELF_ORDERS)
+    lines, subtotal, tax, total = price_lines(quantities)
+    check_stock(lines)
+    expire_stale_self_orders()
+    table = table_label.strip() if order_type == Order.OrderType.DINE_IN else ""
+    for _attempt in range(10):
+        try:
+            with transaction.atomic():
+                self_order = SelfOrder.objects.create(
+                    code=new_code(),
+                    order_type=order_type,
+                    table_label=table,
+                    subtotal=subtotal,
+                    tax=tax,
+                    total=total,
+                )
+                SelfOrderLine.objects.bulk_create(
+                    [
+                        SelfOrderLine(
+                            self_order=self_order,
+                            menu_item=line["item"],
+                            name=line["item"].name,
+                            unit_price=line["item"].price,
+                            quantity=line["quantity"],
+                            line_total=line["line_total"],
+                        )
+                        for line in lines
+                    ]
+                )
+            break
+        except IntegrityError:  # that code is taken by another open order: draw again
+            continue
+    else:
+        raise ValidationError("Please try again in a moment.")
+    if ip is not None:
+        throttle.record("self-order-ip", ip)
+    return self_order
+
+
+@transaction.atomic
+def charge_self_order(
+    self_order: SelfOrder,
+    *,
+    quantities: dict[int, int],
+    cashier,
+    order_type: str,
+    payment_method: str,
+    amount_tendered: Decimal | None = None,
+    table_label: str = "",
+) -> Order:
+    """The cashier checked the customer's order (and may have changed it): take payment.
+
+    Creates the real order (stock deducted, sent to the kitchen) with the self-order's token as
+    checkout token, so a double click hands back the same order instead of charging twice.
+    """
+    self_order = SelfOrder.objects.select_for_update().get(pk=self_order.pk)
+    if self_order.order_id:
+        return self_order.order
+    if self_order.status == SelfOrder.Status.CANCELLED:
+        raise ValidationError("This customer order was cancelled. Start a new order instead.")
+    # PENDING, or EXPIRED while the cashier had it open: the customer is at the counter.
+    order = place_order(
+        quantities=quantities,
+        cashier=cashier,
+        order_type=order_type,
+        payment_method=payment_method,
+        amount_tendered=amount_tendered,
+        table_label=table_label,
+        checkout_token=self_order.token,
+    )
+    self_order.order = order
+    self_order.status = SelfOrder.Status.PAID
+    self_order.save(update_fields=["order", "status", "updated_at"])
+    return order
+
+
+@transaction.atomic
+def cancel_self_order(self_order: SelfOrder) -> SelfOrder:
+    """Customer changed their mind, or never came to pay. Only unpaid orders can be cancelled."""
+    self_order = SelfOrder.objects.select_for_update().get(pk=self_order.pk)
+    if self_order.status not in (SelfOrder.Status.PENDING, SelfOrder.Status.EXPIRED):
+        raise ValidationError("This order is already paid or cancelled.")
+    self_order.status = SelfOrder.Status.CANCELLED
+    self_order.save(update_fields=["status", "updated_at"])
+    return self_order
+
+
+def qr_svg(data: str) -> str:
+    """An inline SVG QR code for `data` (a URL we built ourselves)."""
+    image = qrcode.make(
+        data,
+        image_factory=qrcode.image.svg.SvgPathImage,
+        box_size=10,
+        border=2,
+        error_correction=qrcode.constants.ERROR_CORRECT_M,
+    )
+    svg = image.to_string(encoding="unicode")
+    return svg[svg.index("<svg") :]  # drop the XML declaration: it's embedded in HTML

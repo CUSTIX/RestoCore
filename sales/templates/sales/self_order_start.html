@@ -1,0 +1,82 @@
+{% extends "core/public_base.html" %}
+{% load static core %}
+{% block title %}Order from your table{% endblock %}
+{% block styles %}{{ block.super }}<link rel="stylesheet" href="{% static 'sales/order.css' %}">{% endblock %}
+{% block content %}
+<form method="post" novalidate class="order-page container" data-self-order data-tax-rate="{{ tax_rate }}" data-currency="{{ currency }}">
+  {% csrf_token %}
+  <header class="order-head">
+    <span class="label"><span class="label__no">(order)</span> {% if table %}Table {{ table }}{% else %}Order ahead{% endif %}</span>
+    <h1>Pick, tap <em>done</em>, pay at the counter.</h1>
+    <p class="lead">Choose your dishes below. You'll get a short code: show it to the cashier, pay, and the kitchen starts right away.</p>
+  </header>
+
+  {% for o in open_orders %}
+    <a class="order-open" href="{% url 'ordering:status' o.token %}">
+      <span>Your order <strong class="order-code-inline">{{ o.code }}</strong> · {% if o.status == 'paid' %}paid, {{ o.order.get_kitchen_status_display|lower }}{% else %}waiting to pay{% endif %}</span>
+      {% icon "arrow" 16 %}
+    </a>
+  {% endfor %}
+
+  {% if form.non_field_errors %}
+    <div class="alert alert--error" role="alert">{% for e in form.non_field_errors %}<p>{{ e }}</p>{% endfor %}</div>
+  {% endif %}
+
+  <fieldset class="order-setup">
+    <legend class="sr-only">How you're eating</legend>
+    <div class="order-seg" role="radiogroup" aria-label="Eat here or take away">
+      {% for value, label in form.fields.order_type.choices %}
+        <label><input type="radio" name="order_type" value="{{ value }}"{% if form.order_type.value == value %} checked{% endif %}><span>{{ label }}</span></label>
+      {% endfor %}
+    </div>
+    <div class="field{% if form.table_label.errors %} field--error{% endif %}" data-table-field>
+      <label for="{{ form.table_label.id_for_label }}">Table number</label>
+      <input type="text" name="table_label" id="{{ form.table_label.id_for_label }}" value="{{ form.table_label.value|default_if_none:'' }}" maxlength="20" autocomplete="off" placeholder="On the sign at your table">
+      {% for e in form.table_label.errors %}<small class="error">{{ e }}</small>{% endfor %}
+    </div>
+  </fieldset>
+
+  {% if rows %}
+    <nav class="order-cats" aria-label="Menu sections">
+      {% for row in rows %}{% ifchanged row.item.category_id %}<a href="#order-cat-{{ row.item.category_id }}">{{ row.item.category.name }}</a>{% endifchanged %}{% endfor %}
+    </nav>
+    {% for row in rows %}
+      {% ifchanged row.item.category_id %}
+        {% if not forloop.first %}</div>{% endif %}
+        <h2 class="order-cat" id="order-cat-{{ row.item.category_id }}">{{ row.item.category.name }}</h2>
+        <div class="order-items">
+      {% endifchanged %}
+      <div class="order-item{% if row.portions == 0 %} is-out{% endif %}" data-order-item data-name="{{ row.item.name }}" data-price="{{ row.item.price }}">
+        {% if row.item.photo %}
+          <div class="order-item__photo"><img src="{% static row.item.photo %}" alt="" loading="lazy"></div>
+        {% else %}
+          <div class="order-item__photo order-item__photo--empty" aria-hidden="true">{{ row.item.name|first }}</div>
+        {% endif %}
+        <div class="order-item__body">
+          <span class="order-item__name">{{ row.item.name }}</span>
+          {% if row.item.description %}<span class="order-item__desc">{{ row.item.description }}</span>{% endif %}
+          <span class="order-item__price">{{ currency }}{{ row.item.price|money }}{% if row.portions == 0 %} · <strong>Sold out</strong>{% endif %}</span>
+          {% for e in row.field.errors %}<small class="error">{{ e }}</small>{% endfor %}
+        </div>
+        <span class="order-stepper">
+          <button type="button" data-step="-1" aria-label="Remove one {{ row.item.name }}">{% icon "minus" 16 %}</button>
+          <input type="number" name="{{ row.field.html_name }}" id="{{ row.field.id_for_label }}" min="0" max="99" inputmode="numeric"
+                 value="{{ row.field.value|default_if_none:0 }}" aria-label="How many {{ row.item.name }}"{% if row.portions == 0 %} disabled{% endif %}>
+          <button type="button" data-step="1" aria-label="Add one {{ row.item.name }}"{% if row.portions == 0 %} disabled{% endif %}>{% icon "plus" 16 %}</button>
+        </span>
+      </div>
+      {% if forloop.last %}</div>{% endif %}
+    {% endfor %}
+  {% else %}
+    {% include "core/partials/empty.html" with message="Ordering from your phone isn't available right now. Please order at the counter." %}
+  {% endif %}
+
+  <p class="order-note">Menu prices are before tax ({{ tax_rate|percent }}). The cashier confirms the final total before you pay.</p>
+
+  <div class="order-bar" data-order-bar>
+    <span class="order-bar__info"><strong data-order-count>Nothing yet</strong><small data-order-total>Tap + to add a dish</small></span>
+    <button type="submit" class="btn btn--espresso" data-order-submit>Done ordering <span class="btn__dot">{% icon "check" 14 %}</span></button>
+  </div>
+</form>
+{% endblock %}
+{% block scripts %}<script src="{% static 'sales/order.js' %}" defer></script>{% endblock %}

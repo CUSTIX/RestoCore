@@ -11,6 +11,7 @@ from decimal import Decimal
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
 from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
@@ -311,6 +312,7 @@ class Command(BaseCommand):
             items = self._inventory(employees["owner"].user)
             self._menu(items)
             self._orders(employees)
+            self._self_orders()
             self._bookings()
             self._shifts_and_attendance(employees)
             self._leave(employees)
@@ -436,6 +438,23 @@ class Command(BaseCommand):
                     sales_services.void_order(
                         victim, user=employees["manager"].user, reason="Customer changed their mind"
                     )
+
+    def _self_orders(self):
+        """Two customers who ordered from a table QR code and are on their way to the counter,
+        so the cashier's Customer orders screen has something to charge. (Unpaid orders expire
+        after an hour; the public demo reseeds on every start.)"""
+        menu = list(MenuItem.objects.exclude(name="Ceremonial matcha latte"))
+        for order_type, table in (("dine_in", "4"), ("takeaway", "")):
+            picks = random.sample(menu, 2)
+            try:
+                sales_services.create_self_order(
+                    quantities={m.pk: random.randint(1, 2) for m in picks},
+                    order_type=order_type,
+                    table_label=table,
+                    ip=None,
+                )
+            except ValidationError:
+                continue
 
     # -- bookings ------------------------------------------------------------------------
     def _bookings(self):

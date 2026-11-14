@@ -1,3 +1,4 @@
+import uuid
 from decimal import Decimal
 
 from django.conf import settings
@@ -145,6 +146,69 @@ class OrderLine(models.Model):
     menu_item = models.ForeignKey(MenuItem, on_delete=models.PROTECT, related_name="+")
     name = models.CharField(max_length=120)  # snapshot: menu names can change later
     unit_price = models.DecimalField(**MONEY)  # snapshot: prices can change later
+    quantity = models.PositiveSmallIntegerField()
+    line_total = models.DecimalField(**MONEY)
+
+    class Meta:
+        ordering = ("id",)
+
+    def __str__(self) -> str:
+        return f"{self.quantity} × {self.name}"
+
+
+class SelfOrder(models.Model):
+    """An order a customer placed on their phone after scanning a table QR code.
+
+    It is not a sale yet: nothing is charged and no stock moves. The customer tells the cashier
+    the short `code`; the cashier opens it in the POS, checks it with them, takes payment, and
+    only then does the real `Order` exist (and reach the kitchen).
+    """
+
+    class Status(models.TextChoices):
+        PENDING = "pending", "Waiting to pay"
+        PAID = "paid", "Paid"
+        CANCELLED = "cancelled", "Cancelled"
+        EXPIRED = "expired", "Expired"
+
+    # Short and easy to say out loud. Unique only among open orders, so codes can be reused.
+    code = models.CharField(max_length=8, db_index=True)
+    status = models.CharField(
+        max_length=10, choices=Status.choices, default=Status.PENDING, db_index=True
+    )
+    order_type = models.CharField(max_length=10, choices=Order.OrderType.choices)
+    table_label = models.CharField(max_length=20, blank=True)
+    # Estimate shown to the customer. The POS re-prices everything when the cashier charges.
+    subtotal = models.DecimalField(**MONEY)
+    tax = models.DecimalField(**MONEY)
+    total = models.DecimalField(**MONEY)
+    # Unguessable: the customer's status link, and the POS checkout token (charging twice is
+    # impossible: a second charge finds the order the first one created).
+    token = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    order = models.OneToOneField(
+        Order, null=True, blank=True, on_delete=models.PROTECT, related_name="self_order"
+    )
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ("-created_at", "-id")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["code"],
+                condition=models.Q(status="pending"),
+                name="self_order_open_code_unique",
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return self.code
+
+
+class SelfOrderLine(models.Model):
+    self_order = models.ForeignKey(SelfOrder, on_delete=models.CASCADE, related_name="lines")
+    menu_item = models.ForeignKey(MenuItem, on_delete=models.PROTECT, related_name="+")
+    name = models.CharField(max_length=120)
+    unit_price = models.DecimalField(**MONEY)
     quantity = models.PositiveSmallIntegerField()
     line_total = models.DecimalField(**MONEY)
 

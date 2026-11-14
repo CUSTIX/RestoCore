@@ -13,6 +13,7 @@
       <span class="nav-indicator" aria-hidden="true"></span>
       <a href="{% url 'website:home' %}"{% if page == 'home' %} aria-current="page"{% endif %}>Home</a>
       <a href="{% url 'website:menu' %}"{% if page == 'menu' %} aria-current="page"{% endif %}>Menu</a>
+      <a href="{% url 'ordering:start' %}"{% if request.resolver_match.namespace == 'ordering' %} aria-current="page"{% endif %}>Order</a>
       <a href="{% url 'website:home' %}#visit"{% if page == 'home' %} data-spy-target="visit"{% endif %}>Visit</a>
     </nav>
     <div class="nav-actions">
@@ -32,6 +33,7 @@
     <span class="status-chip"><i class="status-dot{% if not cafe_open_now %} is-closed{% endif %}"></i>{% if cafe_open_now %}Open · until {{ cafe_closing|time:"g A" }}{% else %}Closed · opens {{ cafe_opening|time:"g A" }}{% endif %}</span>
     <a href="{% url 'website:home' %}">Home {% icon "arrow" 22 %}</a>
     <a href="{% url 'website:menu' %}">Menu {% icon "arrow" 22 %}</a>
+    <a href="{% url 'ordering:start' %}">Order from your phone {% icon "arrow" 22 %}</a>
     <a href="{% url 'website:home' %}#visit">Visit {% icon "arrow" 22 %}</a>
     <a href="{% url 'public_bookings:create' %}" class="btn btn--oat">Reserve a table <span class="btn__dot">{% icon "arrow" 14 %}</span></a>
     {% if user.is_authenticated %}<a class="nav-sheet__staff" href="{% url 'dashboard:index' %}">{% icon "dashboard" 16 %} Staff area</a>{% else %}<a class="nav-sheet__staff" href="{% url 'accounts:login' %}">{% icon "user" 16 %} Staff login</a>{% endif %}
@@ -58,6 +60,7 @@
       <div>
         <h2 class="footer-h">Explore</h2>
         <a href="{% url 'website:menu' %}">Menu</a>
+        <a href="{% url 'ordering:start' %}">Order from your phone</a>
         <a href="{% url 'public_bookings:create' %}">Reserve a table</a>
         <a href="{% url 'website:home' %}#visit">Find us</a>
       </div>

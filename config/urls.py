@@ -6,6 +6,7 @@ from config.views import healthz
 urlpatterns = [
     path("", include("website.urls")),
     path("book/", include("bookings.public_urls")),
+    path("order/", include("sales.public_urls")),
     path("accounts/", include("accounts.urls")),
     path("app/", include("dashboard.urls")),
     path("app/bookings/", include("bookings.urls")),

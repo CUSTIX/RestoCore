@@ -3,4 +3,5 @@ Django==5.2.19
 psycopg[binary]==3.3.8
 gunicorn==26.2.0
 whitenoise==6.11.0
+qrcode==8.2  # table QR codes for customer self-ordering (pure Python, makes SVG)
 Faker==40.50.0  # used by `manage.py seed_demo` (demo data in any environment)

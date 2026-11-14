@@ -1,6 +1,14 @@
 from django.contrib import admin
 
-from sales.models import MenuCategory, MenuItem, Order, OrderLine, RecipeLine
+from sales.models import (
+    MenuCategory,
+    MenuItem,
+    Order,
+    OrderLine,
+    RecipeLine,
+    SelfOrder,
+    SelfOrderLine,
+)
 
 
 class RecipeLineInline(admin.TabularInline):
@@ -35,6 +43,32 @@ class OrderAdmin(admin.ModelAdmin):
     list_display = ("id", "created_at", "status", "kitchen_status", "total", "cashier")
     list_filter = ("status", "kitchen_status", "payment_method")
     inlines = [OrderLineInline]
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+class SelfOrderLineInline(admin.TabularInline):
+    model = SelfOrderLine
+    extra = 0
+    readonly_fields = ("menu_item", "name", "unit_price", "quantity", "line_total")
+    can_delete = False
+
+
+@admin.register(SelfOrder)
+class SelfOrderAdmin(admin.ModelAdmin):
+    """Read-only: customer orders change only through the ordering pages and the POS."""
+
+    list_display = ("code", "created_at", "status", "order_type", "table_label", "total", "order")
+    list_filter = ("status", "order_type")
+    search_fields = ("code",)
+    inlines = [SelfOrderLineInline]
 
     def has_add_permission(self, request):
         return False

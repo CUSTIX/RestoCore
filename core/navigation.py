@@ -19,9 +19,18 @@ NAV_ITEMS = [
     _item("Ask RestoCore", "assistant:chat", (OWNER,), "assistant", "sparkle", "Overview"),
     _item("Bookings", "bookings:list", (*MANAGEMENT, STAFF), "bookings", "calendar", "Service"),
     _item("Point of sale", "sales:pos", (*MANAGEMENT, CASHIER), "pos", "pos", "Service"),
+    _item(
+        "Customer orders",
+        "sales:self_order_list",
+        (*MANAGEMENT, CASHIER),
+        "self_orders",
+        "qr",
+        "Service",
+    ),
     _item("Orders", "sales:order_list", (*MANAGEMENT, CASHIER), "orders", "receipt", "Service"),
     _item("Kitchen", "sales:kitchen", (*MANAGEMENT, KITCHEN), "kitchen", "flame", "Service"),
     _item("Menu", "sales:menu_list", MANAGEMENT, "menu", "book", "Back of house"),
+    _item("Table QR codes", "sales:table_qr", MANAGEMENT, "table_qr", "qr", "Back of house"),
     _item(
         "Inventory",
         "inventory:list",

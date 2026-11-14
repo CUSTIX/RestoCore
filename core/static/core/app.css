@@ -394,3 +394,10 @@ th { white-space: nowrap; }
 .ask__privacy { font-size: .76rem; margin: 0; }
 .ask__off code, .ask__privacy code { font-size: .85em; }
 @media (prefers-reduced-motion: reduce) { .ask__orb, .ask__msg, .ask__thinking span { animation: none; } }
+
+/* Customer orders (QR self-ordering): code search */
+.mono { font-family: ui-monospace, Menlo, Consolas, monospace; letter-spacing: .12em; }
+.self-order-search { max-width: 560px; }
+.self-order-search__row { display: flex; gap: .6rem; }
+.self-order-search__row input { flex: 1; min-width: 0; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 1.2rem; letter-spacing: .2em; text-transform: uppercase; }
+.self-order-banner p + p { margin-top: .35rem; }

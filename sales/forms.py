@@ -1,3 +1,4 @@
+import re
 from decimal import Decimal
 
 from django import forms
@@ -7,21 +8,8 @@ from sales.models import MenuCategory, MenuItem, Order, RecipeLine
 from sales.services import MAX_QTY_PER_LINE
 
 
-class PosForm(forms.Form):
-    """Checkout form. One quantity field per menu item, named qty_<id>."""
-
-    order_type = forms.ChoiceField(choices=Order.OrderType.choices, initial="dine_in")
-    table_label = forms.CharField(max_length=20, required=False, label="Table")
-    payment_method = forms.ChoiceField(choices=Order.PaymentMethod.choices, initial="cash")
-    amount_tendered = forms.DecimalField(
-        required=False,
-        min_value=Decimal("0"),
-        max_digits=10,
-        decimal_places=2,
-        label="Cash received",
-    )
-    # One-time token rendered with the screen: makes "Charge" safe to click twice (see services).
-    checkout_token = forms.UUIDField(required=False, widget=forms.HiddenInput)
+class MenuQuantitiesForm(forms.Form):
+    """One quantity field per menu item, named qty_<id>. Shared by the POS and self-ordering."""
 
     def __init__(self, *args, menu_items=(), **kwargs):
         super().__init__(*args, **kwargs)
@@ -44,12 +32,112 @@ class PosForm(forms.Form):
             raise forms.ValidationError("Add at least one item to the order.")
         if cleaned.get("order_type") == Order.OrderType.DINE_IN and not cleaned.get("table_label"):
             self.add_error("table_label", "Enter a table for dine-in orders.")
+        return cleaned
+
+
+class PosForm(MenuQuantitiesForm):
+    """Checkout form: the menu quantities plus order type, table and payment."""
+
+    order_type = forms.ChoiceField(choices=Order.OrderType.choices, initial="dine_in")
+    table_label = forms.CharField(max_length=20, required=False, label="Table")
+    payment_method = forms.ChoiceField(choices=Order.PaymentMethod.choices, initial="cash")
+    amount_tendered = forms.DecimalField(
+        required=False,
+        min_value=Decimal("0"),
+        max_digits=10,
+        decimal_places=2,
+        label="Cash received",
+    )
+    # One-time token rendered with the screen: makes "Charge" safe to click twice (see services).
+    checkout_token = forms.UUIDField(required=False, widget=forms.HiddenInput)
+    # Set when the cashier is charging a customer's QR order (its token).
+    self_order = forms.UUIDField(required=False, widget=forms.HiddenInput)
+
+    def clean(self):
+        cleaned = super().clean()
         if (
             cleaned.get("payment_method") == Order.PaymentMethod.CASH
             and cleaned.get("amount_tendered") is None
         ):
             self.add_error("amount_tendered", "Enter the cash received.")
         return cleaned
+
+
+TABLE_RE = r"^[A-Za-z0-9][A-Za-z0-9 -]{0,19}$"
+
+
+def clean_table_label(raw: str) -> str:
+    """A table label from a QR link (?table=5), or '' if it isn't a plausible label."""
+    raw = (raw or "").strip()
+    return raw if re.match(TABLE_RE, raw) else ""
+
+
+class SelfOrderForm(MenuQuantitiesForm):
+    """What a customer sends from their phone. No payment: that happens at the counter."""
+
+    order_type = forms.ChoiceField(
+        choices=[(Order.OrderType.DINE_IN, "Eat here"), (Order.OrderType.TAKEAWAY, "Take away")],
+        initial=Order.OrderType.DINE_IN,
+        widget=forms.RadioSelect,
+    )
+    table_label = forms.RegexField(
+        regex=TABLE_RE,
+        max_length=20,
+        required=False,
+        label="Table",
+        error_messages={"invalid": "Use the table number on your table."},
+    )
+
+
+class SelfOrderSearchForm(forms.Form):
+    code = forms.CharField(
+        max_length=12,
+        label="Order code",
+        widget=forms.TextInput(
+            attrs={
+                "placeholder": "e.g. K7M4P",
+                "autocomplete": "off",
+                "autocapitalize": "characters",
+            }
+        ),
+    )
+
+
+MAX_QR_TABLES = 60
+
+
+class TableQrForm(forms.Form):
+    tables = forms.CharField(
+        max_length=200,
+        initial="1-8",
+        label="Tables",
+        help_text="Numbers or names, separated by commas. Ranges work: 1-12, Patio 1, Bar.",
+    )
+
+    def clean_tables(self) -> list[str]:
+        labels: list[str] = []
+        for part in self.cleaned_data["tables"].split(","):
+            part = part.strip()
+            if not part:
+                continue
+            m = re.fullmatch(r"(\d+)\s*-\s*(\d+)", part)
+            if m:
+                start, end = int(m.group(1)), int(m.group(2))
+                if start > end or end - start >= MAX_QR_TABLES:
+                    raise forms.ValidationError(f"Use a range like 1-12 (at most {MAX_QR_TABLES}).")
+                labels += [str(n) for n in range(start, end + 1)]
+            elif re.match(TABLE_RE, part):
+                labels.append(part)
+            else:
+                raise forms.ValidationError(
+                    f"'{part}' isn't a table name (letters, numbers, spaces)."
+                )
+        labels = list(dict.fromkeys(labels))  # no duplicates, keep order
+        if not labels:
+            raise forms.ValidationError("Enter at least one table.")
+        if len(labels) > MAX_QR_TABLES:
+            raise forms.ValidationError(f"At most {MAX_QR_TABLES} tables at a time.")
+        return labels
 
 
 class VoidForm(forms.Form):

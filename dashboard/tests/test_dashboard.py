@@ -28,6 +28,10 @@ def test_seed_demo_creates_data_and_refuses_to_run_twice(client):
     call_command("seed_demo")
     assert client.login(username="manager", password="restocore-demo")
     assert client.get("/app/").status_code == 200
+    # Two customers ordered from a table QR code and are waiting to pay.
+    from sales.models import SelfOrder
+
+    assert SelfOrder.objects.filter(status="pending").count() == 2
     with pytest.raises(CommandError):
         call_command("seed_demo")
 

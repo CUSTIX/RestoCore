@@ -1,0 +1,50 @@
+{% extends "core/app_base.html" %}
+{% load core %}
+{% block title %}Customer orders{% endblock %}
+{% block page_title %}Customer orders{% endblock %}
+{% block page_actions %}{% if user|has_role:"Owner,Manager" %}<a class="btn btn--ghost" href="{% url 'sales:table_qr' %}">{% icon "qr" 18 %} Table QR codes</a>{% endif %}{% endblock %}
+{% block content %}
+<div class="card self-order-search">
+  <form method="get" novalidate>
+    <div class="field{% if search_form.code.errors %} field--error{% endif %}">
+      <label for="{{ search_form.code.id_for_label }}">Code on the customer's phone</label>
+      <div class="self-order-search__row">
+        {{ search_form.code }}
+        <button class="btn" type="submit">Find order</button>
+      </div>
+      {% for e in search_form.code.errors %}<small class="error">{{ e }}</small>{% endfor %}
+    </div>
+  </form>
+  <p class="muted" style="margin:.6rem 0 0;font-size:.86rem">The order opens in the point of sale with the customer's items already in. Check them together, change anything they ask, take payment, and it goes to the kitchen.</p>
+</div>
+
+<h2 style="margin:1.6rem 0 .8rem">Waiting to pay</h2>
+{% if page_obj.object_list %}
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Code</th><th>Placed</th><th>Where</th><th class="num">Items</th><th class="num">Estimate</th><th><span class="sr-only">Actions</span></th></tr></thead>
+    <tbody>
+    {% for so in page_obj %}
+      <tr>
+        <td><strong class="mono">{{ so.code }}</strong></td>
+        <td class="nowrap">{{ so.created_at|timesince }} ago</td>
+        <td>{% if so.table_label %}Table {{ so.table_label }}{% else %}{{ so.get_order_type_display }}{% endif %}</td>
+        <td class="num">{{ so.item_count }}</td>
+        <td class="num">{{ so.total|money }}</td>
+        <td class="nowrap right">
+          <a class="btn btn--small" href="{% url 'sales:pos' %}?self_order={{ so.token }}">Open</a>
+          <form method="post" action="{% url 'sales:self_order_cancel' so.pk %}" style="display:inline" data-confirm="Cancel customer order {{ so.code }}?">
+            {% csrf_token %}<button type="submit" class="btn btn--small btn--ghost">Cancel</button>
+          </form>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% include "core/partials/pagination.html" %}
+{% else %}
+  {% include "core/partials/empty.html" with message="No customer orders waiting. They appear here when someone orders from a table QR code." %}
+{% endif %}
+<p class="muted" style="margin-top:.8rem"><span data-auto-reload="30"></span>This list refreshes every 30 seconds. Unpaid orders expire after an hour.</p>
+{% endblock %}

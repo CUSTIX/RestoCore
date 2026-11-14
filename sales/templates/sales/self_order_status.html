@@ -1,0 +1,64 @@
+{% extends "core/public_base.html" %}
+{% load static core %}
+{% block title %}Order {{ self_order.code }}{% endblock %}
+{% block styles %}{{ block.super }}<link rel="stylesheet" href="{% static 'sales/order.css' %}">{% endblock %}
+{% block content %}
+<section class="order-page container order-status-page">
+  <div class="order-status">
+    {% if self_order.status == 'pending' %}
+      <span class="label">Show this at the counter</span>
+      <h1 class="sr-only">Your order code is {{ self_order.code }}</h1>
+      <div class="order-code" aria-hidden="true">{% for ch in self_order.code %}<span>{{ ch }}</span>{% endfor %}</div>
+      <p class="order-status__lead">Tell the cashier your code, pay, and the kitchen starts on it right away.</p>
+    {% elif self_order.status == 'paid' %}
+      <span class="label">Order {{ order.number }} · {{ self_order.code }}</span>
+      {% if order.status == 'voided' %}
+        <h1>This order was cancelled</h1>
+        <p class="order-status__lead">Please ask at the counter.</p>
+      {% elif order.kitchen_status == 'ready' %}
+        <h1>Ready! <em>{% if order.order_type == 'takeaway' %}Pick it up at the counter.{% else %}Coming to your table.{% endif %}</em></h1>
+      {% elif order.kitchen_status == 'served' %}
+        <h1>Enjoy your meal.</h1>
+      {% elif order.kitchen_status == 'preparing' %}
+        <h1>Paid. <em>The kitchen is on it.</em></h1>
+      {% else %}
+        <h1>Paid. <em>You're next in the kitchen.</em></h1>
+      {% endif %}
+    {% elif self_order.status == 'cancelled' %}
+      <span class="label">{{ self_order.code }}</span>
+      <h1>Order cancelled</h1>
+      <p class="order-status__lead">Nothing was charged.</p>
+    {% else %}
+      <span class="label">{{ self_order.code }}</span>
+      <h1>This order expired</h1>
+      <p class="order-status__lead">Unpaid orders expire after an hour. Nothing was charged.</p>
+    {% endif %}
+
+    {% if self_order.status == 'pending' or self_order.status == 'paid' %}
+      <ol class="order-steps" aria-label="Order progress">
+        {% for step in steps %}<li class="{% if step.done %}is-done{% endif %}{% if step.current %} is-current{% endif %}"{% if step.current %} aria-current="step"{% endif %}><span aria-hidden="true">{% if step.done and not step.current %}{% icon "check" 12 %}{% endif %}</span>{{ step.label }}</li>{% endfor %}
+      </ol>
+    {% endif %}
+
+    <dl class="order-summary">
+      {% if self_order.table_label %}<dt>Table</dt><dd>{{ self_order.table_label }}</dd>{% else %}<dt>Order</dt><dd>{{ self_order.get_order_type_display }}</dd>{% endif %}
+      {% for line in self_order.lines.all %}<dt>{{ line.quantity }} × {{ line.name }}</dt><dd>{{ currency }}{{ line.line_total|money }}</dd>{% endfor %}
+      <dt>Tax</dt><dd>{{ currency }}{{ self_order.tax|money }}</dd>
+      <dt class="order-summary__total">{% if order %}Paid{% else %}Estimated total{% endif %}</dt><dd class="order-summary__total">{{ currency }}{% if order %}{{ order.total|money }}{% else %}{{ self_order.total|money }}{% endif %}</dd>
+    </dl>
+    {% if order and order.total != self_order.total %}<p class="order-status__note">The cashier adjusted your order at the counter.</p>{% endif %}
+
+    {% if live %}<p class="order-status__note" data-auto-reload="15">This page updates by itself.</p>{% endif %}
+
+    <div class="order-status__actions">
+      {% if self_order.status == 'pending' %}
+        <form method="post" action="{% url 'ordering:cancel' self_order.token %}" data-confirm="Cancel this order?">
+          {% csrf_token %}
+          <button type="submit" class="btn btn--line">Cancel order</button>
+        </form>
+      {% endif %}
+      <a class="btn btn--espresso" href="{% url 'ordering:start' %}{% if self_order.table_label %}?table={{ self_order.table_label|urlencode }}{% endif %}">{% if self_order.status == 'pending' %}Start another order{% else %}Order more{% endif %}</a>
+    </div>
+  </div>
+</section>
+{% endblock %}
