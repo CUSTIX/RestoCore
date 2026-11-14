@@ -68,3 +68,23 @@ def test_seeded_owner_gets_admin_only_outside_the_public_demo(settings, demo_mod
     call_command("seed_demo")
     owner = get_user_model().objects.get(username="owner")
     assert owner.is_superuser is is_admin and owner.is_staff is is_admin
+
+
+@pytest.mark.django_db(transaction=True, serialized_rollback=True)
+def test_seed_demo_reset_that_fails_keeps_the_old_data(monkeypatch):
+    # The nightly reset runs while visitors use the site: wipe + seed is one transaction, so a
+    # failure halfway leaves the previous demo data in place instead of an empty database.
+    from django.contrib.auth import get_user_model
+
+    from dashboard.management.commands.seed_demo import Command
+
+    call_command("seed_demo")
+
+    def broken_payroll(self, owner):
+        raise RuntimeError("seed failed halfway")
+
+    monkeypatch.setattr(Command, "_payroll", broken_payroll)
+    with pytest.raises(RuntimeError):
+        call_command("seed_demo", "--reset")
+
+    assert get_user_model().objects.filter(username="owner").exists()

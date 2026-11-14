@@ -20,7 +20,10 @@ Render builds straight from GitHub and redeploys on every push to `main`.
   workspace, or turn the heartbeat off. `/livez/` skips the database so Neon can still suspend;
   `/healthz/` (Render's health check) does query it. GitHub can delay scheduled runs, and it turns
   scheduled workflows off after 60 days without commits (re-enable them in the Actions tab).
-- The demo data resets on every start, which now means every deploy or restart, not every visit.
+- The demo data resets on every start (deploy or restart) and every night at `DEMO_RESET_HOUR`
+  (4 AM Manila): `bin/start.sh` runs a small loop next to gunicorn. Wipe + reseed is one
+  transaction, so visitors keep seeing the old data until the new data is in. Signed-in demo
+  users are signed out by the reset.
 - `DEMO_MODE=true` shows the demo accounts on the login page with `DEBUG` off, blocks password
   changes, and keeps the owner out of `/admin/` (see "Public demo safety" in the README).
 
@@ -45,7 +48,8 @@ Render builds straight from GitHub and redeploys on every push to `main`.
 | `DJANGO_HTTPS` | `true` | HTTPS redirect, secure cookies, HSTS (Render terminates TLS) |
 | `DJANGO_STATIC_MANIFEST` | `true` | Fingerprinted, cacheable static files |
 | `DEMO_MODE` | `true` | Public-demo behaviour (see above) |
-| `DEMO_RESET_ON_START` | `true` | Fresh demo data on every start / wake-up |
+| `DEMO_RESET_ON_START` | `true` | Fresh demo data on every start |
+| `DEMO_RESET_HOUR` | `4` | Also reset every night at 4 AM local time |
 | `DEMO_PASSWORD` | `restocore-demo` | Shared demo password (shown on the login page) |
 | `WEB_CONCURRENCY` | `2` | Workers that fit the free 512 MB instance |
 | `DJANGO_TIME_ZONE` | `Asia/Manila` | Opening hours and bookings in local time |

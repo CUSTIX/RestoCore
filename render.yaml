@@ -28,6 +28,8 @@ services:
         value: "true"
       - key: DEMO_RESET_ON_START
         value: "true"
+      - key: DEMO_RESET_HOUR
+        value: "4" # nightly reset at 4 AM Manila (the service is kept awake)
       - key: CLIENT_IP_HEADER
         value: HTTP_CF_CONNECTING_IP # Cloudflare (in front of Render) overwrites this header
       - key: GEMINI_API_KEY

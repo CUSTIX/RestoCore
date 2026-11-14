@@ -290,8 +290,20 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
+        # One transaction for wipe + seed: a reset while the site is serving (the nightly one in
+        # bin/start.sh) never shows visitors an empty or half-seeded database. Postgres TRUNCATE
+        # is transactional, so visitors keep seeing the old data until the new data commits.
+        with transaction.atomic():
+            password = self._seed(reset=options["reset"])
+        self.stdout.write(self.style.SUCCESS("Demo data created."))
+        self.stdout.write(
+            f"Log in at /accounts/login/ with any of: "
+            f"{', '.join(a[0] for a in ACCOUNTS)}. Password: {password}"
+        )
+
+    def _seed(self, *, reset):
         User = get_user_model()
-        if options["reset"]:
+        if reset:
             # Wipes every table (the roles too, which came from a data migration), so put the
             # role groups back before seeding.
             call_command("flush", interactive=False, verbosity=0)
@@ -307,22 +319,16 @@ class Command(BaseCommand):
         random.seed(2024)
         self.today = timezone.localdate()
 
-        with transaction.atomic():
-            employees = self._accounts(password)
-            items = self._inventory(employees["owner"].user)
-            self._menu(items)
-            self._orders(employees)
-            self._self_orders()
-            self._bookings()
-            self._shifts_and_attendance(employees)
-            self._leave(employees)
-            self._payroll(employees["owner"].user)
-
-        self.stdout.write(self.style.SUCCESS("Demo data created."))
-        self.stdout.write(
-            f"Log in at /accounts/login/ with any of: "
-            f"{', '.join(a[0] for a in ACCOUNTS)}. Password: {password}"
-        )
+        employees = self._accounts(password)
+        items = self._inventory(employees["owner"].user)
+        self._menu(items)
+        self._orders(employees)
+        self._self_orders()
+        self._bookings()
+        self._shifts_and_attendance(employees)
+        self._leave(employees)
+        self._payroll(employees["owner"].user)
+        return password
 
     # -- people --------------------------------------------------------------------------
     def _accounts(self, password):

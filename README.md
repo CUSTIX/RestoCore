@@ -14,7 +14,7 @@ and payroll](docs/demo.gif)
 
 **Live demo: <https://restocore.onrender.com>** (staff login at `/accounts/login/`; the demo accounts
 are listed there with one-click fill). A GitHub Actions heartbeat pings it every 10 minutes so the
-free server stays awake; the demo data resets each time it starts (every deploy or restart).
+free server stays awake; the demo data resets every night and on every deploy.
 
 Portfolio project. Built with Django 5.2, PostgreSQL 17, Docker Compose and GitHub Actions.
 Free to build and run. **All data is fake** (generated with Faker).
@@ -123,7 +123,7 @@ Postgres database, configured by [`render.yaml`](render.yaml). The container's s
 variable: [docs/deploy.md](docs/deploy.md).
 
 **Public demo safety** (`DEMO_MODE=true`): the demo accounts are listed on the login page, all
-data is fake and is wiped and reseeded on every start (every deploy or restart), password changes
+data is fake and is wiped and reseeded every night and on every deploy, password changes
 are disabled, and nobody gets Django admin.
 
 ## Status
