@@ -70,19 +70,22 @@ class PosView(RoleRequiredMixin, TemplateView):
             # own. A customer's order brings its own token and its items, type and table.
             initial = {"checkout_token": uuid.uuid4()}
             if self_order is not None:
-                shown = {m["item"].pk for m in menu}
+                # Sold out since the customer ordered: its POS input is disabled, so prefilling
+                # it would block Charge with no way to lower it. Leave it out and say so.
+                can_sell = {m["item"].pk for m in menu if m["portions"] != 0}
+                lines = list(self_order.lines.all())
                 initial = {
                     "checkout_token": self_order.token,
                     "self_order": self_order.token,
                     "order_type": self_order.order_type,
                     "table_label": self_order.table_label,
                     **{
-                        f"qty_{line.menu_item_id}": line.quantity for line in self_order.lines.all()
+                        f"qty_{line.menu_item_id}": line.quantity
+                        for line in lines
+                        if line.menu_item_id in can_sell
                     },
                 }
-                missing = [
-                    line for line in self_order.lines.all() if line.menu_item_id not in shown
-                ]
+                missing = [line for line in lines if line.menu_item_id not in can_sell]
             form = PosForm(menu_items=[m["item"] for m in menu], initial=initial)
         elif self_order is None and form.is_bound:
             self_order = selectors.self_order_by_token(_uuid_or_none(form.data.get("self_order")))
@@ -441,6 +444,8 @@ class SelfOrderStatusView(TemplateView):
             **super().get_context_data(**kwargs),
             "self_order": self_order,
             "order": order,
+            # Once paid, show what was charged: the cashier may have changed it at the counter.
+            "lines": order.lines.all() if order else self_order.lines.all(),
             "live": live,
             "steps": _progress(self_order),
         }

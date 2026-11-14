@@ -236,7 +236,7 @@ def open_self_order_by_code(code: str) -> SelfOrder | None:
 def self_order_by_token(token) -> SelfOrder | None:
     return (
         SelfOrder.objects.select_related("order")
-        .prefetch_related("lines")
+        .prefetch_related("lines", "order__lines")
         .filter(token=token)
         .first()
     )

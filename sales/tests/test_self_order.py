@@ -313,3 +313,32 @@ def test_table_qr_page_makes_a_code_per_table(client_for, db):
 def test_table_qr_page_rejects_bad_input(client_for, db):
     response = client_for("Manager").get("/app/sales/table-qr/", {"tables": "1-500"})
     assert response.status_code == 200 and "at most" in response.content.decode()
+
+
+def test_pos_leaves_out_a_dish_that_sold_out_since(client_for, stocked_menu):
+    """Its POS input is disabled when sold out: prefilling it would make Charge impossible."""
+    from inventory.models import InventoryItem
+
+    so = self_order(stocked_menu, qty=2)
+    InventoryItem.objects.filter(pk=stocked_menu["rice"].pk).update(quantity=D("0"))
+    html = client_for("Cashier").get(f"/app/sales/pos/?self_order={so.token}").content.decode()
+    dish = stocked_menu["dish"]
+    assert "2 × Rice bowl</strong> is sold out" in html
+    assert re.search(rf'name="qty_{dish.pk}"[^>]*\s+value="0"', html)
+
+
+def test_paid_status_shows_what_was_charged(client, stocked_menu, make_user):
+    so = self_order(stocked_menu, qty=2)
+    order = charge(so, make_user("Cashier"), stocked_menu, qty=3)  # changed at the counter
+    page = client.get(f"/order/{so.token}/").content.decode()
+    assert "3 × Rice bowl" in page and "2 × Rice bowl" not in page
+    assert f"{order.total:,.2f}" in page and "changed at the counter" in page
+
+
+def test_voided_order_shows_no_progress_steps(client, stocked_menu, make_user):
+    so = self_order(stocked_menu)
+    order = charge(so, make_user("Cashier"), stocked_menu)
+    services.void_order(order, user=make_user("Manager"), reason="Wrong table")
+    page = client.get(f"/order/{so.token}/").content.decode()
+    assert "This order was cancelled" in page and "order-steps" not in page
+    assert "data-auto-reload" not in page

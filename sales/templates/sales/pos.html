@@ -10,7 +10,7 @@
   {% if self_order %}
     <div class="alert alert--warning self-order-banner" style="margin-bottom:1rem">
       <p>{% icon "qr" 16 %} <strong>Customer order {{ self_order.code }}</strong> · {% if self_order.table_label %}Table {{ self_order.table_label }}{% else %}{{ self_order.get_order_type_display }}{% endif %} · placed {{ self_order.created_at|timesince }} ago. Check the items with the customer, change anything they ask, then charge.</p>
-      {% for line in self_order_missing %}<p><strong>{{ line.quantity }} × {{ line.name }}</strong> is no longer available, so it was left out. Tell the customer.</p>{% endfor %}
+      {% for line in self_order_missing %}<p><strong>{{ line.quantity }} × {{ line.name }}</strong> is sold out or no longer on the menu, so it was left out. Tell the customer.</p>{% endfor %}
       <p><a href="{% url 'sales:self_order_list' %}">Back to customer orders</a></p>
     </div>
   {% endif %}

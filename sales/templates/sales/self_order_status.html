@@ -34,7 +34,7 @@
       <p class="order-status__lead">Unpaid orders expire after an hour. Nothing was charged.</p>
     {% endif %}
 
-    {% if self_order.status == 'pending' or self_order.status == 'paid' %}
+    {% if self_order.status == 'pending' or self_order.status == 'paid' and order.status != 'voided' %}
       <ol class="order-steps" aria-label="Order progress">
         {% for step in steps %}<li class="{% if step.done %}is-done{% endif %}{% if step.current %} is-current{% endif %}"{% if step.current %} aria-current="step"{% endif %}><span aria-hidden="true">{% if step.done and not step.current %}{% icon "check" 12 %}{% endif %}</span>{{ step.label }}</li>{% endfor %}
       </ol>
@@ -42,11 +42,11 @@
 
     <dl class="order-summary">
       {% if self_order.table_label %}<dt>Table</dt><dd>{{ self_order.table_label }}</dd>{% else %}<dt>Order</dt><dd>{{ self_order.get_order_type_display }}</dd>{% endif %}
-      {% for line in self_order.lines.all %}<dt>{{ line.quantity }} × {{ line.name }}</dt><dd>{{ currency }}{{ line.line_total|money }}</dd>{% endfor %}
-      <dt>Tax</dt><dd>{{ currency }}{{ self_order.tax|money }}</dd>
-      <dt class="order-summary__total">{% if order %}Paid{% else %}Estimated total{% endif %}</dt><dd class="order-summary__total">{{ currency }}{% if order %}{{ order.total|money }}{% else %}{{ self_order.total|money }}{% endif %}</dd>
+      {% for line in lines %}<dt>{{ line.quantity }} × {{ line.name }}</dt><dd>{{ currency }}{{ line.line_total|money }}</dd>{% endfor %}
+      <dt>Tax</dt><dd>{{ currency }}{% if order %}{{ order.tax|money }}{% else %}{{ self_order.tax|money }}{% endif %}</dd>
+      <dt class="order-summary__total">{% if order.status == 'voided' %}Voided{% elif order %}Paid{% else %}Estimated total{% endif %}</dt><dd class="order-summary__total">{{ currency }}{% if order %}{{ order.total|money }}{% else %}{{ self_order.total|money }}{% endif %}</dd>
     </dl>
-    {% if order and order.total != self_order.total %}<p class="order-status__note">The cashier adjusted your order at the counter.</p>{% endif %}
+    {% if order %}<p class="order-status__note">What you paid for{% if order.total != self_order.total %}, as changed at the counter{% endif %}.</p>{% endif %}
 
     {% if live %}<p class="order-status__note" data-auto-reload="15">This page updates by itself.</p>{% endif %}
 

@@ -13,6 +13,7 @@
 .order-setup { border: 1px solid var(--cream-200); background: var(--paper); border-radius: 22px; padding: 1rem; margin: 0 0 1.4rem;
   display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: .9rem; align-items: end; }
 .order-setup .field { margin: 0; }
+.order-setup [data-table-field][hidden] { display: none; } /* .field sets display: flex */
 .order-seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; background: var(--cream-100); border-radius: 14px; padding: 4px; gap: 4px; align-self: end; }
 .order-seg label { position: relative; text-align: center; border-radius: 11px; cursor: pointer; font-weight: 700; font-size: .92rem; color: var(--ink-2); }
 .order-seg input { position: absolute; opacity: 0; inset: 0; cursor: pointer; }
