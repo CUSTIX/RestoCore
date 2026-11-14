@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.urls import include, path
 
-from config.views import healthz
+from config.views import healthz, livez
 
 urlpatterns = [
     path("", include("website.urls")),
@@ -18,4 +18,5 @@ urlpatterns = [
     path("api/", include("api.urls")),
     path("admin/", admin.site.urls),
     path("healthz/", healthz, name="healthz"),
+    path("livez/", livez, name="livez"),
 ]

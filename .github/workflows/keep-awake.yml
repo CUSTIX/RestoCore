@@ -1,0 +1,31 @@
+# Uptime heartbeat for the live demo. Render's free web service sleeps after 15 minutes with no
+# traffic, and the next visitor waits about a minute for it to wake. Pinging it every 10 minutes
+# keeps it awake 24/7. One always-on service uses ~744 of the workspace's 750 free hours a month.
+#
+# /livez/ does not touch the database, so the free Neon database can still suspend when idle.
+# GitHub may delay scheduled runs at busy times, so an occasional sleep is still possible.
+# GitHub turns off scheduled workflows after 60 days with no commits; re-enable it in the
+# Actions tab if that happens.
+name: Keep awake
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+# Least privilege: the job only makes an HTTP request.
+permissions: {}
+
+jobs:
+  ping:
+    # Forks should not ping our deploy.
+    if: github.repository == 'CUSTIX/RestoCore'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Ping the live demo
+        # A cold start can take about a minute, so retry for up to ~3 minutes before failing.
+        run: >
+          curl --fail --silent --show-error --max-time 90
+          --retry 5 --retry-delay 20 --retry-all-errors
+          https://restocore.onrender.com/livez/

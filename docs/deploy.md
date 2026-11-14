@@ -13,8 +13,14 @@ Render builds straight from GitHub and redeploys on every push to `main`.
   1. `migrate` (there is no separate release step on the free plan, so the container does it),
   2. `seed_demo --reset` when `DEMO_RESET_ON_START=true`: wipes **all** data and reseeds,
   3. `gunicorn` on the `$PORT` Render assigns, `$WEB_CONCURRENCY` workers.
-- Free services sleep after ~15 idle minutes. The next visit wakes it (about a minute), which
-  also resets the demo, so every visitor gets clean data even if someone before them changed it.
+- Free services sleep after ~15 idle minutes, and waking takes about a minute. The **Keep awake**
+  workflow (`.github/workflows/keep-awake.yml`) pings `/livez/` every 10 minutes so the demo stays
+  online 24/7. One always-on service uses ~744 of the workspace's 750 free hours a month, so a
+  second free service in the same Render workspace would run out of hours: put it in another
+  workspace, or turn the heartbeat off. `/livez/` skips the database so Neon can still suspend;
+  `/healthz/` (Render's health check) does query it. GitHub can delay scheduled runs, and it turns
+  scheduled workflows off after 60 days without commits (re-enable them in the Actions tab).
+- The demo data resets on every start, which now means every deploy or restart, not every visit.
 - `DEMO_MODE=true` shows the demo accounts on the login page with `DEBUG` off, blocks password
   changes, and keeps the owner out of `/admin/` (see "Public demo safety" in the README).
 

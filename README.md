@@ -13,8 +13,8 @@ blocks Charge until the cash covers the total, owner dashboard, kitchen board, i
 and payroll](docs/demo.gif)
 
 **Live demo: <https://restocore.onrender.com>** (staff login at `/accounts/login/`; the demo accounts
-are listed there with one-click fill). The free server sleeps when idle, so the first visit can
-take about a minute to wake up; the demo data resets each time it starts.
+are listed there with one-click fill). A GitHub Actions heartbeat pings it every 10 minutes so the
+free server stays awake; the demo data resets each time it starts (every deploy or restart).
 
 Portfolio project. Built with Django 5.2, PostgreSQL 17, Docker Compose and GitHub Actions.
 Free to build and run. **All data is fake** (generated with Faker).
@@ -123,8 +123,8 @@ Postgres database, configured by [`render.yaml`](render.yaml). The container's s
 variable: [docs/deploy.md](docs/deploy.md).
 
 **Public demo safety** (`DEMO_MODE=true`): the demo accounts are listed on the login page, all
-data is fake and is wiped and reseeded on every start (the free service sleeps when idle, so that
-is roughly every visit), password changes are disabled, and nobody gets Django admin.
+data is fake and is wiped and reseeded on every start (every deploy or restart), password changes
+are disabled, and nobody gets Django admin.
 
 ## Status
 
