@@ -24,6 +24,9 @@ The login page lists the demo accounts (local DEBUG only) and fills them in with
       large party, slots without enough seats are crossed out; after the last seating it says so.
 - [ ] Booking in the past, outside hours, or party size 0 / 21 → error, nothing saved.
 - [ ] Fill one slot with 40 guests → next booking at that time says "fully booked".
+- [ ] `/order/?table=4` on a phone: + / − steppers, bottom bar shows items and an estimate; "Done
+  ordering" stays disabled until a dish is picked (and a table is entered for Eat here) → code page
+  with 5 letters and Ordered/Paid/Preparing/Ready steps; Cancel order works while unpaid.
 - [ ] `/app/` redirects to login. Unknown URL shows the 404 page.
 
 ## owner
@@ -43,6 +46,10 @@ The login page lists the demo accounts (local DEBUG only) and fills them in with
       (seat on the day, no-show only after the time); "to confirm" on the dashboard matches the list.
 - [ ] New/Edit booking: passed and full times are marked in the dropdown; editing a booking whose
       time has passed still lets you fix the phone number.
+- [ ] Table QR codes: `1-3, Patio` makes Counter + 4 cards; `1-500` is refused; Print hides the form.
+- [ ] Customer orders: type a customer code in lowercase or with `#` → POS opens with their items,
+  table and a yellow banner; charge → customer screen says Paid; opening the code again goes to the
+  receipt. Unknown code → "No open order". Cancel removes it from the waiting list.
 - [ ] Menu: add a category; add a dish with a photo and recipe; price 0 is rejected.
 - [ ] Inventory: new item, receive (hint shows the new total), waste more than on hand → message
       under the field before sending, stock count. Double-clicking Save records one movement.

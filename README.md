@@ -54,6 +54,7 @@ accounts: `restocore-demo` (set by `DEMO_PASSWORD` in `.env`). To start over:
 | **Bookings** | 30-minute slots inside opening hours, per-slot seat capacity, honeypot spam check, status workflow (pending → confirmed → seated → completed, or cancelled / no-show), staff phone bookings, filters and search. |
 | **Inventory** | Items with reorder levels, an append-only stock ledger (received, waste, stock count, sales, voids), low-stock alerts. |
 | **Sales** | Menu with per-portion recipes, POS checkout (cash or card, tax, change), kitchen board (queued → preparing → ready → served), printable receipts, manager-only voids. |
+| **QR ordering** | Managers print a QR code per table. Customers scan it, order on their phone and get a 5-letter code (e.g. `7MF3N`). The cashier types the code, the POS opens with their items already in, checks them with the customer, takes payment, and the order goes to the kitchen. The customer’s screen follows along: ordered → paid → preparing → ready. Try it on the live demo at `/order/`. |
 | **Staff** | Employees linked to logins and roles, weekly schedule with overlap and leave checks, clock in/out, leave requests with approval rules. |
 | **Payroll (demo)** | Pay periods from attendance hours + approved paid leave, configurable deduction rates, draft → finalized (locked). |
 | **Dashboard** | Role-aware: sales today and last 7 days, bookings, kitchen queue, low stock, pending leave, who is on shift. |
@@ -145,6 +146,12 @@ is roughly every visit), password changes are disabled, and nobody gets Django a
   one `transaction.atomic()` block, with row locks (`select_for_update`, in id order) so two
   cashiers cannot oversell. If any ingredient is short, nothing is saved. Voids put back exactly
   what the ledger says was taken.
+- **A QR order is not a sale until the cashier charges it.** Customer orders live in their own
+  `SelfOrder` table: nothing is charged and no stock moves. Charging runs the normal POS checkout
+  with the customer order’s token as its checkout token, so stock, the kitchen queue, receipts and
+  double-click protection all work the same, and the cashier can still change items at the counter.
+  Unpaid orders expire after an hour; codes are unique only among open orders and avoid look-alike
+  characters (no 0/O, 1/I).
 - **Roles are Django Groups,** created by a data migration. Every staff view declares its allowed
   roles (`RoleRequiredMixin`), and the role check runs *before* any object lookup, so a user without
   access gets 403 rather than learning which ids exist. Sensitive rules live in services too: only an

@@ -39,6 +39,11 @@ repository. Don't open a public issue for security problems.
 - The public booking form allows 3 bookings per visitor IP per hour (10 per day) on top of its
   honeypot, so a bot can't fill every slot and turn real guests away. Staff phone bookings are
   not limited.
+- QR self-ordering is public but can’t charge anything: an order only becomes a sale when a
+  cashier opens it in the POS and takes payment. Customer orders are limited to 30 per IP per hour,
+  the customer’s status link uses an unguessable UUID (not the short code), and table labels from
+  the QR link are validated against a strict pattern. Staff search by the short code only finds
+  open orders, behind the cashier role check.
 - The visitor IP is read only from a header the proxy overwrites (`CLIENT_IP_HEADER`, e.g.
   Cloudflare's `CF-Connecting-IP`), never from a raw `X-Forwarded-For` that callers can forge.
 - Django's password validators; sessions end after 12 hours; session and CSRF cookies are
