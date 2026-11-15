@@ -88,3 +88,28 @@ def test_seed_demo_reset_that_fails_keeps_the_old_data(monkeypatch):
         call_command("seed_demo", "--reset")
 
     assert get_user_model().objects.filter(username="owner").exists()
+
+
+@pytest.mark.django_db
+def test_seed_demo_just_after_midnight_still_has_todays_orders_and_no_open_past_entries(
+    monkeypatch,
+):
+    """COR-07: the demo reseeds at a fixed hour; a seed between 00:00 and ~02:00 must not push
+    "today" onto yesterday or leave clock-ins open inside the finished pay period."""
+    import datetime as dt
+
+    from django.utils import timezone
+
+    from payroll.models import PayPeriod
+    from sales.models import Order
+    from staff import selectors as staff_selectors
+
+    frozen = dt.datetime(2026, 11, 10, 0, 2, tzinfo=timezone.get_current_timezone())
+    monkeypatch.setattr(timezone, "now", lambda: frozen)
+
+    call_command("seed_demo")
+
+    today = timezone.localdate()
+    assert Order.objects.filter(created_at__date=today).exists()
+    period = PayPeriod.objects.get()
+    assert staff_selectors.open_entries_between(period.start_date, period.end_date).count() == 0

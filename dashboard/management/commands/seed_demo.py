@@ -429,7 +429,12 @@ class Command(BaseCommand):
                     day, dt.time(random.randint(11, 20), random.randint(0, 59)), tzinfo=tz
                 )
                 if days_ago == 0:
-                    when = min(when, timezone.now() - dt.timedelta(minutes=5))
+                    # Not in the future, but never before today began (seeded at 00:02, "five
+                    # minutes ago" is yesterday and today's orders would land on the wrong day).
+                    when = max(
+                        min(when, timezone.now() - dt.timedelta(minutes=5)),
+                        dt.datetime.combine(day, dt.time(0, 0), tzinfo=tz),
+                    )
                 kitchen = "served"
                 if days_ago == 0:
                     kitchen = random.choice(["queued", "preparing", "ready", "served", "served"])
@@ -514,11 +519,12 @@ class Command(BaseCommand):
                         minutes=random.randint(-5, 30)
                     )
                     TimeEntry.objects.create(employee=emp, clock_in=clock_in, clock_out=clock_out)
-        # A few people are on shift right now.
+        # A few people are on shift right now (clamped to today: a clock-in dated yesterday would
+        # sit inside the finished pay period and block finalizing it).
+        today_start = dt.datetime.combine(self.today, dt.time(0, 0), tzinfo=tz)
+        on_shift_since = max(timezone.now() - dt.timedelta(hours=2), today_start)
         for key in ("cashier", "kitchen", "staff"):
-            TimeEntry.objects.create(
-                employee=employees[key], clock_in=timezone.now() - dt.timedelta(hours=2)
-            )
+            TimeEntry.objects.create(employee=employees[key], clock_in=on_shift_since)
 
     def _leave(self, employees):
         LeaveRequest.objects.create(
