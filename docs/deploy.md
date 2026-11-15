@@ -53,6 +53,9 @@ Render builds straight from GitHub and redeploys on every push to `main`.
 | `DEMO_PASSWORD` | `restocore-demo` | Shared demo password (shown on the login page) |
 | `WEB_CONCURRENCY` | `2` | Workers that fit the free 512 MB instance |
 | `DJANGO_TIME_ZONE` | `Asia/Manila` | Opening hours and bookings in local time |
+| `CLIENT_IP_HEADER` | `HTTP_CF_CONNECTING_IP` | Real visitor IP for sign-in throttling (Cloudflare sits in front of Render and overwrites it) |
+| `GEMINI_API_KEY` | owner sets it in the dashboard | Turns on Ask RestoCore; never committed |
+| `ASSISTANT_ALLOW_PAYROLL` | unset | Defaults to on in demo mode (fake data); real payroll must opt in |
 
 `ALLOWED_HOSTS` and `CSRF_TRUSTED_ORIGINS` pick up Render's hostname automatically from
 `RENDER_EXTERNAL_HOSTNAME`. The read-only API stays off (no `RESTOCORE_API_TOKEN`).

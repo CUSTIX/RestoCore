@@ -91,3 +91,18 @@ def test_log_lines_carry_time_level_and_logger_name():
     handler = settings_module.LOGGING["handlers"]["console"]
     fmt = settings_module.LOGGING["formatters"][handler["formatter"]]["format"]
     assert "%(asctime)s" in fmt and "%(levelname)s" in fmt and "%(name)s" in fmt
+
+
+def test_every_environment_variable_the_settings_read_is_documented():
+    """OPS-12: a variable that is read but not in .env.example cannot be discovered or set by
+    anyone who did not write the code (nine had drifted out of it)."""
+    import re
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[2]
+    source = (root / "config" / "settings.py").read_text()
+    example = (root / ".env.example").read_text()
+    read = set(re.findall(r'(?:environ\.get|env_bool|environ\[)\(?\s*"([A-Z][A-Z0-9_]+)"', source))
+    provided_by_the_host = {"RENDER_EXTERNAL_HOSTNAME"}
+    missing = {name for name in read - provided_by_the_host if name not in example}
+    assert not missing, f"Add these to .env.example: {sorted(missing)}"

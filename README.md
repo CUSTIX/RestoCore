@@ -74,7 +74,7 @@ accounts: `restocore-demo` (set by `DEMO_PASSWORD` in `.env`). To start over:
 ## Tests, lint, and checks
 
 ```bash
-docker compose run --rm web pytest                    # 450+ tests
+docker compose run --rm web pytest                    # 700+ tests
 docker compose run --rm web ruff check .
 docker compose run --rm web ruff format --check .
 docker compose run --rm web python manage.py check
@@ -189,3 +189,7 @@ payroll/      demo payroll            dashboard/  dashboard + seed_demo command
 api/          read-only JSON API      mcp_server/ MCP server (separate requirements)
 assistant/    Ask RestoCore: the owner's AI assistant (Gemini + read-only tools)
 ```
+
+## License
+
+[MIT](LICENSE). The demo data is fake and generated; nothing in the repository is real customer, payroll or business data.

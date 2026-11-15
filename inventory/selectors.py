@@ -21,10 +21,6 @@ def low_stock_items() -> QuerySet[InventoryItem]:
     )
 
 
-def active_items() -> QuerySet[InventoryItem]:
-    return InventoryItem.objects.filter(is_active=True).order_by("name")
-
-
 def recipe_choices(*, keep_id: int | None = None) -> QuerySet[InventoryItem]:
     """Ingredients a recipe line may use: active ones, plus the one it already uses (if any)."""
     return InventoryItem.objects.filter(Q(is_active=True) | Q(pk=keep_id)).order_by("name")
@@ -32,12 +28,6 @@ def recipe_choices(*, keep_id: int | None = None) -> QuerySet[InventoryItem]:
 
 def movements_for(item: InventoryItem) -> QuerySet[StockMovement]:
     return item.movements.select_related("created_by").order_by("-created_at", "-id")
-
-
-def recent_movements(limit: int = 50) -> QuerySet[StockMovement]:
-    return StockMovement.objects.select_related("item", "created_by").order_by(
-        "-created_at", "-id"
-    )[:limit]
 
 
 def quantities(item_ids) -> dict[int, tuple]:
