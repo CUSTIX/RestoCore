@@ -47,7 +47,9 @@ def update_item(item: InventoryItem, **data) -> InventoryItem:
         raise ValidationError(UNIT_LOCKED)
     for field, value in data.items():
         setattr(item, field, value)
-    item.save()
+    # Only the edited columns: a full save would write back the quantity this copy was loaded
+    # with, undoing any delivery or sale that happened while the form was open.
+    item.save(update_fields=[*data, "updated_at"])
     return item
 
 

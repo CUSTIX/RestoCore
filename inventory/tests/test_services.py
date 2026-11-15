@@ -76,3 +76,15 @@ def test_reverse_sale_restores_exactly_once(flour):
 def test_low_stock_flag(flour):
     services.record_count(item_id=flour.pk, counted=D("3"))
     assert InventoryItem.objects.get(pk=flour.pk).is_low
+
+
+def test_update_item_does_not_overwrite_stock_received_in_the_meantime(flour):
+    """COR-05: an edit form loaded before a delivery must not roll the quantity back."""
+    stale = InventoryItem.objects.get(pk=flour.pk)  # what the edit form was built from
+    services.receive_stock(item_id=flour.pk, quantity=D("5"))
+
+    services.update_item(stale, name="Flour (AP)")
+
+    flour.refresh_from_db()
+    assert flour.quantity == D("15") and flour.name == "Flour (AP)"
+    assert flour.movements.order_by("-id").first().quantity_after == flour.quantity
