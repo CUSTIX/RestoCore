@@ -58,10 +58,13 @@ def generate_payslips(period: PayPeriod) -> int:
     period = PayPeriod.objects.select_for_update().get(pk=period.pk)
     if period.status != PayPeriod.Status.DRAFT:
         raise ValidationError("Finalized periods cannot be recalculated.")
+    rates = list(DeductionRate.objects.filter(is_active=True))
+    if sum((r.rate for r in rates), Decimal("0")) >= 1:
+        # Each rate is validated on its own; together they could exceed the whole wage.
+        raise ValidationError("Active deduction rates add up to 100% or more. Lower them first.")
     period.payslips.all().delete()
     hours = staff_selectors.hours_worked(period.start_date, period.end_date)
     leave = staff_selectors.approved_leave_days(period.start_date, period.end_date)
-    rates = list(DeductionRate.objects.filter(is_active=True))
     count = 0
     # Everyone who worked or had paid leave in the period, including people deactivated since:
     # leaving the café doesn't cancel wages already earned.
@@ -120,8 +123,11 @@ def finalize_period(period: PayPeriod) -> PayPeriod:
         raise ValidationError(
             f"{open_count} clock-in{'' if one else 's'} in this period "
             f"{'has' if one else 'have'} no clock-out yet. Close {'it' if one else 'them'} "
-            "under Attendance, recalculate, then finalize."
+            "under Attendance, then finalize."
         )
+    # Payslips are a snapshot: hours, leave or rates may have changed since they were generated,
+    # and finalizing locks the period for good. Rebuild them so the locked numbers are current.
+    generate_payslips(period)
     period.status = PayPeriod.Status.FINALIZED
     period.finalized_at = timezone.now()
     period.save(update_fields=["status", "finalized_at", "updated_at"])

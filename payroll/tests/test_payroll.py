@@ -190,3 +190,36 @@ def test_a_period_still_running_cannot_be_finalized(make_user, make_employee, cl
         services.finalize_period(running)
     html = client_for("Owner").get(f"/app/payroll/periods/{running.pk}/").content.decode()
     assert 'value="finalize"' not in html and "Finalize after" in html
+
+
+def test_finalizing_pays_hours_added_after_the_payslips_were_generated(period, make_employee):
+    """COR-01: a clock-in closed after generating must not be locked out of the final payslip."""
+    emp = make_employee(rate=D("100"))
+    _worked(emp, period.start_date, hours=4)
+    tz = timezone.get_current_timezone()
+    open_entry = TimeEntry.objects.create(
+        employee=emp,
+        clock_in=dt.datetime.combine(period.start_date + dt.timedelta(days=1), dt.time(9), tz),
+    )
+    services.generate_payslips(period)  # snapshot: 4 hours, one clock-in still open
+    open_entry.clock_out = open_entry.clock_in + dt.timedelta(hours=8)
+    open_entry.save()  # closed afterwards, but the owner forgets to recalculate
+
+    services.finalize_period(period)
+
+    slip = period.payslips.get()
+    assert slip.hours_worked == D("12.00")
+    assert slip.gross_pay == D("1200.00")
+
+
+def test_deduction_rates_must_stay_below_one_hundred_percent(period, make_employee):
+    """COR-03: two 60% rates would produce a negative net pay locked into a payslip."""
+    DeductionRate.objects.all().delete()
+    DeductionRate.objects.create(name="A", rate=D("0.60"))
+    DeductionRate.objects.create(name="B", rate=D("0.60"))
+    _worked(make_employee(rate=D("100")), period.start_date)
+
+    with pytest.raises(ValidationError, match="100%"):
+        services.generate_payslips(period)
+
+    assert not period.payslips.exists()
