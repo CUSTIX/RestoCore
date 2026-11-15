@@ -73,6 +73,9 @@ API_TOKEN = os.environ.get("RESTOCORE_API_TOKEN", "")
 # Public demo deployments: show the demo accounts on the login page even with DEBUG off.
 # Pair with DEMO_RESET_ON_START=true (bin/start.sh) so visitors always get fresh demo data.
 DEMO_MODE = env_bool("DEMO_MODE")
+# Pay rates and payslips are sent to Google when the assistant answers. Always on for the fake demo
+# data; real payroll must opt in explicitly.
+ASSISTANT_ALLOW_PAYROLL = env_bool("ASSISTANT_ALLOW_PAYROLL", default=DEMO_MODE)
 # The demo logins listed on the login page. With DEMO_MODE on they can't be edited, demoted or
 # deactivated through staff management, so one visitor can't lock the next one out.
 DEMO_ACCOUNTS = ("owner", "manager", "cashier", "kitchen", "staff")

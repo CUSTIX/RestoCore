@@ -10,6 +10,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from decimal import Decimal
 
+from django.conf import settings
 from django.utils import timezone
 
 from bookings import selectors as bookings
@@ -97,6 +98,15 @@ def _name(user) -> str:
     return user.get_full_name() or user.username
 
 
+MAX_TEXT = 120
+
+
+def _text(value, limit: int = MAX_TEXT) -> str:
+    """Free text someone typed (a visitor's booking note, a leave reason) as one short line.
+    It reaches the model as data, so keep it from carrying whole paragraphs of instructions."""
+    return " ".join(str(value or "").split())[:limit]
+
+
 def _contains(needle: str, haystack: str) -> bool:
     return not needle or needle.lower() in haystack.lower()
 
@@ -170,13 +180,13 @@ def list_orders(date=None, status=None, limit=None) -> dict:
                 "number": o.number,
                 "time": timezone.localtime(o.created_at).strftime("%H:%M"),
                 "type": o.order_type,
-                "table": o.table_label,
+                "table": _text(o.table_label, 20),
                 "payment": o.payment_method,
                 "total": o.total,
                 "status": o.status,
                 "kitchen_status": o.kitchen_status,
                 "cashier": _name(o.cashier),
-                "void_reason": o.void_reason,
+                "void_reason": _text(o.void_reason),
                 "items": [f"{line.quantity}x {line.name}" for line in o.lines.all()],
             }
             for o in orders
@@ -234,11 +244,11 @@ def list_bookings(date=None, when=None, status=None, search=None, limit=None) ->
                 "reference": b.reference,
                 "date": b.date,
                 "time": b.time.strftime("%H:%M"),
-                "guest": b.name,
+                "guest": _text(b.name),
                 "party_size": b.party_size,
                 "status": b.status,
                 "source": b.source,
-                "notes": b.notes,
+                "notes": _text(b.notes),
             }
             for b in rows[: _limit(limit)]
         ]
@@ -333,7 +343,7 @@ def list_employees(include_inactive=False) -> dict:
                 "name": _name(e.user),
                 "role": staff_services.primary_role(e.user),
                 "position": e.position,
-                "hourly_rate": e.hourly_rate,
+                **({"hourly_rate": e.hourly_rate} if payroll_allowed() else {}),
                 "hire_date": e.hire_date,
                 "active": e.is_active,
             }
@@ -421,9 +431,9 @@ def list_leave(status=None, employee=None) -> dict:
             "end": r.end_date,
             "days": r.days,
             "status": r.status,
-            "reason": r.reason,
+            "reason": _text(r.reason),
             "reviewed_by": _name(r.reviewed_by) if r.reviewed_by else None,
-            "review_note": r.review_note,
+            "review_note": _text(r.review_note),
         }
         for r in staff.leave_requests(status=status)
         if _contains(employee or "", _name(r.employee.user))
@@ -496,8 +506,19 @@ def get_pay_period(period_id=None) -> dict:
     }
 
 
+# Pay rates and payslips go to a third party (Google) when the assistant answers. Fine for the fake
+# demo data; for real payroll the owner must opt in (ASSISTANT_ALLOW_PAYROLL=true).
+PAYROLL_TOOLS = {"list_pay_periods", "get_pay_period"}
+
+
+def payroll_allowed() -> bool:
+    return bool(settings.ASSISTANT_ALLOW_PAYROLL)
+
+
 def declarations() -> list[dict]:
-    return [t.declaration() for t in TOOLS.values()]
+    return [
+        t.declaration() for t in TOOLS.values() if payroll_allowed() or t.name not in PAYROLL_TOOLS
+    ]
 
 
 def run(name: str, args: dict | None) -> dict:
@@ -505,8 +526,17 @@ def run(name: str, args: dict | None) -> dict:
     found = TOOLS.get(name)
     if not found:
         return {"error": f"There is no tool called {name}."}
-    args = {k: v for k, v in (args or {}).items() if k in found.parameters}
+    if name in PAYROLL_TOOLS and not payroll_allowed():
+        return {"error": "Payroll data is not available to the assistant."}
+    args = (
+        {k: v for k, v in args.items() if k in found.parameters} if isinstance(args, dict) else {}
+    )
     try:
         return found.run(**args)
     except ToolError as exc:
         return {"error": str(exc)}
+    except (TypeError, AttributeError, ValueError):
+        # The model sent the wrong type (a number where text belongs): let it correct itself.
+        return {
+            "error": f"The arguments for {name} were not valid. Check their types and try again."
+        }
