@@ -173,6 +173,8 @@ def update_booking(booking: Booking, **data) -> Booking:
 
 @transaction.atomic
 def change_status(booking: Booking, new_status: str) -> Booking:
+    if new_status not in Booking.Status.values:
+        raise ValidationError("Unknown booking status.")
     booking = Booking.objects.select_for_update().get(pk=booking.pk)
     if new_status == booking.status:
         return booking  # double-click / second tab: already done, not an error

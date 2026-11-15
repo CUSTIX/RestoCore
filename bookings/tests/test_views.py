@@ -127,3 +127,17 @@ def test_booking_confirmation_is_not_cached_by_the_browser_or_a_proxy(client, to
     """SEC-10: the page shows the guest's name; it must not be kept on a shared device."""
     response = client.post("/book/", form_data(tomorrow))
     assert "no-store" in client.get(response.url)["Cache-Control"]
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("bogus", ["bogus", "", "CONFIRMED", "confirmed "])
+def test_an_unknown_booking_status_is_refused_with_a_plain_message(client_for, tomorrow, bogus):
+    """QA-08: the service raised ValueError and the view flashed Python's own error text."""
+    b = services.create_booking(**booking_data(tomorrow))
+    response = client_for("Manager").post(
+        f"/app/bookings/{b.pk}/status/", {"status": bogus}, follow=True
+    )
+    b.refresh_from_db()
+    html = response.content.decode()
+    assert b.status == "pending"
+    assert "not a valid" not in html and "Unknown booking status" in html
