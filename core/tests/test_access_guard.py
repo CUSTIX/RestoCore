@@ -50,7 +50,9 @@ def test_api_urls_refuse_requests_without_a_token(client, settings, url):
 
 @pytest.mark.django_db
 @pytest.mark.parametrize("url", STAFF)
-def test_staff_urls_refuse_a_signed_in_user_with_no_role(client, make_user, url):
-    """Logged in but holding no role (e.g. a deactivated employee's leftover account)."""
+@pytest.mark.parametrize("method", ["get", "post"])
+def test_staff_urls_refuse_a_signed_in_user_with_no_role(client, make_user, url, method):
+    """Logged in but holding no role (e.g. a deactivated employee's leftover account). Strictly
+    403: a 404 here would mean the view looked something up before checking the role."""
     client.force_login(make_user(None))
-    assert client.get(url).status_code in (403, 404)
+    assert getattr(client, method)(url).status_code == 403
