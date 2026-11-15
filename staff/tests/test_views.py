@@ -255,3 +255,17 @@ def test_demo_accounts_are_editable_outside_demo_mode(client_for, make_employee,
     assert (
         client_for("Owner").get(f"/app/staff/employees/{demo_cashier.pk}/edit/").status_code == 200
     )
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "path,list_url",
+    [
+        ("/app/staff/shifts/new/", "/app/staff/shifts/"),
+        ("/app/staff/employees/new/", "/app/staff/employees/"),
+    ],
+)
+def test_cancel_on_a_staff_form_is_a_real_link_to_the_list(client_for, path, list_url):
+    """UX-01: Cancel was a javascript: link, which the CSP blocks, so it did nothing."""
+    html = client_for("Manager").get(path).content.decode()
+    assert f'<a href="{list_url}">Cancel</a>' in html

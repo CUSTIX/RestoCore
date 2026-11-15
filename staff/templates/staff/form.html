@@ -8,7 +8,7 @@
     {% include "core/partials/form.html" with form=form %}
     <div class="actions">
       <button type="submit" class="btn">Save</button>
-      <a href="javascript:history.back()">Cancel</a>
+      <a href="{% if active_section == 'shifts' %}{% url 'staff:shift_list' %}{% else %}{% url 'staff:employee_list' %}{% endif %}">Cancel</a>
     </div>
   </form>
   {% if shift %}

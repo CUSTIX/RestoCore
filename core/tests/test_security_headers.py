@@ -47,6 +47,8 @@ TEMPLATE_DIRS = [p for p in Path(settings.BASE_DIR).glob("*/templates") if p.par
 TEMPLATES = sorted(f for d in TEMPLATE_DIRS for f in d.rglob("*.html"))
 INLINE_SCRIPT = re.compile(r"<script(?![^>]*\bsrc=)(?![^>]*application/(ld\+)?json)[^>]*>", re.I)
 INLINE_HANDLER = re.compile(r"\son[a-z]+\s*=\s*['\"]", re.I)
+# A javascript: URL is inline script too: the CSP blocks it, so the link silently does nothing.
+JAVASCRIPT_URL = re.compile(r"""(?:href|src|action|formaction)\s*=\s*["']\s*javascript:""", re.I)
 
 
 def test_templates_were_found():
@@ -59,6 +61,7 @@ def test_templates_have_no_inline_javascript(template):
     html = template.read_text(encoding="utf-8")
     assert not INLINE_SCRIPT.search(html), "inline <script>: move it to a static .js file"
     assert not INLINE_HANDLER.search(html), "inline on*= handler: use a data-* attribute + JS"
+    assert not JAVASCRIPT_URL.search(html), "javascript: URL is blocked by the CSP: use a real link"
 
 
 @pytest.mark.django_db
@@ -87,3 +90,10 @@ def test_stale_form_token_shows_a_friendly_page_and_saves_nothing(make_user):
     html = response.content.decode()
     assert response.status_code == 403
     assert "open a little too long" in html and "CSRF" not in html
+
+
+@pytest.mark.parametrize("template", TEMPLATES, ids=lambda p: str(p.relative_to(settings.BASE_DIR)))
+def test_no_preconnect_hints_the_csp_would_refuse(template):
+    """UX-16: a preconnect to Google Fonts is governed by connect-src, which only allows 'self',
+    so every page logged a console error. The stylesheet itself is allowed and still loads."""
+    assert 'rel="preconnect"' not in template.read_text(encoding="utf-8")

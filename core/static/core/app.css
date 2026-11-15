@@ -200,6 +200,8 @@ td a:hover { text-decoration: underline; }
 .seg input { position: absolute; opacity: 0; pointer-events: none; }
 .seg input:checked + span { color: var(--ink); }
 .seg label:has(input:checked) { background: var(--bg-elevated); color: var(--ink); box-shadow: var(--shadow-sm); }
+/* The radio itself is invisible, so show keyboard focus on its label (WCAG 2.4.7). */
+.seg label:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 /* ---------- Kitchen board ---------- */
 .kanban { display: grid; grid-template-columns: repeat(3, minmax(260px, 1fr)); gap: 1rem; align-items: start; }

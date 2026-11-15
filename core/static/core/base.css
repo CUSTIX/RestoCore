@@ -34,6 +34,7 @@
   --warn: #7f520e;
   --warn-soft: #f8eedc;
   --danger: #a8322a;
+  --danger-ink: #fff;
   --danger-soft: #f9e6e3;
   --info: #3d5f8a;
   --info-soft: #e7eef6;
@@ -73,6 +74,7 @@
   --warn: #dcae64;
   --warn-soft: #32261a;
   --danger: #ec8f86;
+  --danger-ink: #1a120d;
   --danger-soft: #3a1c19;
   --info: #9bb8df;
   --info-soft: #1b2533;
@@ -119,7 +121,7 @@ code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-si
 .btn--small { padding: .38em .85em; font-size: .84rem; }
 .btn--ghost { --btn-bg: transparent; --btn-ink: var(--accent); --btn-line: var(--line-strong); box-shadow: none; }
 .btn--ghost:hover { --btn-bg: var(--accent-soft); }
-.btn--danger { --btn-bg: var(--danger); --btn-line: var(--danger); --btn-ink: #fff; }
+.btn--danger { --btn-bg: var(--danger); --btn-line: var(--danger); --btn-ink: var(--danger-ink); }
 .btn--accent { --btn-bg: var(--walnut); --btn-line: var(--walnut); --btn-ink: #fff; }
 .btn--light { --btn-bg: var(--cream-50); --btn-ink: var(--brew-900); --btn-line: var(--cream-50); }
 .btn--outline-light { --btn-bg: transparent; --btn-ink: #fff; --btn-line: rgba(255, 255, 255, .55); box-shadow: none; }
