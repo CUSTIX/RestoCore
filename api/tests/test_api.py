@@ -7,7 +7,7 @@ ENDPOINTS = [
     "/api/menu/",
     "/api/staff/on-shift/",
 ]
-TOKEN = "test-token-abc"
+TOKEN = "test-token-abcdef-0123"
 
 
 @pytest.fixture
@@ -57,3 +57,27 @@ def test_menu_endpoint_lists_available_items(client, api_on, stocked_menu):
         "price": "100.00",
         "description": "",
     }
+
+
+@pytest.mark.django_db
+def test_repeated_wrong_tokens_lock_the_caller_out_even_for_the_right_one(client, api_on):
+    """SEC-07: a guessing script gets 10 tries an hour, then nothing, including the real token."""
+    for _ in range(10):
+        assert client.get("/api/menu/", HTTP_AUTHORIZATION="Bearer wrong").status_code == 401
+    assert client.get("/api/menu/", HTTP_AUTHORIZATION="Bearer wrong").status_code == 429
+    assert client.get("/api/menu/", **api_on).status_code == 429
+
+
+@pytest.mark.django_db
+def test_requests_without_any_token_are_not_counted_as_guesses(client, api_on):
+    for _ in range(15):
+        assert client.get("/api/menu/").status_code == 401
+    assert client.get("/api/menu/", **api_on).status_code == 200
+
+
+@pytest.mark.django_db
+def test_a_short_token_setting_switches_the_api_off(client, settings):
+    """SEC-07: example tokens get copied into real deployments; refuse anything guessable."""
+    settings.API_TOKEN = "short"
+    response = client.get("/api/menu/", HTTP_AUTHORIZATION="Bearer short")
+    assert response.status_code == 503 and "16" in response.json()["error"]

@@ -14,6 +14,7 @@ from django.utils import timezone
 from django.views.decorators.http import require_GET
 
 from bookings import selectors as bookings
+from core import throttle
 from inventory import selectors as inventory
 from sales import selectors as sales
 from staff import services as staff_services
@@ -23,15 +24,33 @@ def _error(message: str, status: int) -> JsonResponse:
     return JsonResponse({"error": message}, status=status)
 
 
+MIN_TOKEN_LENGTH = 16  # example tokens get copied into real deployments; refuse guessable ones
+WRONG_TOKENS_PER_HOUR = 10  # per caller IP, then locked out (even for the right token)
+
+
 def token_required(view):
     @wraps(view)
     def wrapper(request, *args, **kwargs):
         expected = settings.API_TOKEN
         if not expected:
             return _error("API is disabled. Set RESTOCORE_API_TOKEN to enable it.", 503)
+        if len(expected) < MIN_TOKEN_LENGTH:
+            return _error(
+                f"API is disabled: RESTOCORE_API_TOKEN must be at least {MIN_TOKEN_LENGTH} "
+                'characters. Generate one with: python -c "import secrets; '
+                'print(secrets.token_urlsafe(32))"',
+                503,
+            )
+        ip = throttle.client_ip(request)
+        if ip and throttle.is_limited(
+            "api-token-ip", ip, limit=WRONG_TOKENS_PER_HOUR, window=dt.timedelta(hours=1)
+        ):
+            return _error("Too many wrong tokens from this address. Try again later.", 429)
         header = request.headers.get("Authorization", "")
         supplied = header.removeprefix("Bearer ").strip() if header.startswith("Bearer ") else ""
         if not supplied or not hmac.compare_digest(supplied.encode(), expected.encode()):
+            if supplied and ip:  # a missing header is not a guess
+                throttle.record("api-token-ip", ip)
             return _error("Invalid or missing API token.", 401)
         return view(request, *args, **kwargs)
 

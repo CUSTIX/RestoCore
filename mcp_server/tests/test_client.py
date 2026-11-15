@@ -35,9 +35,9 @@ def django_backed_urlopen(client):
 
 @pytest.fixture
 def api(settings, client):
-    settings.API_TOKEN = "mcp-test-token"
+    settings.API_TOKEN = "mcp-test-token-0123456789"
     with mock.patch("urllib.request.urlopen", django_backed_urlopen(client)):
-        yield RestoCoreClient(base_url="http://testserver", token="mcp-test-token")
+        yield RestoCoreClient(base_url="http://testserver", token="mcp-test-token-0123456789")
 
 
 @pytest.mark.django_db
@@ -53,7 +53,7 @@ def test_every_tool_returns_json(api, method):
 
 @pytest.mark.django_db
 def test_wrong_token_raises_clear_error(settings, client):
-    settings.API_TOKEN = "right"
+    settings.API_TOKEN = "right-token-0123456789"
     with mock.patch("urllib.request.urlopen", django_backed_urlopen(client)):
         bad = RestoCoreClient(base_url="http://testserver", token="wrong")
         with pytest.raises(RestoCoreError, match="401"):
