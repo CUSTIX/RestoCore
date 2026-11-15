@@ -74,7 +74,7 @@ accounts: `restocore-demo` (set by `DEMO_PASSWORD` in `.env`). To start over:
 ## Tests, lint, and checks
 
 ```bash
-docker compose run --rm web pytest                    # 700+ tests
+docker compose run --rm web pytest                    # 1,200+ tests
 docker compose run --rm web ruff check .
 docker compose run --rm web ruff format --check .
 docker compose run --rm web python manage.py check
