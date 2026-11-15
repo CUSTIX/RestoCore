@@ -129,7 +129,8 @@ def test_staff_tools(make_employee, make_user):
     emp.user.first_name, emp.user.last_name = "Pia", "Reyes"
     emp.user.save()
     Shift.objects.create(employee=emp, date=today(), start_time=dt.time(9), end_time=dt.time(17))
-    start = timezone.now() - dt.timedelta(hours=5)
+    # A fixed time today, not "now minus 5 hours" (yesterday between midnight and 5 AM).
+    start = timezone.make_aware(dt.datetime.combine(today(), dt.time(8)))
     TimeEntry.objects.create(employee=emp, clock_in=start, clock_out=start + dt.timedelta(hours=4))
     LeaveRequest.objects.create(
         employee=emp, leave_type="sick", start_date=today(), end_date=today(), reason="flu"
