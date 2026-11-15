@@ -120,3 +120,10 @@ def test_staff_phone_bookings_are_not_rate_limited(tomorrow):
     for _ in range(services.PUBLIC_BOOKINGS_PER_HOUR + 2):
         services.create_booking(source=Booking.Source.STAFF, **booking_data(tomorrow))
     assert Booking.objects.count() == services.PUBLIC_BOOKINGS_PER_HOUR + 2
+
+
+@pytest.mark.django_db
+def test_booking_confirmation_is_not_cached_by_the_browser_or_a_proxy(client, tomorrow):
+    """SEC-10: the page shows the guest's name; it must not be kept on a shared device."""
+    response = client.post("/book/", form_data(tomorrow))
+    assert "no-store" in client.get(response.url)["Cache-Control"]

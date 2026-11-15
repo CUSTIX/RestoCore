@@ -5,8 +5,10 @@ from django.core.exceptions import ValidationError
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
+from django.utils.decorators import method_decorator
 from django.utils.http import urlencode
 from django.utils.safestring import mark_safe
+from django.views.decorators.cache import never_cache
 from django.views.generic import TemplateView, View
 
 from core import throttle
@@ -382,6 +384,7 @@ class TableQrView(RoleRequiredMixin, TemplateView):
 SESSION_KEY = "self_orders"
 
 
+@method_decorator(never_cache, name="dispatch")  # shows this customer's waiting order
 class SelfOrderStartView(TemplateView):
     """The page a table QR code opens: the menu with quantities, then "Done ordering"."""
 
@@ -429,6 +432,7 @@ class SelfOrderStartView(TemplateView):
         return self.render_to_response(self.get_context_data(form=form))
 
 
+@method_decorator(never_cache, name="dispatch")  # an order and its secret link
 class SelfOrderStatusView(TemplateView):
     """The customer's screen: the code to tell the cashier, then payment and kitchen progress.
     Reached by an unguessable link (the token), so it works even if the phone drops cookies."""

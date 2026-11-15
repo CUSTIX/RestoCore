@@ -356,3 +356,10 @@ def test_status_page_shows_expired_once_the_hour_has_passed(client, stocked_menu
     assert "This order expired" in html and "Show this at the counter" not in html
     so.refresh_from_db()
     assert so.status == SelfOrder.Status.EXPIRED
+
+
+def test_customer_pages_are_not_cached(client, stocked_menu):
+    """SEC-10: the status page shows an order and its secret link; keep it out of caches."""
+    so = self_order(stocked_menu)
+    assert "no-store" in client.get(f"/order/{so.token}/")["Cache-Control"]
+    assert "no-store" in client.get("/order/")["Cache-Control"]

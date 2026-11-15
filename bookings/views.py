@@ -4,7 +4,9 @@ from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect
+from django.utils.decorators import method_decorator
 from django.utils.functional import cached_property
+from django.views.decorators.cache import never_cache
 from django.views.generic import FormView, TemplateView, View
 
 from bookings import selectors, services
@@ -40,6 +42,7 @@ class PublicBookingView(FormView):
         return ctx
 
 
+@method_decorator(never_cache, name="dispatch")  # shows the guest's name
 class PublicThanksView(TemplateView):
     template_name = "bookings/public_thanks.html"
 
