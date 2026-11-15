@@ -60,7 +60,8 @@ jobs:
       - run: ruff format --check .
       - run: python manage.py check
       - run: python manage.py makemigrations --check --dry-run
-      - run: pytest
+      # Coverage floor (measured: 94%). Raise it as the gaps in docs/audit-plan.md are closed.
+      - run: pytest --cov --cov-report=term-missing:skip-covered --cov-fail-under=92
       - name: Deployment checklist (HTTPS mode, throwaway strong key)
         env:
           DJANGO_HTTPS: "true"

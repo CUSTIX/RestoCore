@@ -12,6 +12,13 @@ from core.roles import ALL_ROLES
 PASSWORD = "test-pass-123!"
 
 
+@pytest.fixture(autouse=True)
+def fast_password_hashing(settings):
+    """Django's real hasher is deliberately slow (about a million PBKDF2 rounds). Tests create
+    hundreds of users and try dozens of logins; the hash strength is not what they test."""
+    settings.PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
+
+
 @pytest.fixture
 def make_user(db):
     counter = {"n": 0}
