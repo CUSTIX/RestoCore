@@ -100,7 +100,7 @@ def test_kitchen_can_advance_order(client_for, make_user, stocked_menu):
         order_type="takeaway",
         payment_method="card",
     )
-    client_for("Kitchen").post(f"/app/sales/kitchen/{o.pk}/advance/")
+    client_for("Kitchen").post(f"/app/sales/kitchen/{o.pk}/advance/", {"from": "queued"})
     o.refresh_from_db()
     assert o.kitchen_status == "preparing"
 
@@ -247,3 +247,18 @@ def test_pos_page_carries_recipes_and_stock_for_whole_order_checks(client_for, s
     dish, rice = stocked_menu["dish"], stocked_menu["rice"]
     assert data["recipes"][str(dish.pk)] == {str(rice.pk): "0.200"}
     assert data["stock"][str(rice.pk)]["name"] == "Rice"
+
+
+@pytest.mark.django_db
+def test_kitchen_advance_without_the_screens_status_is_refused(client_for, make_user, stocked_menu):
+    """COR-13: a crafted POST with no "from" must not skip the stale-ticket guard."""
+    o = services.place_order(
+        quantities={stocked_menu["dish"].pk: 1},
+        cashier=make_user("Cashier"),
+        order_type="takeaway",
+        payment_method="card",
+    )
+    response = client_for("Kitchen").post(f"/app/sales/kitchen/{o.pk}/advance/", follow=True)
+    o.refresh_from_db()
+    assert o.kitchen_status == "queued"
+    assert "out of date" in response.content.decode()

@@ -222,8 +222,14 @@ class KitchenAdvanceView(RoleRequiredMixin, View):
 
     def post(self, request, pk):
         order = get_object_or_404(Order, pk=pk)
+        expected = request.POST.get("from")
+        if not expected:
+            # The board always sends the status it shows; without it the stale-ticket guard
+            # could not work, so a crafted request could skip a step.
+            messages.error(request, "This screen is out of date. Reload the board and try again.")
+            return redirect("sales:kitchen")
         try:
-            order = services.advance_kitchen_status(order, expected=request.POST.get("from"))
+            order = services.advance_kitchen_status(order, expected=expected)
         except services.KitchenTicketMoved as moved:
             messages.info(request, f"{moved} Nothing changed.")
         except ValidationError as exc:
