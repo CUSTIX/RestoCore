@@ -22,7 +22,7 @@ from core import throttle
 
 MAX_QUESTION = 500
 MAX_TOOL_ROUNDS = 6
-TIME_BUDGET = 60  # seconds for one question; gunicorn's timeout (bin/start.sh) is longer
+TIME_BUDGET = 40  # seconds for one question; budget + one more model call < gunicorn timeout
 HISTORY_TURNS = 6
 HISTORY_KEY = "assistant_history"
 HOUR, DAY = dt.timedelta(hours=1), dt.timedelta(days=1)

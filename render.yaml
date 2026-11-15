@@ -7,8 +7,10 @@ services:
     runtime: docker
     plan: free
     region: singapore
-    autoDeploy: true
-    healthCheckPath: /healthz/
+    # Deploy only when CI passes. Every deploy also reseeds the demo and signs visitors out.
+    autoDeployTrigger: checksPass
+    # /livez/ answers without the database, so the free Neon database can still suspend.
+    healthCheckPath: /livez/
     envVars:
       - key: DATABASE_URL
         sync: false # prompted in the dashboard, never committed

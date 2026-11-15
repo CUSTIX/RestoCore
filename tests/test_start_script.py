@@ -22,3 +22,25 @@ TZ = dt.timezone(dt.timedelta(hours=8))
 )
 def test_seconds_until_next_reset_hour(now, expected):
     assert seconds_until_hour.seconds_until_hour(4, now) == expected
+
+
+@pytest.mark.parametrize("bad", ["abc", "25", "-1", "4.5", ""])
+def test_the_cli_rejects_an_invalid_hour_with_a_clean_error(bad):
+    import subprocess
+    import sys
+
+    result = subprocess.run(  # noqa: S603 - our own script, fixed arguments
+        [sys.executable, str(_PATH), bad], capture_output=True, text=True, env={"PATH": ""}
+    )
+    assert result.returncode != 0 and "Traceback" not in result.stderr
+    assert "0-23" in result.stderr
+
+
+def test_the_cli_prints_whole_seconds_for_a_valid_hour():
+    import subprocess
+    import sys
+
+    result = subprocess.run(  # noqa: S603 - our own script, fixed arguments
+        [sys.executable, str(_PATH), "4"], capture_output=True, text=True
+    )
+    assert result.returncode == 0 and 0 < int(result.stdout) <= 24 * 3600 + 1
