@@ -78,6 +78,7 @@ DEMO_MODE = env_bool("DEMO_MODE")
 ASSISTANT_ALLOW_PAYROLL = env_bool("ASSISTANT_ALLOW_PAYROLL", default=DEMO_MODE)
 # The demo logins listed on the login page. With DEMO_MODE on they can't be edited, demoted or
 # deactivated through staff management, so one visitor can't lock the next one out.
+DEMO_MAX_EMPLOYEES = 40  # in the public demo, so visitors cannot grow the free database
 DEMO_ACCOUNTS = ("owner", "manager", "cashier", "kitchen", "staff")
 # Header (as a request.META key) holding the real visitor IP, set by a proxy that overwrites it,
 # e.g. HTTP_CF_CONNECTING_IP behind Cloudflare/Render. Empty: use the socket address.

@@ -191,3 +191,66 @@ def test_cannot_deactivate_or_demote_yourself(make_employee, make_user):
         services.update_employee(emp, actor=owner, role="Owner", is_active=False, **base)
     with pytest.raises(ValidationError, match="role"):
         services.update_employee(emp, actor=owner, role="Staff", is_active=True, **base)
+
+
+def _new_person(actor, username, role, **extra):
+    return {
+        "actor": actor,
+        "username": username,
+        "password": "long-password-1",
+        "first_name": "A",
+        "last_name": "B",
+        "email": "",
+        "role": role,
+        "position": "x",
+        "phone": "",
+        "hourly_rate": Decimal("100"),
+        "hire_date": dt.date(2024, 1, 1),
+        **extra,
+    }
+
+
+@pytest.mark.parametrize("role", ["Owner", "Manager"])
+def test_public_demo_owner_cannot_create_privileged_accounts(make_user, settings, role):
+    """SEC-05: the shared demo owner could mint an Owner with a private password that survived
+    until the next reset; those would be the only credentials in the demo nobody else knows."""
+    settings.DEMO_MODE = True
+    with pytest.raises(PermissionDenied, match="public demo"):
+        services.create_employee(**_new_person(make_user("Owner"), f"mint-{role}", role))
+
+
+def test_public_demo_owner_cannot_promote_someone_to_owner(make_user, make_employee, settings):
+    settings.DEMO_MODE = True
+    emp = make_employee(role="Staff")
+    with pytest.raises(PermissionDenied, match="public demo"):
+        services.update_employee(
+            emp,
+            actor=make_user("Owner"),
+            role="Owner",
+            first_name="A",
+            last_name="B",
+            email="",
+            position="x",
+            phone="",
+            hourly_rate=Decimal("100"),
+            hire_date=dt.date(2024, 1, 1),
+            is_active=True,
+        )
+
+
+def test_seeding_the_demo_may_still_create_owner_and_manager(make_user, settings):
+    """The seed script acts as a superuser: demo mode only restricts visitors."""
+    settings.DEMO_MODE = True
+    root = make_user(None, username="system-seed")
+    root.is_superuser = True
+    root.save()
+    assert services.create_employee(**_new_person(root, "owner-demo", "Owner")).pk
+
+
+def test_public_demo_caps_the_number_of_employees(make_user, make_employee, settings):
+    settings.DEMO_MODE = True
+    settings.DEMO_MAX_EMPLOYEES = 2
+    make_employee(role="Staff")
+    make_employee(role="Staff")
+    with pytest.raises(ValidationError, match="limited"):
+        services.create_employee(**_new_person(make_user("Owner"), "one-too-many", "Staff"))

@@ -31,6 +31,10 @@ def assert_can_manage(actor, *, target_role: str, target_user=None) -> None:
         and target_user.username in settings.DEMO_ACCOUNTS
     ):
         raise PermissionDenied("The shared demo accounts can't be changed in the public demo.")
+    if settings.DEMO_MODE and not actor.is_superuser and target_role in PRIVILEGED_ROLES:
+        # The seed script acts as a superuser. A visitor signed in as the shared owner must not
+        # create an Owner or Manager: its password would be the only private login in the demo.
+        raise PermissionDenied("The public demo can't create or assign Owner or Manager accounts.")
     if has_role(actor, OWNER):
         return
     if not has_role(actor, MANAGER):
@@ -69,6 +73,12 @@ def create_employee(
     hire_date,
 ) -> Employee:
     assert_can_manage(actor, target_role=role)
+    if settings.DEMO_MODE and Employee.objects.count() >= settings.DEMO_MAX_EMPLOYEES:
+        # Anyone can sign in to the public demo; keep the free database from growing without limit.
+        raise ValidationError(
+            f"The public demo is limited to {settings.DEMO_MAX_EMPLOYEES} people. "
+            "Deactivate or wait for the nightly reset."
+        )
     try:
         with transaction.atomic():
             user = account_services.create_user_with_role(
