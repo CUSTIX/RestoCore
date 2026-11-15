@@ -95,6 +95,15 @@ def place_order(
         existing = Order.objects.filter(checkout_token=checkout_token).first()
         if existing is not None:
             return existing
+    # The POS form checks these too, but the service is the rule: an API or assistant caller
+    # must not be able to record a dine-in order with no table, or a made-up payment method.
+    if order_type not in Order.OrderType.values:
+        raise ValidationError("Choose dine-in or takeaway.")
+    if payment_method not in Order.PaymentMethod.values:
+        raise ValidationError("Choose cash or card.")
+    table_label = table_label.strip() if order_type == Order.OrderType.DINE_IN else ""
+    if order_type == Order.OrderType.DINE_IN and not table_label:
+        raise ValidationError("Enter the table number for a dine-in order.")
     lines, subtotal, tax, total = price_lines(quantities)
 
     if payment_method == Order.PaymentMethod.CASH:
@@ -110,7 +119,7 @@ def place_order(
         with transaction.atomic():
             order = Order.objects.create(
                 order_type=order_type,
-                table_label=table_label.strip(),
+                table_label=table_label,
                 payment_method=payment_method,
                 subtotal=subtotal,
                 tax_rate=tax_rate(),

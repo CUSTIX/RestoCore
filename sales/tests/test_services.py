@@ -162,3 +162,21 @@ def test_kitchen_double_tap_does_not_skip_a_step(stocked_menu, cashier):
         services.advance_kitchen_status(o, expected="queued")  # second tap, same screen
     o.refresh_from_db()
     assert o.kitchen_status == "preparing"
+
+
+def test_dine_in_needs_a_table(stocked_menu, cashier):
+    """COR-09: the service must not rely on the form to refuse a dine-in order with no table."""
+    with pytest.raises(ValidationError, match="table"):
+        order(stocked_menu, cashier, order_type="dine_in", table_label="  ")
+    assert not Order.objects.exists()
+
+
+def test_takeaway_ignores_a_typed_table(stocked_menu, cashier):
+    assert order(stocked_menu, cashier, order_type="takeaway", table_label="7").table_label == ""
+
+
+@pytest.mark.parametrize("field,value", [("order_type", "drive_thru"), ("payment_method", "gcash")])
+def test_unknown_order_type_or_payment_method_is_refused(stocked_menu, cashier, field, value):
+    with pytest.raises(ValidationError):
+        order(stocked_menu, cashier, **{field: value})
+    assert not Order.objects.exists()
