@@ -65,3 +65,56 @@ def test_demo_logins_shown_in_debug_or_public_demo_mode(client, settings, debug,
 @pytest.mark.django_db
 def test_password_change_page_requires_login(client):
     assert client.get("/accounts/password/").status_code == 302
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "next_url,expected",
+    [
+        ("/app/sales/orders/", "/app/sales/orders/"),  # a page on this site: honoured
+        ("https://evil.example/phish", "/app/"),  # another site: ignored
+        ("//evil.example/phish", "/app/"),  # protocol-relative: ignored
+        ("javascript:alert(1)", "/app/"),
+    ],
+)
+def test_login_only_follows_next_urls_on_this_site(client, make_user, next_url, expected):
+    user = make_user("Owner")
+    response = client.post(
+        "/accounts/login/", {"username": user.username, "password": PASSWORD, "next": next_url}
+    )
+    assert response.status_code == 302 and response.url == expected
+
+
+@pytest.mark.django_db
+def test_password_change_succeeds_and_the_new_password_works(client, make_user):
+    user = make_user("Staff")
+    client.force_login(user)
+    response = client.post(
+        "/accounts/password/",
+        {
+            "old_password": PASSWORD,
+            "new_password1": "a-much-longer-new-pass-42",
+            "new_password2": "a-much-longer-new-pass-42",
+        },
+    )
+    assert response.status_code == 302
+    client.logout()
+    assert client.login(username=user.username, password="a-much-longer-new-pass-42")
+    assert not client.login(username=user.username, password=PASSWORD)
+
+
+@pytest.mark.django_db
+def test_password_change_rejects_a_wrong_current_password(client, make_user):
+    user = make_user("Staff")
+    client.force_login(user)
+    response = client.post(
+        "/accounts/password/",
+        {
+            "old_password": "wrong",
+            "new_password1": "x-new-pass-12345",
+            "new_password2": "x-new-pass-12345",
+        },
+    )
+    assert response.status_code == 200
+    user.refresh_from_db()
+    assert user.check_password(PASSWORD)
