@@ -18,7 +18,11 @@ def test_database_url_is_parsed_like_hosted_postgres_hands_it_out():
     assert db["PASSWORD"] == "p@ss/word"  # URL-encoded characters are decoded
     assert db["HOST"] == "ep-cool-1.ap-southeast-1.aws.neon.tech"
     assert db["PORT"] == ""  # driver default (5432)
-    assert db["OPTIONS"] == {"sslmode": "require", "channel_binding": "require"}
+    assert db["OPTIONS"] == {
+        "connect_timeout": 10,
+        "sslmode": "require",
+        "channel_binding": "require",
+    }
 
 
 def test_database_url_keeps_an_explicit_port():
@@ -67,3 +71,23 @@ def test_every_app_with_tests_is_collected():
     testpaths = set(config["tool"]["pytest"]["ini_options"]["testpaths"])
     apps_with_tests = {p.parent.name for p in root.glob("*/tests") if p.is_dir()}
     assert apps_with_tests <= testpaths, apps_with_tests - testpaths
+
+
+def test_hosted_database_reuses_connections_and_times_out_instead_of_hanging():
+    """OPS-03: a fresh TLS connection per request is slow against Neon, and a suspended database
+    must fail fast instead of holding a worker until gunicorn's timeout."""
+    config = database_from_url("postgresql://u:p@host.example/db?sslmode=require")
+    assert config["CONN_MAX_AGE"] == 60 and config["CONN_HEALTH_CHECKS"] is True
+    assert config["OPTIONS"]["connect_timeout"] == 10 and config["OPTIONS"]["sslmode"] == "require"
+
+
+def test_an_explicit_connect_timeout_in_the_url_wins():
+    config = database_from_url("postgresql://u:p@host.example/db?connect_timeout=3")
+    assert config["OPTIONS"]["connect_timeout"] == "3"
+
+
+def test_log_lines_carry_time_level_and_logger_name():
+    """OPS-09: bare messages cannot be placed in time or traced to a module."""
+    handler = settings_module.LOGGING["handlers"]["console"]
+    fmt = settings_module.LOGGING["formatters"][handler["formatter"]]["format"]
+    assert "%(asctime)s" in fmt and "%(levelname)s" in fmt and "%(name)s" in fmt

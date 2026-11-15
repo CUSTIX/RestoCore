@@ -168,7 +168,12 @@ def database_from_url(url: str) -> dict:
         "PASSWORD": unquote(parts.password or ""),
         "HOST": parts.hostname or "",
         "PORT": str(parts.port or ""),
-        "OPTIONS": dict(parse_qsl(parts.query)),
+        # Hosted Postgres (Neon) sits across a TLS handshake and may be suspended. Keep connections
+        # for a minute instead of opening one per request, check they are alive before reuse, and
+        # give up after 10 s instead of holding a worker until gunicorn kills it.
+        "CONN_MAX_AGE": 60,
+        "CONN_HEALTH_CHECKS": True,
+        "OPTIONS": {"connect_timeout": 10, **dict(parse_qsl(parts.query))},
     }
 
 
@@ -236,7 +241,8 @@ X_FRAME_OPTIONS = "DENY"
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
-    "handlers": {"console": {"class": "logging.StreamHandler"}},
+    "formatters": {"default": {"format": "%(asctime)s %(levelname)s %(name)s %(message)s"}},
+    "handlers": {"console": {"class": "logging.StreamHandler", "formatter": "default"}},
     "root": {"handlers": ["console"], "level": os.environ.get("DJANGO_LOG_LEVEL", "INFO")},
 }
 
