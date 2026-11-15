@@ -433,6 +433,11 @@ class SelfOrderStatusView(TemplateView):
         self_order = selectors.self_order_by_token(kwargs["token"])
         if self_order is None:
             raise Http404
+        if self_order.status == SelfOrder.Status.PENDING and services.is_past_ttl(self_order):
+            # Expiry used to happen only when someone else placed an order; the customer's own
+            # page must agree with the cashier's lookup, which already refuses stale codes.
+            services.expire_stale_self_orders()
+            self_order = selectors.self_order_by_token(kwargs["token"])
         order = self_order.order
         done = (Order.KitchenStatus.SERVED, Order.KitchenStatus.CANCELLED)
         live = self_order.status == SelfOrder.Status.PENDING or (

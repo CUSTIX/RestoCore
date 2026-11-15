@@ -342,3 +342,17 @@ def test_voided_order_shows_no_progress_steps(client, stocked_menu, make_user):
     page = client.get(f"/order/{so.token}/").content.decode()
     assert "This order was cancelled" in page and "order-steps" not in page
     assert "data-auto-reload" not in page
+
+
+def test_status_page_shows_expired_once_the_hour_has_passed(client, stocked_menu):
+    """COR-06: the customer must not keep a code the cashier can no longer find."""
+    so = self_order(stocked_menu)
+    SelfOrder.objects.filter(pk=so.pk).update(
+        created_at=timezone.now() - services.SELF_ORDER_TTL - dt.timedelta(minutes=1)
+    )
+
+    html = client.get(f"/order/{so.token}/").content.decode()
+
+    assert "This order expired" in html and "Show this at the counter" not in html
+    so.refresh_from_db()
+    assert so.status == SelfOrder.Status.EXPIRED

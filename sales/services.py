@@ -227,6 +227,10 @@ def new_code() -> str:
     return "".join(secrets.choice(CODE_ALPHABET) for _ in range(CODE_LENGTH))
 
 
+def is_past_ttl(self_order: SelfOrder) -> bool:
+    return self_order.created_at < timezone.now() - SELF_ORDER_TTL
+
+
 def expire_stale_self_orders() -> int:
     """Mark unpaid orders older than the TTL as expired (frees their codes)."""
     cutoff = timezone.now() - SELF_ORDER_TTL
