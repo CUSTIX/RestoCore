@@ -4,6 +4,7 @@ from django import template
 from django.utils.safestring import mark_safe
 
 from core.icons import svg
+from core.money import money as core_money
 from core.roles import has_role as _has_role
 
 register = template.Library()
@@ -20,7 +21,7 @@ def money(value) -> str:
     """Format a Decimal as money with two places and thousands separators."""
     if value in (None, ""):
         return ""
-    return f"{Decimal(value):,.2f}"
+    return f"{core_money(value):,.2f}"
 
 
 @register.simple_tag

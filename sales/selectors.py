@@ -6,6 +6,7 @@ from django.db.models import Count, Prefetch, QuerySet, Sum
 from django.db.models.functions import TruncDate
 from django.utils import timezone
 
+from core.money import money
 from inventory import selectors as inventory_selectors
 from sales.models import MenuCategory, MenuItem, Order, OrderLine, SelfOrder
 
@@ -110,7 +111,7 @@ def sales_summary(day: dt.date | None = None) -> dict:
         "day": day,
         "revenue": agg["revenue"] or Decimal("0"),
         "orders": agg["orders"],
-        "average": (agg["revenue"] / agg["orders"]) if agg["orders"] else Decimal("0"),
+        "average": money(agg["revenue"] / agg["orders"]) if agg["orders"] else Decimal("0"),
         "top_items": list(top),
         "voided": Order.objects.filter(status=Order.Status.VOIDED, created_at__date=day).count(),
     }
@@ -186,7 +187,7 @@ def sales_between(start: dt.date, end: dt.date) -> dict:
         "revenue": revenue,
         "tax_collected": agg["tax"] or Decimal("0"),
         "orders": orders,
-        "average_order": (revenue / orders).quantize(Decimal("0.01")) if orders else Decimal("0"),
+        "average_order": money(revenue / orders) if orders else Decimal("0"),
         "voided_orders": voided["n"],
         "voided_value": voided["value"] or Decimal("0"),
         "by_day": list(by_day),

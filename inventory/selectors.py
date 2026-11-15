@@ -1,7 +1,6 @@
-from decimal import Decimal
-
 from django.db.models import Count, F, Q, QuerySet, Sum
 
+from core.money import money
 from inventory.models import InventoryItem, StockMovement
 
 
@@ -64,7 +63,7 @@ def movement_totals(start, end) -> list[dict]:
             "reason": r["reason"],
             "change": r["change"],
             "movements": r["movements"],
-            "cost": (abs(r["change"]) * r["item__cost_per_unit"]).quantize(Decimal("0.01")),
+            "cost": money(abs(r["change"]) * r["item__cost_per_unit"]),
         }
         for r in rows
     ]

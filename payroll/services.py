@@ -5,22 +5,18 @@ deductions = gross × each active DeductionRate
 net = gross − deductions
 """
 
-from decimal import ROUND_HALF_UP, Decimal
+from decimal import Decimal
 
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.utils import timezone
 
+from core.money import money
 from payroll.models import DeductionRate, PayPeriod, Payslip, PayslipDeduction
 from staff import selectors as staff_selectors
 
-CENT = Decimal("0.01")
 PAID_LEAVE_HOURS = Decimal("8")
 MAX_PERIOD_DAYS = 31
-
-
-def money(value: Decimal) -> Decimal:
-    return value.quantize(CENT, rounding=ROUND_HALF_UP)
 
 
 @transaction.atomic

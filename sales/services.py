@@ -4,7 +4,7 @@ import datetime as dt
 import secrets
 import uuid
 from collections import defaultdict
-from decimal import ROUND_HALF_UP, Decimal
+from decimal import Decimal
 
 import qrcode
 import qrcode.constants
@@ -15,11 +15,11 @@ from django.db import IntegrityError, transaction
 from django.utils import timezone
 
 from core import throttle
+from core.money import money
 from inventory import selectors as inventory_selectors
 from inventory import services as inventory_services
 from sales.models import MenuItem, Order, OrderLine, SelfOrder, SelfOrderLine
 
-CENT = Decimal("0.01")
 MAX_QTY_PER_LINE = 99
 
 KITCHEN_FLOW = {
@@ -31,10 +31,6 @@ KITCHEN_FLOW = {
 
 def tax_rate() -> Decimal:
     return Decimal(settings.SALES_TAX_RATE)
-
-
-def money(value: Decimal) -> Decimal:
-    return value.quantize(CENT, rounding=ROUND_HALF_UP)
 
 
 def price_lines(quantities: dict[int, int]) -> tuple[list[dict], Decimal, Decimal, Decimal]:
