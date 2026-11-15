@@ -62,3 +62,19 @@ def test_assistant_worst_case_fits_inside_the_gunicorn_timeout():
     timeout = int(re.search(r"--timeout (\d+)", _read("bin/start.sh")).group(1))
     call_timeout = GeminiClient.__init__.__defaults__[-1]  # the per-call timeout default
     assert TIME_BUDGET + call_timeout < timeout
+
+
+def test_every_requirements_file_is_audited_and_watched():
+    """SEC-08: mcp_server/requirements.txt was neither audited by CI nor watched by Dependabot."""
+    ci, dependabot = _read(".github/workflows/ci.yml"), _read(".github/dependabot.yml")
+    for requirements in ROOT.rglob("requirements*.txt"):
+        if "node_modules" in requirements.parts:
+            continue
+        relative = requirements.relative_to(ROOT).as_posix()
+        assert f"-r {relative}" in ci, f"CI does not pip-audit {relative}"
+    assert "directory: /mcp_server" in dependabot
+
+
+def test_ci_jobs_cannot_hang_for_six_hours():
+    """OPS-10: GitHub's default job timeout is 6 hours."""
+    assert _read(".github/workflows/ci.yml").count("timeout-minutes:") >= 3

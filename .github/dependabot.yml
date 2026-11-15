@@ -11,10 +11,19 @@ updates:
       dev-tools:
         patterns: ["pytest*", "ruff"]
 
+  - package-ecosystem: pip
+    directory: /mcp_server
+    schedule:
+      interval: weekly
+
+  # One monthly PR for all Actions: every merge deploys (and reseeds) the live demo.
   - package-ecosystem: github-actions
     directory: /
     schedule:
-      interval: weekly
+      interval: monthly
+    groups:
+      actions:
+        patterns: ["*"]
 
   - package-ecosystem: docker
     directory: /
