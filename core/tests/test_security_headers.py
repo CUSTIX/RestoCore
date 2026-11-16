@@ -156,3 +156,13 @@ def test_touch_targets_reach_44px_on_coarse_pointers():
     coarse = css[css.index("@media (pointer: coarse)") :]
     assert ".stepper button { width: 44px; height: 44px; }" in coarse
     assert ".icon-btn { width: 44px; height: 44px; }" in coarse
+
+
+def test_kitchen_board_keeps_three_columns_on_tablets_and_marks_late_in_words():
+    """UX-07: one column started at 1100 px, and "late" was shown by colour only."""
+    css = _css("app.css")
+    narrow = css.index("@media (max-width: 800px)")
+    assert ".kanban { grid-template-columns: 1fr; }" in css[narrow : narrow + 120]
+    tablet = css.index("@media (max-width: 1100px)")
+    assert ".kanban" not in css[tablet : css.index("}", tablet)]
+    assert '" · late"' in _css("motion.js")

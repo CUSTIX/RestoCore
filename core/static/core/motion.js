@@ -198,7 +198,9 @@
       var h = Math.floor(mins / 60);
       el.textContent = h ? h + "h " + (mins % 60) + "m" : mins + "m";
       var late = parseInt(el.getAttribute("data-late-after") || "0", 10);
-      if (late) el.classList.toggle("is-late", mins >= late);
+      var isLate = late > 0 && mins >= late;
+      if (late) el.classList.toggle("is-late", isLate);
+      if (isLate) el.textContent += " · late";  /* not by colour alone */
     });
   }
   if (timers.length) { tick(); setInterval(tick, 30000); }
@@ -404,6 +406,7 @@
        data-not-before="start_date"   this value may not be earlier than that field (dates)
        data-after="start_time"        this value must be later than that field (times)
        data-rule-message="..."        message for either rule
+       data-min-message="..."         friendlier text when a value is below its min
        data-max-message="..."         friendlier text when a max is exceeded               */
   function fieldWrap(el) { return el.closest(".field") || el.parentElement; }
   function crossFieldCheck(el) {
@@ -416,6 +419,9 @@
       if (strict ? el.value <= other.value : el.value < other.value) {
         msg = el.getAttribute("data-rule-message") || (strict ? "Must be later than the start." : "Can't be before the start.");
       }
+    }
+    if (!msg && el.validity && el.validity.rangeUnderflow && el.getAttribute("data-min-message")) {
+      msg = el.getAttribute("data-min-message");
     }
     if (!msg && el.validity && el.validity.rangeOverflow && el.getAttribute("data-max-message")) {
       msg = el.getAttribute("data-max-message");

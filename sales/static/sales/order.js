@@ -50,9 +50,24 @@
     form.querySelectorAll("[data-table-field]").forEach(function (el) { el.hidden = takeaway; });
     var needsTable = !takeaway && tableInput && !tableInput.value.trim();
     countEl.textContent = count ? count + (count === 1 ? " item" : " items") : "Nothing yet";
-    totalEl.textContent = count
-      ? (needsTable ? "Enter your table number above" : "About " + fmt(sub + Math.round(sub * rate)) + " with tax")
-      : "Tap + to add a dish";
+    var state = count ? (needsTable ? "table" : "total:" + sub) : "empty";
+    if (totalEl.dataset.state === state) { submit.disabled = !count || needsTable; return; }
+    totalEl.dataset.state = state;  /* rebuild only on change, so the live region speaks once */
+    totalEl.textContent = "";
+    if (count && needsTable) {
+      /* The table field is far above after scrolling the menu: one tap takes the guest there. */
+      var go = document.createElement("button");
+      go.type = "button";
+      go.className = "order-bar__link";
+      go.textContent = "Add your table number";
+      go.addEventListener("click", function () {
+        tableInput.scrollIntoView({ block: "center", behavior: "smooth" });
+        tableInput.focus({ preventScroll: true });
+      });
+      totalEl.appendChild(go);
+    } else {
+      totalEl.textContent = count ? "About " + fmt(sub + Math.round(sub * rate)) + " with tax" : "Tap + to add a dish";
+    }
     submit.disabled = !count || needsTable;
   }
 

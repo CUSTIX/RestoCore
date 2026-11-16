@@ -31,7 +31,9 @@
 .order-item { display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; gap: .9rem; align-items: center; padding: .7rem; border-radius: 20px;
   background: var(--paper); border: 1.5px solid var(--cream-200); transition: border-color .2s, box-shadow .2s; }
 .order-item.is-selected { border-color: var(--brew-800); box-shadow: 0 0 0 3px var(--cream-100); }
-.order-item.is-out { opacity: .55; }
+/* Sold out: dim the photo only (text stays readable) and show a badge, not just a word in the price line */
+.order-item.is-out .order-item__photo { opacity: .45; filter: grayscale(1); }
+.order-item.is-out .order-item__price strong { display: inline-block; padding: .05rem .5rem; border-radius: 999px; background: var(--cream-200); color: var(--brew-900); font-size: .78rem; letter-spacing: .02em; }
 .order-item__photo { width: 64px; height: 64px; border-radius: 50%; overflow: hidden; background: var(--cream-200); }
 .order-item__photo img { width: 100%; height: 100%; object-fit: cover; }
 .order-item__photo--empty { display: grid; place-items: center; font-family: var(--font-display); font-size: 1.6rem; color: var(--brew-600); background: var(--cream-100); }
@@ -55,6 +57,7 @@
 .order-bar__info { display: flex; flex-direction: column; line-height: 1.2; min-width: 0; }
 .order-bar__info strong { font-size: .98rem; }
 .order-bar__info small { color: var(--ink-3); font-weight: 600; }
+.order-bar__link { font: inherit; font-weight: 700; color: var(--brew-800); background: none; border: 0; padding: .35rem 0; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; text-align: left; }
 .order-bar .btn { flex: none; }
 
 /* ---------- Status page ---------- */

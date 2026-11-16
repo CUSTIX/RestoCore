@@ -363,3 +363,19 @@ def test_customer_pages_are_not_cached(client, stocked_menu):
     so = self_order(stocked_menu)
     assert "no-store" in client.get(f"/order/{so.token}/")["Cache-Control"]
     assert "no-store" in client.get("/order/")["Cache-Control"]
+
+
+def test_order_bar_is_announced_and_sold_out_is_more_than_dim_text():
+    """UX-11 and UX-12: the running total is a live region; sold-out dims only the photo."""
+    from pathlib import Path
+
+    from django.conf import settings
+
+    root = Path(settings.BASE_DIR) / "sales"
+    template = (root / "templates" / "sales" / "self_order_start.html").read_text("utf-8")
+    css = (root / "static" / "sales" / "order.css").read_text("utf-8")
+    js = (root / "static" / "sales" / "order.js").read_text("utf-8")
+    assert 'class="order-bar__info" aria-live="polite"' in template
+    assert ".order-item.is-out { opacity" not in css
+    assert ".order-item.is-out .order-item__photo" in css
+    assert "Add your table number" in js and "tableInput.focus" in js

@@ -74,7 +74,7 @@
   <p class="order-note">Menu prices are before tax ({{ tax_rate|percent }}). The cashier confirms the final total before you pay.</p>
 
   <div class="order-bar" data-order-bar>
-    <span class="order-bar__info"><strong data-order-count>Nothing yet</strong><small data-order-total>Tap + to add a dish</small></span>
+    <span class="order-bar__info" aria-live="polite"><strong data-order-count>Nothing yet</strong><small data-order-total>Tap + to add a dish</small></span>
     <button type="submit" class="btn btn--espresso" data-order-submit>Done ordering <span class="btn__dot">{% icon "check" 14 %}</span></button>
   </div>
 </form>
