@@ -106,3 +106,7 @@
   .qr-sheet { grid-template-columns: repeat(2, 1fr); gap: 0; }
   .qr-card { border: 1px dashed #bbb; border-radius: 0; padding: 1.6rem; page-break-inside: avoid; }
 }
+
+@media (pointer: coarse) {
+  .order-stepper button { width: 44px; height: 44px; }
+}

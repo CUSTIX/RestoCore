@@ -13,7 +13,8 @@
   {% if not enabled %}
     <div class="card ask__off">
       <h2>{% icon "sparkle" %} The assistant is switched off</h2>
-      <p>Set <code>GEMINI_API_KEY</code> to turn it on. A key is free from Google AI Studio; see <code>docs/assistant.md</code>.</p>
+      <p>Ask about sales, stock, bookings and your team in plain English. It reads your data and never changes it.</p>
+      <p class="muted">The owner switches it on by adding a free Google AI Studio key to the server settings (steps in <code>docs/assistant.md</code>).</p>
     </div>
   {% else %}
     <section class="ask__log" data-ask-log aria-live="polite" aria-label="Conversation">
