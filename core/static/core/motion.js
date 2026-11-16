@@ -92,19 +92,29 @@
     counters.forEach(function (el) { co.observe(el); });
   }
 
-  /* Toasts: auto-dismiss after 6s, or on close */
+  /* Toasts: info and success dismiss after 6s (paused on hover or focus); errors and warnings stay until closed */
   function dismiss(toast) {
     if (!toast || toast.classList.contains("is-leaving")) return;
     toast.classList.add("is-leaving");
     setTimeout(function () { toast.remove(); }, 380);
   }
   document.querySelectorAll(".toast").forEach(function (toast) {
+    /* Errors and warnings stay until dismissed: six seconds is too short to read and act on them. */
+    if (toast.classList.contains("toast--error") || toast.classList.contains("toast--warning")) {
+      var stickyBar = toast.querySelector(".toast__timer");
+      if (stickyBar) stickyBar.remove();
+      var stickyClose = toast.querySelector(".toast__close");
+      if (stickyClose) stickyClose.addEventListener("click", function () { dismiss(toast); });
+      return;
+    }
     var timer = setTimeout(function () { dismiss(toast); }, 6000);
-    toast.addEventListener("mouseenter", function () {
+    var hold = function () {
       clearTimeout(timer);
       var bar = toast.querySelector(".toast__timer");
       if (bar) bar.style.animationPlayState = "paused";
-    });
+    };
+    toast.addEventListener("mouseenter", hold);
+    toast.addEventListener("focusin", hold);
     var close = toast.querySelector(".toast__close");
     if (close) close.addEventListener("click", function () { dismiss(toast); });
   });

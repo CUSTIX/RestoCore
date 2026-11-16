@@ -129,3 +129,30 @@ def test_pos_checkout_bar_covers_tablets_not_only_phones():
 def test_auto_reload_waits_while_someone_is_typing():
     js = _css("motion.js")
     assert "document.activeElement" in js and "defaultValue" in js
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "role,url,code", [("Manager", "/nope/", 404), ("Kitchen", "/app/sales/pos/", 403)]
+)
+def test_error_pages_have_a_main_landmark(client_for, role, url, code):
+    """403 and 404 pages are whole pages, so screen readers need a <main> to jump to (UX-21)."""
+    response = client_for(role).get(url)
+    assert response.status_code == code
+    assert '<main class="error-page" id="main">' in response.content.decode()
+
+
+def test_error_and_warning_toasts_do_not_vanish_on_their_own():
+    js = _css("motion.js")
+    assert (
+        'classList.contains("toast--error")' in js and 'classList.contains("toast--warning")' in js
+    )
+    assert '"focusin"' in js
+
+
+def test_touch_targets_reach_44px_on_coarse_pointers():
+    assert "@media (pointer: coarse)" in _css("app.css")
+    css = _css("app.css")
+    coarse = css[css.index("@media (pointer: coarse)") :]
+    assert ".stepper button { width: 44px; height: 44px; }" in coarse
+    assert ".icon-btn { width: 44px; height: 44px; }" in coarse
