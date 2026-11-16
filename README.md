@@ -120,7 +120,8 @@ how to report a problem: [SECURITY.md](SECURITY.md).
 The public demo runs on Render (free web service, built from the `Dockerfile`) with a free Neon
 Postgres database, configured by [`render.yaml`](render.yaml). The container's start script
 (`bin/start.sh`) migrates, resets the demo data, then starts gunicorn. Setup and every environment
-variable: [docs/deploy.md](docs/deploy.md).
+variable: [docs/deploy.md](docs/deploy.md). Day-to-day operations (deploy, roll back, rotate secrets,
+restore, logs): [docs/runbook.md](docs/runbook.md).
 
 **Public demo safety** (`DEMO_MODE=true`): the demo accounts are listed on the login page, all
 data is fake and is wiped and reseeded every night and on every deploy, password changes
