@@ -276,3 +276,15 @@ def test_receipt_offers_new_order_only_to_people_who_can_ring_one_up(
     order = Order.objects.get()
     page = client_for(role).get(f"/app/sales/orders/{order.pk}/").content.decode()
     assert ('href="/app/sales/pos/"' in page) is sees_new_order
+
+
+@pytest.mark.django_db
+def test_receipt_and_change_toast_show_the_currency(client_for, stocked_menu, settings):
+    """UX-18: money on the receipt and in the change-due message had no currency symbol."""
+    settings.CURRENCY_SYMBOL = "₱"
+    client = client_for("Cashier")
+    response = client.post("/app/sales/pos/", pos_data(stocked_menu["dish"]), follow=True)
+    html = response.content.decode()
+    assert "Change due: ₱" in html
+    order = Order.objects.get()
+    assert f"₱{order.total:,.2f}" in html

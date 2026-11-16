@@ -21,11 +21,11 @@
     <tbody>
       <tr><td>Regular pay</td><td class="num">{{ slip.regular_pay|money }}</td></tr>
       <tr><td>Leave pay</td><td class="num">{{ slip.leave_pay|money }}</td></tr>
-      <tr><td><strong>Gross pay</strong></td><td class="num"><strong>{{ slip.gross_pay|money }}</strong></td></tr>
+      <tr><td><strong>Gross pay</strong></td><td class="num"><strong>{{ currency }}{{ slip.gross_pay|money }}</strong></td></tr>
       {% for d in slip.deductions.all %}
         <tr><td>{{ d.name }} ({{ d.rate|percent }})</td><td class="num">−{{ d.amount|money }}</td></tr>
       {% endfor %}
-      <tr><td><strong>Net pay</strong></td><td class="num"><strong>{{ slip.net_pay|money }}</strong></td></tr>
+      <tr><td><strong>Net pay</strong></td><td class="num"><strong>{{ currency }}{{ slip.net_pay|money }}</strong></td></tr>
     </tbody>
   </table>
 </div>

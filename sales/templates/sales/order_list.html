@@ -5,9 +5,9 @@
 {% block page_actions %}<a class="btn" href="{% url 'sales:pos' %}">New order</a>{% endblock %}
 {% block content %}
 <div class="grid">
-  <div class="card"><div class="stat">{{ summary.revenue|money }}</div><div class="stat-label">Sales today</div></div>
+  <div class="card"><div class="stat">{{ currency }}{{ summary.revenue|money }}</div><div class="stat-label">Sales today</div></div>
   <div class="card"><div class="stat">{{ summary.orders }}</div><div class="stat-label">Paid orders today</div></div>
-  <div class="card"><div class="stat">{{ summary.average|money }}</div><div class="stat-label">Average order</div></div>
+  <div class="card"><div class="stat">{{ currency }}{{ summary.average|money }}</div><div class="stat-label">Average order</div></div>
   <div class="card"><div class="stat">{{ summary.voided }}</div><div class="stat-label">Voided today</div></div>
 </div>
 <form method="get" class="filters">
@@ -26,7 +26,7 @@
         <td class="nowrap">{{ o.created_at|date:"M j, g:i A" }}</td>
         <td>{{ o.get_order_type_display }}{% if o.table_label %} · {{ o.table_label }}{% endif %}</td>
         <td class="num">{{ o.item_count }}</td>
-        <td class="num">{{ o.total|money }}</td>
+        <td class="num">{{ currency }}{{ o.total|money }}</td>
         <td>{{ o.get_payment_method_display }}</td>
         <td>{% if o.status == 'voided' %}<span class="badge badge--danger">Voided</span>{% else %}<span class="badge badge--ok">Paid</span>{% endif %}</td>
         <td>{{ o.get_kitchen_status_display }}</td>

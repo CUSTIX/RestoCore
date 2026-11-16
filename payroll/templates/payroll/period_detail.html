@@ -22,9 +22,9 @@
 {% include "payroll/_demo_notice.html" %}
 <div class="grid">
   <div class="card"><div class="stat">{{ totals.hours }}</div><div class="stat-label">Hours worked</div></div>
-  <div class="card"><div class="stat">{{ totals.gross|money }}</div><div class="stat-label">Gross pay</div></div>
-  <div class="card"><div class="stat">{{ totals.deductions|money }}</div><div class="stat-label">Deductions</div></div>
-  <div class="card"><div class="stat">{{ totals.net|money }}</div><div class="stat-label">Net pay</div></div>
+  <div class="card"><div class="stat">{{ currency }}{{ totals.gross|money }}</div><div class="stat-label">Gross pay</div></div>
+  <div class="card"><div class="stat">{{ currency }}{{ totals.deductions|money }}</div><div class="stat-label">Deductions</div></div>
+  <div class="card"><div class="stat">{{ currency }}{{ totals.net|money }}</div><div class="stat-label">Net pay</div></div>
 </div>
 {% if payslips %}
 <div class="table-wrap">

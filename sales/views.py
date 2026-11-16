@@ -1,5 +1,6 @@
 import uuid
 
+from django.conf import settings
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.http import Http404
@@ -138,7 +139,9 @@ class PosView(RoleRequiredMixin, TemplateView):
                 form.add_error(None, exc)
             else:
                 messages.success(
-                    request, f"Order {order.number} paid. Change due: {order.change_due:,.2f}"
+                    request,
+                    f"Order {order.number} paid. "
+                    f"Change due: {settings.CURRENCY_SYMBOL}{order.change_due:,.2f}",
                 )
                 return redirect("sales:order_detail", pk=order.pk)
         return self.render_to_response(self.get_context_data(form=form))
