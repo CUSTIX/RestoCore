@@ -264,3 +264,7 @@ img, svg, video { max-width: 100%; }
   .btn--small { padding: .55em 1em; }
   .link-button { padding: .35rem 0; }
 }
+/* Skip link: first thing a keyboard user tabs to, so 16 sidebar links aren't walked every page. */
+.skip-link { position: absolute; left: 12px; top: -64px; z-index: 100; padding: .6rem 1rem; border-radius: 10px; font-weight: 700;
+  background: var(--ink); color: var(--bg); text-decoration: none; transition: top .15s; }
+.skip-link:focus { top: 12px; }

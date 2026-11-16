@@ -3,6 +3,7 @@
 {% block styles %}<link rel="stylesheet" href="{% static 'website/site.css' %}">{% endblock %}
 {% block body_class %}public{% block public_class %}{% endblock %}{% endblock %}
 {% block body %}
+<a class="skip-link" href="#main">Skip to content</a>
 {% with page=request.resolver_match.url_name %}
 <header class="site-header" data-header>
   <div class="nav-pill">

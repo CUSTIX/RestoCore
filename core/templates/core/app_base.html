@@ -3,6 +3,7 @@
 {% block styles %}<link rel="stylesheet" href="{% static 'core/app.css' %}">{% endblock %}
 {% block body_class %}app{% endblock %}
 {% block body %}
+<a class="skip-link" href="#main">Skip to content</a>
 <div class="app-shell">
   <aside class="sidebar" id="sidebar" aria-label="Staff navigation">
     <a class="sidebar__brand" href="{% url 'dashboard:index' %}">
