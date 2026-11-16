@@ -97,3 +97,35 @@ def test_no_preconnect_hints_the_csp_would_refuse(template):
     """UX-16: a preconnect to Google Fonts is governed by connect-src, which only allows 'self',
     so every page logged a console error. The stylesheet itself is allowed and still loads."""
     assert 'rel="preconnect"' not in template.read_text(encoding="utf-8")
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("url", ["/", "/menu/"])
+def test_public_pages_start_with_a_skip_link(client, url):
+    html = client.get(url).content.decode()
+    assert html.index('class="skip-link"') < html.index("<header")
+    assert 'id="main"' in html
+
+
+@pytest.mark.django_db
+def test_staff_pages_start_with_a_skip_link(client_for):
+    html = client_for("Manager").get("/app/").content.decode()
+    assert html.index('class="skip-link" href="#main"') < html.index("<aside")
+    assert 'id="main"' in html
+
+
+def _css(name):
+    return (Path(settings.BASE_DIR) / "core" / "static" / "core" / name).read_text("utf-8")
+
+
+def test_pos_checkout_bar_covers_tablets_not_only_phones():
+    """Between 641 and 1100 px the POS is one column, so the total bar must show there too."""
+    css = _css("app.css")
+    rule = css.index("  .pos-mobile-bar { display: flex;")
+    opening = css.rindex("@media", 0, rule)
+    assert css[opening : css.index("{", opening)].strip() == "@media (max-width: 1100px)"
+
+
+def test_auto_reload_waits_while_someone_is_typing():
+    js = _css("motion.js")
+    assert "document.activeElement" in js and "defaultValue" in js
