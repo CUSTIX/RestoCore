@@ -4,7 +4,7 @@
 {% block page_title %}Order {{ order.number }}{% endblock %}
 {% block page_actions %}
   <button class="btn btn--ghost" data-print>Print receipt</button>
-  {% if user|has_role:"Owner,Manager,Cashier" %}<a href="{% url 'sales:order_list' %}">All orders</a>{% endif %}
+  {% if user|has_role:"Owner,Manager,Cashier" %}<a class="btn" href="{% url 'sales:pos' %}">New order</a><a href="{% url 'sales:order_list' %}">All orders</a>{% endif %}
 {% endblock %}
 {% block content %}
 <div class="grid grid--2">

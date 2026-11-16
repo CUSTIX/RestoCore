@@ -14,12 +14,13 @@ Fixed, each with a test that failed first (where the finding was a bug), one com
 - **Phase 0:** OPS-01, OPS-03, OPS-05, OPS-06, OPS-09, OPS-12, SEC-06, UX-01, UX-02, UX-03, UX-16, QA-18, QA-19, QA-25.
 - **Phase 1:** COR-01 (payroll finalize), COR-03, COR-05, COR-06, COR-07, COR-08, COR-09, COR-13, SEC-01, SEC-03, SEC-04, SEC-05, SEC-07, SEC-08, SEC-10, OPS-04 (and SEC-02), OPS-02 in `render.yaml` (needs a Blueprint sync in Render, see below), OPS-10.
 - **Phase 2 (started):** QA-01 (coverage floor 92%, measured 94.3%), QA-02 (fast hasher: suite 6 to 4 minutes), QA-04 and QA-05 (a role x URL x GET/POST matrix of 432 cases driven by the URLconf), QA-08, QA-16, part of QA-23.
+- **Phase 3 (started, 2026-11-16):** UX-04 (form errors announced), UX-05 (checkout bar on tablets), UX-06 (no auto-reload while typing), UX-08 (skip link), UX-10 (New order on the receipt).
 - One more bug found while fixing: `assistant/tests/test_tools.py::test_staff_tools` failed between midnight and 5 AM Manila (clock-dependent); now uses a fixed time.
 - Abot got the same operations fixes before launch (`/livez/`, deploy after CI, nightly reset, heartbeat).
 
-Suite: **1263 tests, 94.3% coverage**, about 4 to 6 minutes.
+Suite: **1277 tests, 94.3% coverage**, about 4 to 6 minutes.
 
-**Still open:** COR-02, COR-04, COR-10 to COR-12, COR-14 to COR-17 (need your decisions or are low value); UX-04 to UX-15, UX-17 to UX-23; QA-03, QA-06, QA-07, QA-09 to QA-15, QA-17, QA-20 to QA-23 (rest), QA-26, QA-27; OPS-07, OPS-08, OPS-11, OPS-13 to OPS-15; SEC-09 done via OPS-01, SEC-11 (decision). Phase 5 upgrades (Django 6.1, Python 3.15).
+**Still open:** COR-02, COR-04, COR-10 to COR-12, COR-14 to COR-17 (need your decisions or are low value); UX-07, UX-09, UX-11 to UX-15, UX-17 to UX-23; QA-03, QA-06, QA-07, QA-09 to QA-15, QA-17, QA-20 to QA-23 (rest), QA-26, QA-27; OPS-07, OPS-08, OPS-11, OPS-13 to OPS-15; SEC-09 done via OPS-01, SEC-11 (decision). Phase 5 upgrades (Django 6.1, Python 3.15).
 
 **After the push, in the Render dashboard** (the Blueprint file is not applied automatically): sync the Blueprint (or set the health check path to `/livez/`, auto-deploy to "After CI checks pass", and add `DEMO_RESET_HOUR=4`).
 

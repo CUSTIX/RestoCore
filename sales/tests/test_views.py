@@ -262,3 +262,17 @@ def test_kitchen_advance_without_the_screens_status_is_refused(client_for, make_
     o.refresh_from_db()
     assert o.kitchen_status == "queued"
     assert "out of date" in response.content.decode()
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "role,sees_new_order",
+    [("Owner", True), ("Manager", True), ("Cashier", True), ("Kitchen", False)],
+)
+def test_receipt_offers_new_order_only_to_people_who_can_ring_one_up(
+    client_for, stocked_menu, role, sees_new_order
+):
+    client_for("Cashier").post("/app/sales/pos/", pos_data(stocked_menu["dish"]))
+    order = Order.objects.get()
+    page = client_for(role).get(f"/app/sales/orders/{order.pk}/").content.decode()
+    assert ('href="/app/sales/pos/"' in page) is sees_new_order
