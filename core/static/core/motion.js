@@ -372,7 +372,19 @@
   });
   document.querySelectorAll("[data-auto-reload]").forEach(function (el) {
     var seconds = parseInt(el.getAttribute("data-auto-reload"), 10);
-    if (seconds > 0) setTimeout(function () { window.location.reload(); }, seconds * 1000);
+    if (!(seconds > 0)) return;
+    /* A blind reload would wipe a code the cashier is typing, so wait while any field is in use. */
+    var busy = function () {
+      var active = document.activeElement;
+      if (active && /^(INPUT|TEXTAREA|SELECT)$/.test(active.tagName)) return true;
+      return Array.prototype.some.call(document.querySelectorAll("main input[type=text], main input[type=number], main textarea"),
+        function (field) { return field.value !== field.defaultValue; });
+    };
+    var tick = function () {
+      if (busy()) setTimeout(tick, seconds * 1000);
+      else window.location.reload();
+    };
+    setTimeout(tick, seconds * 1000);
   });
 
   /* ---- Forms: check before sending, explain inline, never send twice ---------------------
