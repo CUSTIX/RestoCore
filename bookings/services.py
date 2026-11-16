@@ -40,8 +40,10 @@ TRANSITIONS = {
 
 
 def time_slots() -> list[dt.time]:
-    slots, current = [], dt.datetime.combine(dt.date.today(), OPENING_TIME)
-    last = dt.datetime.combine(dt.date.today(), LAST_SEATING)
+    # Any fixed day works: only the times matter (and it stays independent of the server time zone).
+    anchor = dt.date(2000, 1, 1)
+    slots, current = [], dt.datetime.combine(anchor, OPENING_TIME)
+    last = dt.datetime.combine(anchor, LAST_SEATING)
     while current <= last:
         slots.append(current.time())
         current += dt.timedelta(minutes=SLOT_MINUTES)

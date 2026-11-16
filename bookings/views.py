@@ -27,6 +27,10 @@ class PublicBookingView(FormView):
     template_name = "bookings/public_form.html"
     form_class = PublicBookingForm
 
+    def get_initial(self):
+        # After the last seating, today has nothing to offer: open the form on tomorrow instead.
+        return {"date": selectors.first_bookable_date()}
+
     def form_valid(self, form):
         data = {k: v for k, v in form.cleaned_data.items() if k != "website"}
         try:

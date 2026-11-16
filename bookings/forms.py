@@ -34,6 +34,9 @@ class BookingForm(forms.ModelForm):
         # still be possible (e.g. fixing a phone number), so its own date stays allowed.
         if not self.instance.pk or self.instance.date >= today:
             self.fields["date"].widget.attrs["min"] = today.isoformat()
+            self.fields["date"].widget.attrs["data-min-message"] = (
+                "Please pick today or a later date."
+            )
         if self.instance.pk and self.instance.time:
             self.initial["time"] = self.instance.time.strftime("%H:%M")
 

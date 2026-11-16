@@ -121,3 +121,11 @@ def stats_between(start: dt.date, end: dt.date) -> dict:
         "expected_or_served_guests": guests,
         "no_show_rate": round(no_shows / (happened + no_shows), 3) if happened + no_shows else None,
     }
+
+
+def first_bookable_date(now: dt.datetime | None = None) -> dt.date:
+    """Today while a seating is still ahead, otherwise tomorrow (the booking form's default day)."""
+    now = timezone.localtime(now)
+    if now.time().replace(tzinfo=None) >= LAST_SEATING:
+        return now.date() + dt.timedelta(days=1)
+    return now.date()

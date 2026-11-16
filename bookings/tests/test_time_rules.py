@@ -186,3 +186,42 @@ def test_editing_staff_can_leave_a_booking_out_of_the_count_but_the_public_canno
 def test_staff_booking_form_loads_the_slot_helper(client_for):
     html = client_for("Manager").get("/app/bookings/new/").content.decode()
     assert "bookings/slots" in html and "data-availability-url" in html
+
+
+class TestFirstBookableDate:
+    """UX-17: after the last seating the public form opened on today, with every slot hidden."""
+
+    @staticmethod
+    def _at(hour, minute=0):
+        import datetime as dt
+
+        from django.utils import timezone
+
+        return timezone.make_aware(dt.datetime(2026, 11, 16, hour, minute))
+
+    def test_before_last_seating_is_today(self):
+        import datetime as dt
+
+        from bookings.selectors import first_bookable_date
+
+        assert first_bookable_date(self._at(10)) == dt.date(2026, 11, 16)
+        assert first_bookable_date(self._at(20, 59)) == dt.date(2026, 11, 16)
+
+    def test_from_last_seating_on_is_tomorrow(self):
+        import datetime as dt
+
+        from bookings.selectors import first_bookable_date
+
+        assert first_bookable_date(self._at(21)) == dt.date(2026, 11, 17)
+        assert first_bookable_date(self._at(23, 30)) == dt.date(2026, 11, 17)
+
+
+def test_public_form_opens_on_the_first_bookable_day(client, db, monkeypatch):
+    import datetime as dt
+
+    from bookings import views
+
+    monkeypatch.setattr(views.selectors, "first_bookable_date", lambda: dt.date(2026, 12, 1))
+    html = client.get("/book/").content.decode()
+    assert 'value="2026-12-01"' in html
+    assert 'data-min-message="Please pick today or a later date."' in html
