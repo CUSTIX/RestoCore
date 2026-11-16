@@ -118,3 +118,11 @@ def test_password_change_rejects_a_wrong_current_password(client, make_user):
     assert response.status_code == 200
     user.refresh_from_db()
     assert user.check_password(PASSWORD)
+
+
+@pytest.mark.django_db
+def test_wrong_password_message_is_announced_to_screen_readers(client, make_user):
+    make_user("Staff", username="ana")
+    response = client.post("/accounts/login/", {"username": "ana", "password": "wrong"})
+    html = response.content.decode()
+    assert 'role="alert"' in html

@@ -52,3 +52,22 @@ def query_with(context, **kwargs) -> str:
     for key, value in kwargs.items():
         params[key] = value
     return params.urlencode()
+
+
+@register.filter
+def accessible(field):
+    """Render a form field with the ARIA attributes a screen reader needs to hear its problems.
+
+    The form partial gives the help text and the error list stable ids; this points the input at
+    them (`aria-describedby`) and marks it `aria-invalid` when the server rejected the value.
+    """
+    described = []
+    if field.help_text:
+        described.append(f"{field.auto_id}_helptext")
+    attrs = {}
+    if field.errors:
+        described.append(f"{field.auto_id}_error")
+        attrs["aria-invalid"] = "true"
+    if described:
+        attrs["aria-describedby"] = " ".join(described)
+    return field.as_widget(attrs=attrs)
